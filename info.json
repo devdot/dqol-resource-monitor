@@ -1,0 +1,11 @@
+{
+    "name": "external-dashboard",
+    "version": "0.0.1",
+    "title": "External Dashboard",
+    "author": "devdot",
+    "factorio_version": "1.1",
+    "dependencies": [
+        "base >= 1.1"
+    ],
+    "description": "Display dashboard information from your single player game on a secondary screen."
+}
