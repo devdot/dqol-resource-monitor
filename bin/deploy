@@ -29,10 +29,10 @@ function setVersionInLua(string $version, string $filename = 'control.lua'): voi
     [$major, $minor, $patch] = explode('.', $version);
 
     $string = '_VERSION = {' . PHP_EOL;
-    $string .= '  major = ' . $major . ',' . PHP_EOL;
-    $string .= '  minor = ' . $minor . ',' . PHP_EOL;
-    $string .= '  patch = ' . $patch . ',' . PHP_EOL;
-    $string .= '  string = \'' . $version . '\',' . PHP_EOL;
+    $string .= '    major = ' . $major . ',' . PHP_EOL;
+    $string .= '    minor = ' . $minor . ',' . PHP_EOL;
+    $string .= '    patch = ' . $patch . ',' . PHP_EOL;
+    $string .= '    string = \'' . $version . '\',' . PHP_EOL;
     $string .= '}';
 
     $file = preg_replace('/^_VERSION = \{(.*?)\}$/ms', $string, $file, 1);
