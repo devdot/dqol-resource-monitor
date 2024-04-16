@@ -302,8 +302,6 @@ function Sites.add_site_to_cache(site)
 
     local outer_chunks = get_outer_chunks(site)
 
-    game.print('add: ' .. site.name .. ' ' .. site.type)
-
     -- now check if this borders any other sites
     for _, chunkKey in pairs(outer_chunks) do
         -- calculate the relevant neighbors first
@@ -316,6 +314,10 @@ function Sites.add_site_to_cache(site)
                 if otherSite.chunks[neighborKey] ~= nil then
                     -- now check if they actually match up
                     if bit32.band(site.chunks[chunkKey][direction], otherSite.chunks[neighborKey][otherDirection]) > 0 then
+                        if _DEBUG then
+                            game.print('Merge into site ' .. otherSite.name)
+                        end
+
                         -- we found a match
                         -- clean up the seam
                         site.chunks[chunkKey][direction] = 0
@@ -327,6 +329,10 @@ function Sites.add_site_to_cache(site)
                 end
             end
         end
+    end
+    
+    if _DEBUG then
+        game.print('Add new site ' .. site.name)
     end
 
     -- we did not return yet, so we simply add it now
@@ -385,6 +391,8 @@ function Sites.update_cached_site(site)
 end
 
 function Sites.update_cached_all()
+    -- todo: implement partial update
+    -- when external-dashboard-site-entities-per-update is not 0
     if global.sites == nil then return nil end
     for surfaceKey, surfaces in pairs(Sites.get_sites_from_cache_all()) do
         for type, sites in pairs(surfaces) do
@@ -395,4 +403,7 @@ function Sites.update_cached_all()
     end
 end
 
-script.on_nth_tick(180, function(event) Sites.update_cached_all() end) -- todo adjust
+function Sites.boot()
+    script.on_nth_tick(settings.global['external-dashboard-site-ticks-between-updates'].value, function(event) Sites.update_cached_all() end) -- todo adjust
+end
+

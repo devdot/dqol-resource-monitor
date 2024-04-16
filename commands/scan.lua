@@ -1,3 +1,4 @@
 return function(command)
-  scanner.scan_all()
+    Scanner.scan_all()
+    Ui.update()
 end

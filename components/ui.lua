@@ -68,7 +68,7 @@ function Ui.init(player)
         root.destroy()
     end
     root = create_root(player)
-    Ui.update_sites()
+    Ui.update_sites(player)
 end
 
 function Ui.update()
@@ -83,6 +83,9 @@ function Ui.update_sites(player)
     if root.sites then
         root.sites.destroy()
     end
+
+    -- check if UI is enabled
+    if settings.get_player_settings(player.index)['external-dashboard-ui-site-show'].value == false then return end
 
     local gui = root.add {
         type = 'table',
@@ -161,14 +164,6 @@ function Ui.rename_callback(site, player)
     Ui.update_sites(player)
 end
 
-function on_player_created(event)
-    Ui.init(event.player)
-end
-
-function on_player_joined_game(event)
-    Ui.init(event.player)
-end
-
 function on_gui_click(event)
     local name = event.element.name
     if name and string.sub(name, 0, BUTTON_ROUTER.rootLength) == BUTTON_ROUTER.root then
@@ -211,8 +206,16 @@ function on_gui_closed(event)
     end
 end
 
-script.on_event(defines.events.on_player_created, on_player_created)
-script.on_event(defines.events.on_player_joined_game, on_player_joined_game)
-script.on_nth_tick(600, function(event) Ui.update() end) -- todo adjust
-script.on_event({ defines.events.on_gui_click }, on_gui_click)
-script.on_event({ defines.events.on_gui_closed }, on_gui_closed)
+---This is supposed to be called after load/init
+function Ui.boot()
+    script.on_event({ defines.events.on_gui_click }, on_gui_click)
+    script.on_event({ defines.events.on_gui_closed }, on_gui_closed)
+
+    -- register UI update
+    script.on_nth_tick(60, function(event) Ui.update() end)
+end
+
+---This is suppsed to run when a player joins or is created
+function Ui.boot_player(player)
+    Ui.init(player)
+end
