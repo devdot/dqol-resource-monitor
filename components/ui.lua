@@ -49,6 +49,19 @@ local function ticks_to_time(ticks)
     return hour .. ':' .. min .. ':' .. sec
 end
 
+local SI_STRINGS = {'', 'k', 'M', 'G', 'T', 'P', 'E', 'Z'}
+
+---@param integer integer
+---@return string
+local function int_to_exponent_string(integer)
+    local i = 1
+    while integer > 100 do
+        integer = integer / 1000
+        i = i + 1
+    end
+    return string.format('%.2f', integer) .. SI_STRINGS[i]
+end
+
 function Ui.init(player)
     local root = mod_gui.get_frame_flow(player)[Ui.ROOT_FRAME]
     if root ~= nil then
@@ -90,8 +103,8 @@ function Ui.update_sites(player)
             for siteKey, site in pairs(sites) do
                 gui.add { type = 'label', caption = '[item=' .. site.type .. ']' }
                 gui.add { type = 'label', caption = site.name }
-                gui.add { type = 'label', caption = site.amount }
-                gui.add { type = 'label', caption = site.initial_amount }
+                gui.add { type = 'label', caption = int_to_exponent_string(site.amount) }
+                gui.add { type = 'label', caption = int_to_exponent_string(site.initial_amount) }
 
                 local buttons = gui.add { type = 'flow', direction = 'horizontal' }
                 -- buttons.add { type = 'sprite-button', style = 'tool_button', sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. surface_index .. '-' .. type .. '-' .. siteKey }
@@ -112,9 +125,9 @@ function Ui.edit_site(site, player)
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-tiles'}} }
     table.add { type = 'label', caption = #site.positions }
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-amount'}} }
-    table.add { type = 'label', caption = site.amount }
+    table.add { type = 'label', caption = int_to_exponent_string(site.amount) }
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-initial-amount'}} }
-    table.add { type = 'label', caption = site.initial_amount }
+    table.add { type = 'label', caption = int_to_exponent_string(site.initial_amount) }
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-created'}} }
     table.add { type = 'label', caption = ticks_to_time(site.since) .. ' (' .. ticks_to_time(game.tick - site.since) ..' ago)' }
 
