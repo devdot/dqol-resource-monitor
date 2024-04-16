@@ -215,7 +215,7 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
         if not types[resource.name] then
             types[resource.name] = {
                 type = resource.name,
-                name = get_random_name(),
+                name = get_random_name(pos),
                 surface = surface.index,
                 chunks = {},
                 amount = 0,
