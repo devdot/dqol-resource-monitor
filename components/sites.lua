@@ -36,9 +36,23 @@ local names = {
     'Ely',
 }
 
+---@param pos IntPosition
 ---@return string
-local function get_random_name()
-    return names[math.random(1, #names)]
+local function pos_to_compass_direction(pos)
+    local direction
+    if pos.y < 0 then direction = 'N' else direction = 'S' end
+    if pos.x > 0 then direction = direction .. 'E' else direction = direction .. 'W' end
+    return direction
+end
+
+---@param pos IntPosition?
+---@return string
+local function get_random_name(pos)
+    local name = names[math.random(1, #names)]
+    if pos ~= nil then
+       name = pos_to_compass_direction(pos) .. ' ' .. name 
+    end
+    return name
 end
 
 ---@param border integer
