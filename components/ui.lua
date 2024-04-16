@@ -1,11 +1,15 @@
 local mod_gui = require("mod-gui")
 
-local ROOT_FRAME = 'external-dashboard-ui'
-local ROOT_WINDOW = ROOT_FRAME .. '-window'
+Ui = {
+    ROOT_FRAME = 'external-dashboard-ui',
+    ROOT_WINDOW = 'external-dashboard-ui-window',
+}
+
+require('components/ui/window')
 
 local BUTTON_ROUTER = {
-    root = ROOT_FRAME .. '-',
-    rootLength = string.len(ROOT_FRAME) + 1,
+    root = Ui.ROOT_FRAME .. '-',
+    rootLength = string.len(Ui.ROOT_FRAME) + 1,
     sites = {
         ---@param site Site
         show = function(event, site)
@@ -21,55 +25,15 @@ local BUTTON_ROUTER = {
     },
 }
 
-Ui = {}
-
 local function create_root(player)
     return mod_gui.get_frame_flow(player).add {
         type = 'frame',
-        name = ROOT_FRAME,
+        name = Ui.ROOT_FRAME,
     }
 end
 
 local function get_root(player)
-    return mod_gui.get_frame_flow(player)[ROOT_FRAME] or create_root(player)
-end
-
-local function close_window(player)
-    if player.gui.screen[ROOT_WINDOW] ~= nil then
-        player.gui.screen[ROOT_WINDOW].destroy()
-    end
-end
-
-local function get_window(player)
-    return player.gui.screen[ROOT_WINDOW]
-end
-
----@param player LuaPlayer
----@param title string?
----@return LuaGuiElement
-local function create_window(player, title)
-    close_window(player)
-
-    local window = player.gui.screen.add {
-        type = 'frame',
-        name = ROOT_WINDOW,
-        direction = 'vertical',
-    }
-
-    local titlebar = window.add { type = 'flow', name = 'titlebar' }
-    titlebar.drag_target = window
-    titlebar.add { type = 'label', name = 'title', style = 'frame_title', caption = title or 'Title', ignored_by_interaction = true }
-    local filler = titlebar.add { type = 'empty-widget', style = 'draggable_space', ignored_by_interaction = true }
-    filler.style.height = 24
-    filler.style.horizontally_stretchable = true
-    titlebar.add { type = 'sprite-button', name = ROOT_WINDOW .. '-close', style = 'cancel_close_button', sprite = 'utility/close_white' }
-
-    window.force_auto_center()
-    -- window.bring_to_front()
-    -- window.focus()
-    player.opened = window
-
-    return window
+    return mod_gui.get_frame_flow(player)[Ui.ROOT_FRAME] or create_root(player)
 end
 
 ---@param ticks integer
@@ -86,7 +50,7 @@ local function ticks_to_time(ticks)
 end
 
 function Ui.init(player)
-    local root = mod_gui.get_frame_flow(player)[ROOT_FRAME]
+    local root = mod_gui.get_frame_flow(player)[Ui.ROOT_FRAME]
     if root ~= nil then
         root.destroy()
     end
@@ -130,8 +94,8 @@ function Ui.update_sites(player)
                 gui.add { type = 'label', caption = site.initial_amount }
 
                 local buttons = gui.add { type = 'flow', direction = 'horizontal' }
-                -- buttons.add { type = 'sprite-button', style = 'tool_button', sprite = 'utility/show_tags_in_map_view', name = ROOT_FRAME .. '-sites-show-' .. surface_index .. '-' .. type .. '-' .. siteKey }
-                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = ROOT_FRAME .. '-sites-edit-' .. surface_index .. '-' .. type .. '-' .. siteKey }
+                -- buttons.add { type = 'sprite-button', style = 'tool_button', sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. surface_index .. '-' .. type .. '-' .. siteKey }
+                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = Ui.ROOT_FRAME .. '-sites-edit-' .. surface_index .. '-' .. type .. '-' .. siteKey }
             end
         end
     end
@@ -140,7 +104,7 @@ end
 ---@param site Site
 ---@param player LuaPlayer
 function Ui.edit_site(site, player)
-    local window = create_window(player, site.name)
+    local window = Window.create(player, site.name)
 
     local table = window.add { type = 'table', column_count = 2 }
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-surface'}} }
@@ -159,24 +123,24 @@ function Ui.edit_site(site, player)
     local rename = window.add { type = 'flow', name = 'rename' }
     rename.add {
         type = 'textfield',
-        name = ROOT_WINDOW .. '-name',
+        name = Ui.ROOT_WINDOW .. '-name',
         text = site.name,
         lose_focus_on_confirm = true,
         clear_and_focus_on_right_click = true,
     }
-    rename.add { type = 'button', caption = {'external-dashboard.ui-ok'}, style = 'item_and_count_select_confirm', name =  ROOT_FRAME .. '-sites-rename-' .. site.surface .. '-' .. site.type .. '-' .. site.index}
+    rename.add { type = 'button', caption = {'external-dashboard.ui-ok'}, style = 'item_and_count_select_confirm', name =  Ui.ROOT_FRAME .. '-sites-rename-' .. site.surface .. '-' .. site.type .. '-' .. site.index}
 
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
 
     local buttons = window.add { type = 'flow' }
-    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-show-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = ROOT_FRAME .. '-sites-show-' .. site.surface .. '-' .. site.type .. '-' .. site.index }
+    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-show-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. site.surface .. '-' .. site.type .. '-' .. site.index }
 end
 
 ---@param site Site
 ---@param player LuaPlayer
 function Ui.rename_callback(site, player)
-    local textfield = get_window(player)['rename'][ROOT_WINDOW .. '-name']
+    local textfield = Window.get(player)['rename'][Ui.ROOT_WINDOW .. '-name']
 
     site.name = textfield.text
 
@@ -220,7 +184,7 @@ function on_gui_click(event)
         elseif command == 'window' then
             local next = iter()
             if next == 'close' then
-                close_window(game.players[event.player_index])
+                Window.close(game.players[event.player_index])
             end
         end
     end
@@ -228,8 +192,8 @@ end
 
 function on_gui_closed(event)
     if event.element then
-        if event.element.name == ROOT_WINDOW then
-            close_window(game.players[event.player_index])
+        if event.element.name == Ui.ROOT_WINDOW then
+            Window.close(game.players[event.player_index])
         end
     end
 end
