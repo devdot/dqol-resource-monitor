@@ -44,7 +44,10 @@ local function get_window(player)
     return player.gui.screen[ROOT_WINDOW]
 end
 
-local function create_window(player)
+---@param player LuaPlayer
+---@param title string?
+---@return LuaGuiElement
+local function create_window(player, title)
     close_window(player)
 
     local window = player.gui.screen.add {
@@ -55,7 +58,7 @@ local function create_window(player)
 
     local titlebar = window.add { type = 'flow', name = 'titlebar' }
     titlebar.drag_target = window
-    titlebar.add { type = 'label', name = 'title', style = 'frame_title', caption = 'Title', ignored_by_interaction = true }
+    titlebar.add { type = 'label', name = 'title', style = 'frame_title', caption = title or 'Title', ignored_by_interaction = true }
     local filler = titlebar.add { type = 'empty-widget', style = 'draggable_space', ignored_by_interaction = true }
     filler.style.height = 24
     filler.style.horizontally_stretchable = true
@@ -113,9 +116,9 @@ function Ui.update_sites(player)
     }
 
     gui.add { type = 'label', style = 'caption_label', caption = '' }
-    gui.add { type = 'label', style = 'caption_label', caption = 'Name' }
-    gui.add { type = 'label', style = 'caption_label', caption = 'Amount' }
-    gui.add { type = 'label', style = 'caption_label', caption = 'Initial' }
+    gui.add { type = 'label', style = 'caption_label', caption = {'external-dashboard.ui-site-name'} }
+    gui.add { type = 'label', style = 'caption_label', caption = {'external-dashboard.ui-site-amount'} }
+    gui.add { type = 'label', style = 'caption_label', caption = {'external-dashboard.ui-site-initial-amount'} }
     gui.add { type = 'label', style = 'caption_label', caption = '' }
 
     for surface_index, types in pairs(Sites.get_sites_from_cache_all()) do
@@ -137,19 +140,18 @@ end
 ---@param site Site
 ---@param player LuaPlayer
 function Ui.edit_site(site, player)
-    local window = create_window(player)
-    window['titlebar']['title'].caption = site.name
+    local window = create_window(player, site.name)
 
     local table = window.add { type = 'table', column_count = 2 }
-    table.add { type = 'label', caption = 'Surface:' }
+    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-surface'}} }
     table.add { type = 'label', caption = game.surfaces[site.surface].name .. ' [' .. site.surface .. ']' }
-    table.add { type = 'label', caption = 'Tiles:' }
+    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-tiles'}} }
     table.add { type = 'label', caption = #site.positions }
-    table.add { type = 'label', caption = 'Amount:' }
+    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-amount'}} }
     table.add { type = 'label', caption = site.amount }
-    table.add { type = 'label', caption = 'Initial:' }
+    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-initial-amount'}} }
     table.add { type = 'label', caption = site.initial_amount }
-    table.add { type = 'label', caption = 'Created:' }
+    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-created'}} }
     table.add { type = 'label', caption = ticks_to_time(site.since) .. ' (' .. ticks_to_time(game.tick - site.since) ..' ago)' }
 
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
@@ -162,13 +164,13 @@ function Ui.edit_site(site, player)
         lose_focus_on_confirm = true,
         clear_and_focus_on_right_click = true,
     }
-    rename.add { type = 'button', caption = 'OK', style = 'item_and_count_select_confirm', name =  ROOT_FRAME .. '-sites-rename-' .. site.surface .. '-' .. site.type .. '-' .. site.index}
+    rename.add { type = 'button', caption = {'external-dashboard.ui-ok'}, style = 'item_and_count_select_confirm', name =  ROOT_FRAME .. '-sites-rename-' .. site.surface .. '-' .. site.type .. '-' .. site.index}
 
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
 
     local buttons = window.add { type = 'flow' }
-    buttons.add { type = 'sprite-button', tooltip = 'Show on map', sprite = 'utility/show_tags_in_map_view', name = ROOT_FRAME .. '-sites-show-' .. site.surface .. '-' .. site.type .. '-' .. site.index }
+    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-show-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = ROOT_FRAME .. '-sites-show-' .. site.surface .. '-' .. site.type .. '-' .. site.index }
 end
 
 ---@param site Site
