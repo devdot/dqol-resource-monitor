@@ -2,8 +2,8 @@ _DEBUG = true
 _VERSION = {
     major = 0,
     minor = 0,
-    patch = 2,
-    string = '0.0.2',
+    patch = 3,
+    string = '0.0.3',
 }
 
 -- second screen mod ideas

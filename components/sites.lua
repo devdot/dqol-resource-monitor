@@ -5,9 +5,10 @@ Sites = {}
 ---@alias IntPosition {x: integer, y: integer}
 ---@alias DirectionIdentifier 'top'|'bottom'|'left'|'right'
 ---@alias SiteChunk {x: integer, y: integer, top: integer, bottom: integer, left: integer, right: integer}
----@alias Site {type: string, name: string, surface: integer, chunks: SiteChunk[], amount: integer, initial_amount: integer, positions: IntPosition[], index: integer, since: integer}
+---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
+---@alias Site {id: integer, type: string, name: string, surface: integer, chunks: SiteChunk[], amount: integer, initial_amount: integer, positions: IntPosition[], index: integer, since: integer, area: SiteArea, tracking: boolean}
 
----@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?}
+---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?}
 ---@cast global {sites: GlobalSites?}
 
 local names = {
@@ -134,6 +135,22 @@ function Sites.highlight_site(site)
         b = math.random(128, 255),
     }
 
+    rendering.draw_rectangle {
+        color = color,
+        left_top = { x = site.area.left, y = site.area.top },
+        right_bottom = { x = site.area.right + 1, y = site.area.bottom + 1},
+        surface = site.surface,
+        time_to_live = 200,
+    }
+
+    rendering.draw_circle {
+        color = {r = 255, g = 0, b = 0},
+        radius = 1,
+        target = { x = site.area.x + 0.5, y = site.area.y + 0.5 },
+        surface = site.surface,
+        time_to_live = 200,
+    }
+
     for key, pos in pairs(site.positions) do
         rendering.draw_rectangle {
             color = color,
@@ -198,6 +215,25 @@ local function get_neighboring_chunk_keys(chunk)
     return neighbors
 end
 
+---@param site SiteArea
+---@return SiteArea
+local function update_site_area_center(site)
+    site.x = site.left + math.floor((site.right - site.left) / 2)
+    site.y = site.top + math.floor((site.bottom - site.top) / 2)
+    return site
+end
+
+---@param areaBase SiteArea
+---@param areaAdd SiteArea
+---@return SiteArea
+local function merge_site_areas(areaBase, areaAdd)
+    if areaAdd.top < areaBase.top then areaBase.top = areaAdd.top end
+    if areaAdd.bottom > areaBase.bottom then areaBase.bottom = areaAdd.bottom end
+    if areaAdd.left < areaBase.left then areaBase.left = areaAdd.left end
+    if areaAdd.right > areaBase.right then areaBase.right = areaAdd.right end
+    return update_site_area_center(areaBase)
+end
+
 ---Merge a site into another one. Returns the first param with the second merged into it
 ---@param siteBase Site
 ---@param siteAdd Site
@@ -208,6 +244,7 @@ local function merge_sites(siteBase, siteAdd)
     siteBase.chunks = Table.dictionary_combine(siteBase.chunks, siteAdd.chunks)
     siteBase.positions = Table.array_combine(siteBase.positions, siteAdd.positions)
     siteBase.since = math.min(siteBase.since, siteAdd.since)
+    siteBase.area = merge_site_areas(siteBase.area, siteAdd.area)
     return siteBase
 end
 
@@ -228,6 +265,7 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
 
         if not types[resource.name] then
             types[resource.name] = {
+                id = 0,
                 type = resource.name,
                 name = get_random_name(pos),
                 surface = surface.index,
@@ -237,6 +275,8 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
                 positions = {},
                 since = game.tick,
                 index = 0,
+                area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
+                tracking = true, -- todo create a default setting for this
             }
 
             types[resource.name].chunks[chunk_key] = {
@@ -277,8 +317,29 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
     return types
 end
 
+---@param site Site
+---@return Site
+function Sites.update_site_area(site)
+    for key, pos in pairs(site.positions) do
+        if pos.x > site.area.right then
+            site.area.right = pos.x
+        elseif pos.x < site.area.left then
+            site.area.left = pos.x
+        end
+
+        if pos.y > site.area.bottom then
+            site.area.bottom = pos.y
+        elseif pos.y < site.area.top then
+            site.area.top = pos.y
+        end
+    end
+    site.area = update_site_area_center(site.area)
+    return site
+end
+
 function Sites.reset_cache()
     global.sites = {}
+    global.ids = {}
 end
 
 ---Add a new site to the cache
@@ -286,6 +347,10 @@ end
 function Sites.add_site_to_cache(site)
     if not global.sites then
         global.sites = { surfaces = {} }
+    end
+
+    if not global.sites.ids then
+        global.sites.ids = {}
     end
 
     if not global.sites.surfaces then
@@ -300,6 +365,7 @@ function Sites.add_site_to_cache(site)
         global.sites.surfaces[site.surface][site.type] = {}
     end
 
+    site = Sites.update_site_area(site)
     local outer_chunks = get_outer_chunks(site)
 
     -- now check if this borders any other sites
@@ -339,6 +405,11 @@ function Sites.add_site_to_cache(site)
     local index = #global.sites.surfaces[site.surface][site.type] + 1
     site.index = index
     global.sites.surfaces[site.surface][site.type][index] = site
+
+    -- add to ids
+    local nextId = #(global.sites.ids) + 1
+    site.id = nextId
+    global.sites.ids[nextId] = site
 end
 
 ---@param sites Site[]
@@ -372,6 +443,15 @@ function Sites.get_site_from_cache(surface_index, type, index)
     if global.sites.surfaces[surface_index] == nil then return nil end
     if global.sites.surfaces[surface_index][type] == nil then return nil end
     return global.sites.surfaces[surface_index][type][index] or nil
+end
+
+---Get site from cache using ID
+---@param id integer
+---@return Site?
+function Sites.get_site_by_id(id)
+    if global.sites == nil then return nil end
+    if global.sites.ids == nil then return nil end
+    return global.sites.ids[id] or nil;
 end
 
 ---@param site Site

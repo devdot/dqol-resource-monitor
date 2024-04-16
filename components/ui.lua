@@ -14,6 +14,7 @@ local BUTTON_ROUTER = {
         ---@param site Site
         show = function(event, site)
             Sites.highlight_site(site)
+            game.players[event.player_index].zoom_to_world(site.area)
         end,
         ---@param site Site
         edit = function(event, site)
@@ -110,8 +111,7 @@ function Ui.update_sites(player)
                 gui.add { type = 'label', caption = int_to_exponent_string(site.initial_amount) }
 
                 local buttons = gui.add { type = 'flow', direction = 'horizontal' }
-                -- buttons.add { type = 'sprite-button', style = 'tool_button', sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. surface_index .. '-' .. type .. '-' .. siteKey }
-                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = Ui.ROOT_FRAME .. '-sites-edit-' .. surface_index .. '-' .. type .. '-' .. siteKey }
+                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = Ui.ROOT_FRAME .. '-sites-edit-' .. site.id}
             end
         end
     end
@@ -123,6 +123,8 @@ function Ui.edit_site(site, player)
     local window = Window.create(player, site.name)
 
     local table = window.add { type = 'table', column_count = 2 }
+    table.add { type = 'label', caption = {'external-dashboard.ui-colon', 'ID'} }
+    table.add { type = 'label', caption = '#' .. site.id }
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-surface'}} }
     table.add { type = 'label', caption = game.surfaces[site.surface].name .. ' [' .. site.surface .. ']' }
     table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-tiles'}} }
@@ -144,13 +146,17 @@ function Ui.edit_site(site, player)
         lose_focus_on_confirm = true,
         clear_and_focus_on_right_click = true,
     }
-    rename.add { type = 'button', caption = {'external-dashboard.ui-ok'}, style = 'item_and_count_select_confirm', name =  Ui.ROOT_FRAME .. '-sites-rename-' .. site.surface .. '-' .. site.type .. '-' .. site.index}
+    rename.add { type = 'button', caption = {'external-dashboard.ui-ok'}, style = 'item_and_count_select_confirm', name =  Ui.ROOT_FRAME .. '-sites-rename-' .. site.id}
 
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
+    local camera = window.add { type = 'camera', position = {x = site.area.x, y = site.area.y}, surface_index = site.surface, zoom = 0.5 }
+    camera.style.size = 300
+
+    window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
     local buttons = window.add { type = 'flow' }
-    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-show-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. site.surface .. '-' .. site.type .. '-' .. site.index }
+    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-show-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. site.id }
 end
 
 ---@param site Site
@@ -175,17 +181,12 @@ function on_gui_click(event)
         if command == 'sites' then
             local func = iter()
             -- move remaining matches into p
-            local p = {}
-            for v in iter do table.insert(p, v) end
-            local surfaceKey = tonumber(p[1])
-            local siteKey = tonumber(p[#p])
-            local typeKey = table.concat(p, '-', 2, #p - 1)
+            local id = tonumber(iter()) or 0
 
-            local site = Sites.get_site_from_cache(surfaceKey, typeKey, siteKey)
+            local site = Sites.get_site_by_id(id)
 
             if site == nil then
-                game.players[event.player_index].print('Cannot find site Surface ' ..
-                    surfaceKey .. ', Type ' .. typeKey .. ', Index ' .. siteKey)
+                game.players[event.player_index].print('Cannot find site Surface #' .. id)
             else
                 BUTTON_ROUTER.sites[func](event, site)
             end
