@@ -2,7 +2,14 @@
 local Position = require('__stdlib__/stdlib/area/position')
 
 
-Scanner = {}
+Scanner = {
+    DEFAULT_FORCE = 1,
+}
+
+---@return LuaForce
+local function get_default_force()
+    return game.forces[Scanner.DEFAULT_FORCE]    
+end
 
 function Scanner.scan_all()
     for index, surface in pairs(game.surfaces) do
@@ -12,12 +19,11 @@ end
 
 ---@param surface LuaSurface
 function Scanner.scan_surface(surface)
-    local force = game.player.force
+    local force = get_default_force()
 
     for chunk in surface.get_chunks() do
         if force.is_chunk_charted(surface, chunk) then
-            local scanned = Scanner.scan_chunk(surface, chunk)
-            -- if scanned then return nil end
+            Scanner.scan_chunk(surface, chunk)
         end
     end
 
@@ -25,9 +31,6 @@ function Scanner.scan_surface(surface)
     if _DEBUG or false then
         for type, sites in pairs(Sites.get_sites_from_cache(surface.index)) do
             for key, site in pairs(sites) do
-                game.print(site.name .. ' ' .. site.type ..
-                    ' at ' ..
-                    Position.to_key(site.positions[1]) .. ' ' .. site.amount .. '(' .. site.initial_amount .. ')')
                 Sites.highlight_site(site)
             end
         end
@@ -68,7 +71,9 @@ function Scanner.scan_chunk(surface, chunk)
 end
 
 function on_chunk_charted(event)
-    Scanner.scan_chunk(game.surfaces[event.surface_index], event.position)
+    if event.force.index == Scanner.DEFAULT_FORCE then
+        Scanner.scan_chunk(game.surfaces[event.surface_index], event.position)
+    end
 end
 
 function Scanner.boot()
