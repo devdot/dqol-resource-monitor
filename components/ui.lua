@@ -21,8 +21,12 @@ local BUTTON_ROUTER = {
             Ui.edit_site(site, game.players[event.player_index])
         end,
         rename = function(event, site)
-            Ui.rename_callback(site, game.players[event.player_index])    
-        end
+            Ui.rename_callback(site, game.players[event.player_index])
+        end,
+        update = function(event, site)
+            Sites.update_cached_site(site)
+            Ui.edit_site(site, game.players[event.player_index])    
+        end,
     },
 }
 
@@ -157,6 +161,7 @@ function Ui.edit_site(site, player)
 
     local buttons = window.add { type = 'flow' }
     buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-show-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = Ui.ROOT_FRAME .. '-sites-show-' .. site.id }
+    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-update-tooltip'}, sprite = 'utility/refresh', name = Ui.ROOT_FRAME .. '-sites-update-' .. site.id }
 end
 
 ---@param site Site
