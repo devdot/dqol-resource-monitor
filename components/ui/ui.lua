@@ -18,6 +18,12 @@ Ui.BUTTON_ROUTER = {
         rename = Ui.Site.onRename,
         update = Ui.Site.onUpdate,
     },
+    menu = {
+        show = Ui.Menu.onShow,
+        site = {
+            show = Ui.Menu.onSiteShow,
+        },
+    }
 }
 
 function Ui.onClick(event)
@@ -38,12 +44,27 @@ function Ui.onClick(event)
             if site ~= nil then
                 Ui.BUTTON_ROUTER.site[func](site, game.players[event.player_index], event)
             else
-                game.players[event.player_index].print('Cannot find site Surface #' .. id)
+                game.players[event.player_index].print('Cannot find site #' .. id)
             end
         elseif command == 'window' then
             local next = iter()
             if next == 'close' then
                 Ui.Window.close(game.players[event.player_index])
+            end
+        elseif command == 'menu' then
+            local next = iter()
+            if next == 'site' then
+                local func = iter()
+                local id = tonumber(iter()) or 0
+                local site = Sites.get_site_by_id(id)
+
+                if site ~= nil then
+                    Ui.BUTTON_ROUTER.menu.site[func](site, game.players[event.player_index], event)
+                else
+                    game.players[event.player_index].print('Cannot find site #' .. id)
+                end
+            elseif Ui.BUTTON_ROUTER.menu[next] ~= nil then
+                Ui.BUTTON_ROUTER.menu[next](game.players[event.player_index], event)
             end
         end
     end
@@ -63,6 +84,11 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents
-    Ui.Menu.boot()
     Ui.Sites.boot()
+end
+
+---This is supposed to run on on_player_created or (or multiplayer join?)
+---@param LuaPlayer
+function Ui.bootPlayer(player)
+    Ui.Menu.bootPlayer(player)
 end

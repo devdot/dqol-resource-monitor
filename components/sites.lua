@@ -486,6 +486,14 @@ function Sites.get_site_by_id(id)
     return global.sites.ids[id] or nil;
 end
 
+---Get site from cache, just by ID
+---@param id integer
+---@return table<integer, Site>
+function Sites.get_sites_by_id()
+    if global.sites == nil then return {} end
+    return global.sites.ids or {}
+end
+
 ---@param site Site
 function Sites.update_cached_site(site)
     local amount = 0

@@ -32,13 +32,6 @@ data:extend({
         order = 'site04',
     },
     {
-        name = 'dqol-resource-monitor-ui-button-show',
-        type = 'bool-setting',
-        default_value = true,
-        setting_type = 'runtime-global',
-        order = 'ui01',
-    },
-    {
         name = 'dqol-resource-monitor-ui-sites-show',
         type = 'bool-setting',
         default_value = true,

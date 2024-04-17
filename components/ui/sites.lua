@@ -26,14 +26,7 @@ end
 
 ---Called on mod load/init
 function UiSites.boot()
-    if settings.global['dqol-resource-monitor-ui-sites-show'].value == true then
-        script.on_nth_tick(UiSites.UPDATE_INTERVAL, UiSites.onUpdate)
-    else
-        -- remove all existing guis
-        for key, player in pairs(game.players) do
-            remove_root(player)
-        end
-    end
+    script.on_nth_tick(UiSites.UPDATE_INTERVAL, UiSites.onUpdate)
 end
 
 ---Update Sites UI for a given player
@@ -64,7 +57,7 @@ function UiSites.update(player)
                 gui.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount) }
 
                 local buttons = gui.add { type = 'flow', direction = 'horizontal' }
-                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = Ui.ROOT_FRAME .. '-site-show-' .. site.id}
+                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = Ui.Site.ROOT_FRAME .. '-show-' .. site.id}
             end
         end
     end

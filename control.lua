@@ -24,7 +24,7 @@ end
 
 ---Called on new players
 function boot_player(player)
-    Ui.init(player)    
+    Ui.bootPlayer(player)
 end
 
 ---This is called when this mod is new to a save, before migrations
