@@ -29,7 +29,7 @@ for i, surfaces in pairs(sites) do
                 site.tracking = true
             end
 
-            -- todo: marker?
+            Sites.update_site_map_tag(site)
         end
     end
 end

@@ -6,7 +6,7 @@ Sites = {}
 ---@alias DirectionIdentifier 'top'|'bottom'|'left'|'right'
 ---@alias SiteChunk {x: integer, y: integer, top: integer, bottom: integer, left: integer, right: integer}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
----@alias Site {id: integer, type: string, name: string, surface: integer, chunks: SiteChunk[], amount: integer, initial_amount: integer, positions: IntPosition[], index: integer, since: integer, area: SiteArea, tracking: boolean}
+---@alias Site {id: integer, type: string, name: string, surface: integer, chunks: SiteChunk[], amount: integer, initial_amount: integer, positions: IntPosition[], index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
 
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?}
 ---@cast global {sites: GlobalSites?}
@@ -54,6 +54,17 @@ local function get_random_name(pos)
        name = pos_to_compass_direction(pos) .. ' ' .. name 
     end
     return name
+end
+
+---@param name string
+---@return SignalID
+local function get_signal_id(name)
+    local type = 'item'
+    if name == 'crude-oil' then type = 'fluid' end
+    return {
+        type = type,
+        name = name,
+    }
 end
 
 ---@param border integer
@@ -419,6 +430,27 @@ function Sites.add_sites_to_cache(sites)
     end
 end
 
+function Sites.update_site_map_tag(site)
+    if settings.global['external-dashboard-site-map-markers'].value == true then
+        local text = site.name .. ' ' .. Ui.int_to_exponent_string(site.amount)
+        if site.map_tag == nil then
+            site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
+                position = site.area,
+                text = text,
+                icon = get_signal_id(site.type),
+            })
+        else
+            site.map_tag.text = text
+        end
+    else
+        -- remove if the tag exists
+        if site.map_tag ~= nil then
+            site.map_tag.destroy()
+            site.map_tag = nil
+        end
+    end
+end
+
 ---@param surface_index integer
 ---@return table<string, Site[]?>
 function Sites.get_sites_from_cache(surface_index)
@@ -468,6 +500,8 @@ function Sites.update_cached_site(site)
     end
 
     site.amount = amount
+
+    Sites.update_site_map_tag(site)
 end
 
 function Sites.update_cached_all()
