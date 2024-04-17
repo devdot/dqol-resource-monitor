@@ -34,10 +34,17 @@ data:extend({
     
     -- per player
     {
-        name = 'external-dashboard-ui-site-show',
+        name = 'external-dashboard-ui-button-show',
         type = 'bool-setting',
         default_value = true,
         setting_type = 'runtime-per-user',
-        order = 'site01',
+        order = 'ui01',
+    },
+    {
+        name = 'external-dashboard-ui-sites-show',
+        type = 'bool-setting',
+        default_value = true,
+        setting_type = 'runtime-per-user',
+        order = 'ui02',
     },
 })

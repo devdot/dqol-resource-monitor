@@ -90,7 +90,7 @@ function Ui.update_sites(player)
     end
 
     -- check if UI is enabled
-    if settings.get_player_settings(player.index)['external-dashboard-ui-site-show'].value == false then return end
+    if settings.get_player_settings(player.index)['external-dashboard-ui-sites-show'].value == false then return end
 
     local gui = root.add {
         type = 'table',
@@ -218,6 +218,7 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_closed }, on_gui_closed)
 
     -- register UI update
+    -- make configurable
     script.on_nth_tick(60, function(event) Ui.update() end)
 end
 
