@@ -12,17 +12,17 @@ function UiSite.show(site, player, window)
     end
 
     local table = window.add { type = 'table', column_count = 2 }
-    table.add { type = 'label', caption = {'external-dashboard.ui-colon', 'ID'} }
+    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', 'ID'} }
     table.add { type = 'label', caption = '#' .. site.id }
-    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-surface'}} }
+    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-surface'}} }
     table.add { type = 'label', caption = game.surfaces[site.surface].name .. ' [' .. site.surface .. ']' }
-    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-tiles'}} }
+    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-tiles'}} }
     table.add { type = 'label', caption = #site.positions }
-    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-amount'}} }
+    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-amount'}} }
     table.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
-    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-initial-amount'}} }
+    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-initial-amount'}} }
     table.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount) }
-    table.add { type = 'label', caption = {'external-dashboard.ui-colon', {'external-dashboard.ui-site-created'}} }
+    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-created'}} }
     table.add { type = 'label', caption = Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)' }
 
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
@@ -35,7 +35,7 @@ function UiSite.show(site, player, window)
         lose_focus_on_confirm = true,
         clear_and_focus_on_right_click = true,
     }
-    rename.add { type = 'button', caption = {'external-dashboard.ui-ok'}, style = 'item_and_count_select_confirm', name =  UiSite.ROOT_FRAME .. '-rename-' .. site.id}
+    rename.add { type = 'button', caption = {'dqol-resource-monitor.ui-ok'}, style = 'item_and_count_select_confirm', name =  UiSite.ROOT_FRAME .. '-rename-' .. site.id}
 
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
@@ -45,8 +45,8 @@ function UiSite.show(site, player, window)
     window.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
     local buttons = window.add { type = 'flow' }
-    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-highlight-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = UiSite.ROOT_FRAME .. '-highlight-' .. site.id }
-    buttons.add { type = 'sprite-button', tooltip = {'external-dashboard.ui-site-update-tooltip'}, sprite = 'utility/refresh', name = UiSite.ROOT_FRAME .. '-update-' .. site.id }
+    buttons.add { type = 'sprite-button', tooltip = {'dqol-resource-monitor.ui-site-highlight-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = UiSite.ROOT_FRAME .. '-highlight-' .. site.id }
+    buttons.add { type = 'sprite-button', tooltip = {'dqol-resource-monitor.ui-site-update-tooltip'}, sprite = 'utility/refresh', name = UiSite.ROOT_FRAME .. '-update-' .. site.id }
 end
 
 ---@param site Site

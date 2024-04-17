@@ -26,7 +26,7 @@ end
 
 ---Called on mod load/init
 function UiSites.boot()
-    if settings.global['external-dashboard-ui-sites-show'].value == true then
+    if settings.global['dqol-resource-monitor-ui-sites-show'].value == true then
         script.on_nth_tick(UiSites.UPDATE_INTERVAL, UiSites.onUpdate)
     else
         -- remove all existing guis
@@ -50,9 +50,9 @@ function UiSites.update(player)
     }
 
     gui.add { type = 'label', style = 'caption_label', caption = '' }
-    gui.add { type = 'label', style = 'caption_label', caption = {'external-dashboard.ui-site-name'} }
-    gui.add { type = 'label', style = 'caption_label', caption = {'external-dashboard.ui-site-amount'} }
-    gui.add { type = 'label', style = 'caption_label', caption = {'external-dashboard.ui-site-initial-amount'} }
+    gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-name'} }
+    gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-amount'} }
+    gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-initial-amount'} }
     gui.add { type = 'label', style = 'caption_label', caption = '' }
 
     for surface_index, types in pairs(Sites.get_sites_from_cache_all()) do

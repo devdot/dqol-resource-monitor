@@ -1,11 +1,11 @@
 Ui = {
     mod_gui = require("mod-gui"),
-    ROOT_FRAME = 'external-dashboard-ui',
-    ROOT_WINDOW = 'external-dashboard-ui-window',
+    ROOT_FRAME = 'dqol-resource-monitor-ui',
     BUTTON_ROUTER = {}
 }
 
 Ui.Window = require('components/ui/window')
+Ui.Menu = require('components/ui/menu')
 Ui.Site = require('components/ui/site')
 Ui.Sites = require('components/ui/sites')
 
@@ -51,7 +51,7 @@ end
 
 function Ui.onClosed(event)
     if event.element then
-        if event.element.name == Ui.ROOT_WINDOW then
+        if event.element.name == Ui.Window.ROOT_FRAME then
             Ui.Window.close(game.players[event.player_index])
         end
     end
@@ -63,10 +63,6 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents
+    Ui.Menu.boot()
     Ui.Sites.boot()
-end
-
----This is suppsed to run when a player joins or is created
-function Ui.boot_player(player)
-    Ui.init(player)
 end

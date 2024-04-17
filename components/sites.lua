@@ -431,7 +431,7 @@ function Sites.add_sites_to_cache(sites)
 end
 
 function Sites.update_site_map_tag(site)
-    if settings.global['external-dashboard-site-map-markers'].value == true then
+    if settings.global['dqol-resource-monitor-site-map-markers'].value == true then
         local text = site.name .. ' ' .. Util.Integer.toExponentString(site.amount)
         if site.map_tag == nil then
             site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
@@ -506,7 +506,7 @@ end
 
 function Sites.update_cached_all()
     -- todo: implement partial update
-    -- when external-dashboard-site-entities-per-update is not 0
+    -- when dqol-resource-monitor-site-entities-per-update is not 0
     if global.sites == nil then return nil end
     for surfaceKey, surfaces in pairs(Sites.get_sites_from_cache_all()) do
         for type, sites in pairs(surfaces) do
@@ -518,6 +518,6 @@ function Sites.update_cached_all()
 end
 
 function Sites.boot()
-    script.on_nth_tick(settings.global['external-dashboard-site-ticks-between-updates'].value, function(event) Sites.update_cached_all() end) -- todo adjust
+    script.on_nth_tick(settings.global['dqol-resource-monitor-site-ticks-between-updates'].value, function(event) Sites.update_cached_all() end) -- todo adjust
 end
 

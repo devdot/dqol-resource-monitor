@@ -1,12 +1,12 @@
 {
-    "name": "external-dashboard",
-    "version": "0.0.3",
-    "title": "External Dashboard",
+    "name": "dqol-resource-monitor",
+    "version": "0.1.0",
+    "title": "Resource Monitor (DQOL)",
     "author": "devdot",
     "factorio_version": "1.1",
     "dependencies": [
         "base >= 1.1",
         "stdlib"
     ],
-    "description": "Display dashboard information from your single player game on a secondary screen."
+    "description": "Monitor mining sites and track resources across planets\/surfaces."
 }

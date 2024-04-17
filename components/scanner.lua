@@ -77,7 +77,7 @@ function on_chunk_charted(event)
 end
 
 function Scanner.boot()
-    if settings.global['external-dashboard-site-auto-scan'].value then
+    if settings.global['dqol-resource-monitor-site-auto-scan'].value then
         script.on_event(defines.events.on_chunk_charted, on_chunk_charted)
         -- todo: on chunk deleted?
     end
