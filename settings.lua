@@ -31,20 +31,20 @@ data:extend({
         setting_type = 'runtime-global',
         order = 'site04',
     },
-    
-    -- per player
     {
         name = 'external-dashboard-ui-button-show',
         type = 'bool-setting',
         default_value = true,
-        setting_type = 'runtime-per-user',
+        setting_type = 'runtime-global',
         order = 'ui01',
     },
     {
         name = 'external-dashboard-ui-sites-show',
         type = 'bool-setting',
         default_value = true,
-        setting_type = 'runtime-per-user',
+        setting_type = 'runtime-global',
         order = 'ui02',
     },
+
+    -- per player
 })

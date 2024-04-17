@@ -15,9 +15,11 @@ _VERSION = {
 
 require('commands/commands')
 
+require('util/util')
+
 require('components/sites')
 require('components/scanner')
-require('components/ui')
+require('components/ui/ui')
 
 
 ---Called on mod startup

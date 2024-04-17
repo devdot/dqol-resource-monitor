@@ -432,7 +432,7 @@ end
 
 function Sites.update_site_map_tag(site)
     if settings.global['external-dashboard-site-map-markers'].value == true then
-        local text = site.name .. ' ' .. Ui.int_to_exponent_string(site.amount)
+        local text = site.name .. ' ' .. Util.Integer.toExponentString(site.amount)
         if site.map_tag == nil then
             site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
                 position = site.area,

@@ -6,7 +6,7 @@ local sites = Sites.get_sites_from_cache_all()
 if global.sites == nil then global.sites = {} end
 if global.sites.ids == nil then global.sites.ids = {} end
 
-local nextId = #(global.sites.ids) or 1
+local nextId = (#(global.sites.ids) or 0) + 1
 for i, surfaces in pairs(sites) do
     for j, types in pairs(surfaces) do
         for k, site in pairs(types) do

@@ -1,4 +1,4 @@
-Window = {}
+local Window = {}
 
 ---Create a new window
 ---@param player LuaPlayer
@@ -43,3 +43,5 @@ end
 function Window.get(player)
     return player.gui.screen[Ui.ROOT_WINDOW]
 end
+
+return Window
