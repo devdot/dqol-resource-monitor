@@ -2,6 +2,7 @@ local UiMenu = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-menu',
     BUTTON_NAME = Ui.ROOT_FRAME .. '-menu-show',
     WINDOW_ID = 'menu',
+    tabs = {},
 }
 
 ---@param LuaPlayer
@@ -37,16 +38,55 @@ function UiMenu.show(player, window)
         window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
     end
 
-    local buttons = window.add {name = 'buttons', type = 'flow', direction = 'horizontal'}
-    buttons.add { type = 'label', caption = 'buttons' } -- todo remove
-
-    local filters = window.add {name = 'filters', type = 'flow', direction = 'horizontal'}
-    buttons.add { type = 'label', caption = 'filters' } -- todo remove
-
-    local main = window.add {name = 'main', type = 'flow', direction = 'horizontal'}
-    local sites = main.add {name = 'sites', type = 'table', column_count = 4}
-    local preview = main.add { name = 'preview', type = 'flow', direction = 'vertical' }
+    if window.inner ~= nil then window.inner.destroy() end
+    local inner = window.add { name = 'inner', type = 'frame', style = 'inside_deep_frame' }
+    local tabs = inner.add { name = 'tabbed', type = 'tabbed-pane' }
     
+    -- add all tabs here
+    for name, func in pairs(UiMenu.tabs) do
+        local caption = tabs.add { type = 'tab', caption = { 'dqol-resource-monitor.ui-menu-tab-' .. name } }
+        local tab = tabs.add { name = name, type = 'flow', direction = 'vertical' }
+        func(tab)
+        tabs.add_tab(caption, tab)
+    end
+end
+
+function UiMenu.tabs.sites(tab)
+    -- todo: somehow generate those and add fluids
+    local resources = { 'iron-ore', 'copper-ore', 'coal', 'stone', 'uranium-ore'}
+    local filters = tab.add {
+        name = 'filters',
+        type = 'table',
+        style = 'compact_slot_table',
+        column_count = #resources,
+    }
+    filters.style.margin = 8
+
+    for key, resource in pairs(resources) do
+        filters.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            toggled = false,
+            sprite = 'item/' .. resource,
+            tooltip = { 'item-name.' .. resource },
+            -- todo: add actions and make them filter
+        }
+    end
+
+    local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
+    local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
+    sites_frame.style.natural_width = 300
+    sites_frame.style.natural_height = 600
+    sites_frame.style.margin = 8
+    -- sites_frame.style.right_margin = 10
+    local sites = sites_frame.add { name = 'sites', type = 'table', column_count = 4 }
+    local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
+    preview.style.natural_width = 400
+    preview.style.natural_height = 600
+    preview.style.margin = 8
+    preview.style.left_margin = 0
+    preview.style.padding = 4
+
     -- fill sites
     -- todo: actual filtering
     local filteredSites = Sites.get_sites_by_id()
@@ -67,6 +107,18 @@ function UiMenu.show(player, window)
     end
 end
 
+function UiMenu.tabs.other(tab)
+    tab.add { type = 'label', caption = 'other' }
+
+    local buttons = tab.add { name = 'buttons', type = 'frame', style = 'slot_button_deep_frame', direction = 'horizontal' }
+    buttons.style.margin = 8
+    buttons.add {
+        type = 'button',
+        style = 'slot_button',
+        caption = 'test',
+    }
+end
+
 ---@param player LuaPlayer
 ---@return LuaGuiElement?
 function UiMenu.getPreview(player)
@@ -77,8 +129,8 @@ function UiMenu.getPreview(player)
     end
 
     if window == nil then return nil end
-    if window['main'] == nil then return nil end
-    return window['main']['preview'] or nil
+    if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
+    return window['inner']['tabbed']['sites']['main']['preview'] or nil
 end
 
 function UiMenu.onShow(event)
