@@ -22,6 +22,10 @@ function UiMenu.createButton(player)
         tooltip = { 'dqol-resource-monitor.ui-menu-button-tooltip' },
         sprite = 'item/rocket-control-unit',
         style = Ui.mod_gui.button_style,
+        tags = {
+            _module = 'menu',
+            _action = 'show',
+        }
     }
 end
 
@@ -50,7 +54,16 @@ function UiMenu.show(player, window)
         sites.add { type = 'label', caption = '[item=' .. site.type .. ']' }
         sites.add { type = 'label', caption = site.name }
         sites.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
-        sites.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = UiMenu.ROOT_FRAME .. '-site-show-' .. site.id}
+        sites.add {
+            type = 'sprite-button',
+            style = 'mini_button',
+            sprite = 'utility/rename_icon_small_black',
+            tags = {
+                _module = 'menu_site',
+                _action = 'show',
+                site_id = site.id,
+            },
+        }
     end
 end
 
@@ -68,8 +81,8 @@ function UiMenu.getPreview(player)
     return window['main']['preview'] or nil
 end
 
-function UiMenu.onShow(player, event)
-    UiMenu.show(player)
+function UiMenu.onShow(event)
+    UiMenu.show(game.players[event.player_index])
 end
 
 function UiMenu.onSiteShow(site, player)

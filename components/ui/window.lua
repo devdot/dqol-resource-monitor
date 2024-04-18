@@ -62,7 +62,15 @@ function Window.fillTitlebar(gui, title)
     local filler = titlebar.add { type = 'empty-widget', style = 'draggable_space', ignored_by_interaction = true }
     filler.style.height = 24
     filler.style.horizontally_stretchable = true
-    titlebar.add { type = 'sprite-button', name = Window.ROOT_FRAME .. '-close', style = 'cancel_close_button', sprite = 'utility/close_white' }
+    titlebar.add {
+        type = 'sprite-button',
+        style = 'cancel_close_button',
+        sprite = 'utility/close_white',
+        tags = {
+            _module = 'window',
+            _action = 'close',
+        }
+     }
     return gui
 end
 
@@ -136,9 +144,9 @@ function Window.getWindowIdFromEvent(event)
     return get_id_from_gui_element(Window.getWindowFromEvent(event))
 end
 
-function Window.onClose(player, event)
+function Window.onClose(event)
     
-    Window.close(player, Window.getWindowIdFromEvent(event))
+    Window.close(game.players[event.player_index], Window.getWindowIdFromEvent(event))
 end
 
 return Window

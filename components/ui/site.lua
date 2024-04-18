@@ -39,8 +39,23 @@ function UiSite.show(site, player, window)
         text = site.name,
         lose_focus_on_confirm = true,
         clear_and_focus_on_right_click = true,
+        tags = {
+            _only = defines.events.on_gui_confirmed,
+            _module = 'site',
+            _action = 'rename',
+            site_id = site.id,
+        },
     }
-    rename.add { type = 'button', caption = {'dqol-resource-monitor.ui-ok'}, style = 'item_and_count_select_confirm', name =  UiSite.ROOT_FRAME .. '-rename-' .. site.id}
+    rename.add {
+        type = 'button',
+        caption = { 'dqol-resource-monitor.ui-ok' },
+        style = 'item_and_count_select_confirm',
+        tags = {
+            _module = 'site',
+            _action = 'rename',
+            site_id = site.id,
+        },
+    }
 
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
@@ -50,8 +65,26 @@ function UiSite.show(site, player, window)
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
     local buttons = inner.add { type = 'flow' }
-    buttons.add { type = 'sprite-button', tooltip = {'dqol-resource-monitor.ui-site-highlight-tooltip'}, sprite = 'utility/show_tags_in_map_view', name = UiSite.ROOT_FRAME .. '-highlight-' .. site.id }
-    buttons.add { type = 'sprite-button', tooltip = {'dqol-resource-monitor.ui-site-update-tooltip'}, sprite = 'utility/refresh', name = UiSite.ROOT_FRAME .. '-update-' .. site.id }
+    buttons.add {
+        type = 'sprite-button',
+        tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
+        sprite = 'utility/show_tags_in_map_view',
+        tags = {
+            _module = 'site',
+            _action = 'highlight',
+            site_id = site.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        tooltip = { 'dqol-resource-monitor.ui-site-update-tooltip' },
+        sprite = 'utility/refresh',
+        tags = {
+            _module = 'site',
+            _action = 'update',
+            site_id = site.id,
+        },
+    }
 end
 
 ---@param site Site

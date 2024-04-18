@@ -9,9 +9,10 @@ Ui.Menu = require('components/ui/menu')
 Ui.Site = require('components/ui/site')
 Ui.Sites = require('components/ui/sites')
 
-Ui.BUTTON_ROUTER = {
-    root = Ui.ROOT_FRAME .. '-',
-    rootLength = string.len(Ui.ROOT_FRAME) + 1,
+Ui.routes = {
+    window = {
+        close = Ui.Window.onClose,
+    },
     site = {
         highlight = Ui.Site.onHighlight,
         show = Ui.Site.onShow,
@@ -20,60 +21,58 @@ Ui.BUTTON_ROUTER = {
     },
     menu = {
         show = Ui.Menu.onShow,
-        site = {
-            show = Ui.Menu.onSiteShow,
-        },
+    },
+    menu_site = {   
+        show = Ui.Menu.onSiteShow,
     }
 }
 
-function Ui.onClick(event)
-    local name = event.element.name
-    if name and string.sub(name, 0, Ui.BUTTON_ROUTER.rootLength) == Ui.BUTTON_ROUTER.root then
-        local sub = string.sub(name, Ui.BUTTON_ROUTER.rootLength + 1)
+-- uses a LuaGuiElement's tags to route
+-- route definition (element tags)
+--      _module: the routing module
+--      _action: the routing action
+--      _only: only route when the event matches the one here (from defines.events)
+-- routes definition (Ui.routes)
+--      modules are the keys
+--      within the modules there are keys that represent actions and their values are the callbacks
+--      __prepare is called to prepare the arguments that are given to actions
+local function route_event(event)
+    if event.element then
+        -- check if there is a filter present
+        -- filter out if it does not match
+        if event.element.tags._only and event.element.tags._only ~= event.name then return end
 
-        local iter = string.gmatch('-' .. sub, '-(%w+)')
-        local command = iter()
-
-        if command == 'site' then
-            local func = iter()
-            -- move remaining matches into p
-            local id = tonumber(iter()) or 0
-
-            local site = Sites.get_site_by_id(id)
-
-            if site ~= nil then
-                Ui.BUTTON_ROUTER.site[func](site, game.players[event.player_index], event)
-            else
-                game.players[event.player_index].print('Cannot find site #' .. id)
-            end
-        elseif command == 'window' then
-            local next = iter()
-            if next == 'close' then
-                Ui.Window.onClose(game.players[event.player_index], event)
-            end
-        elseif command == 'menu' then
-            local next = iter()
-            if next == 'site' then
-                local func = iter()
-                local id = tonumber(iter()) or 0
-                local site = Sites.get_site_by_id(id)
-
-                if site ~= nil then
-                    Ui.BUTTON_ROUTER.menu.site[func](site, game.players[event.player_index], event)
-                else
-                    game.players[event.player_index].print('Cannot find site #' .. id)
-                end
-            elseif Ui.BUTTON_ROUTER.menu[next] ~= nil then
-                Ui.BUTTON_ROUTER.menu[next](game.players[event.player_index], event)
+        -- use gui element tags to route this event
+        local module = event.element.tags._module
+        if module ~= nil then
+            local action = event.element.tags._action
+            if Ui.routes[module] then
+                -- call the prepare method (and if it does not exist, simply put {event} into args)
+                local args = (Ui.routes[module].__prepare or function(e) return { e } end)(event)
+                -- call the action method
+                Ui.routes[module][action](table.unpack(args))
             end
         end
     end
 end
 
+local function prepare_site(event)
+    return {
+        Sites.get_site_by_id(event.element.tags.site_id or 0),
+        game.players[event.player_index],
+        event,
+    }
+end
+Ui.routes.site.__prepare = prepare_site
+Ui.routes.menu_site.__prepare = prepare_site
+
+Ui.onClick = route_event
+Ui.onConfirmed = route_event
+
 function Ui.onClosed(event)
     if event.element then
         if event.element.tags.dqol_resource_monitor_window then
-            Ui.Window.onClose(game.players[event.player_index], event)
+            Ui.Window.onClose(event)
         end
     end
 end
@@ -81,6 +80,7 @@ end
 ---This is supposed to be called after load/init
 function Ui.boot()
     script.on_event({ defines.events.on_gui_click }, Ui.onClick)
+    script.on_event({ defines.events.on_gui_confirmed }, Ui.onConfirmed)
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents

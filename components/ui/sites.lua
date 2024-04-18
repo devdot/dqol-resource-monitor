@@ -57,7 +57,17 @@ function UiSites.update(player)
                 gui.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount) }
 
                 local buttons = gui.add { type = 'flow', direction = 'horizontal' }
-                buttons.add { type = 'sprite-button', style = 'mini_button', sprite = 'utility/rename_icon_small_black', name = Ui.Site.ROOT_FRAME .. '-show-' .. site.id}
+                buttons.add {
+                    type = 'sprite-button',
+                    style = 'mini_button',
+                    sprite = 'utility/rename_icon_small_black',
+                    name = 'show',
+                    tags = {
+                        _module = 'site',
+                        _action = 'show',
+                        site_id = site.id,
+                    }
+                }
             end
         end
     end
