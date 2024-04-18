@@ -6,7 +6,7 @@ _VERSION = {
     string = '0.1.0',
 }
 
-require('commands/commands')
+if _DEBUG then require('commands/commands') end
 
 require('util/util')
 
