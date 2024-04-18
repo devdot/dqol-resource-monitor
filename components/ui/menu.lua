@@ -1,6 +1,7 @@
 local UiMenu = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-menu',
     BUTTON_NAME = Ui.ROOT_FRAME .. '-menu-show',
+    WINDOW_ID = 'menu',
 }
 
 ---@param LuaPlayer
@@ -29,7 +30,7 @@ end
 ---@param window LuaGuiElement?
 function UiMenu.show(player, window)
     if window == nil then
-        window = Ui.Window.create(player, { 'dqol-resource-monitor.ui-menu-title' })
+        window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
     end
 
     local buttons = window.add {name = 'buttons', type = 'flow', direction = 'horizontal'}
@@ -56,10 +57,10 @@ end
 ---@param player LuaPlayer
 ---@return LuaGuiElement?
 function UiMenu.getPreview(player)
-    local window = Ui.Window.get(player)
+    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
     if window == nil then
         UiMenu.show(player)
-        window = Ui.Window.get(player)
+        window = Ui.Window.get(player, UiMenu.WINDOW_ID)
     end
 
     if window == nil then return nil end
@@ -75,13 +76,9 @@ function UiMenu.onSiteShow(site, player)
     local preview = UiMenu.getPreview(player)
     if preview ~= nil then
         preview.clear()
-        preview.add {
-            type = 'label',
-            style = 'heading_2_label',
-            caption = site.name,
-        }
+        Ui.Window.createInner(preview, 'previewsite' .. site.id, site.name)
     end
-    Ui.Site.show(site, player, preview)
+    Ui.Site.show(site, player, preview[Ui.Window.ROOT_FRAME .. 'previewsite' .. site.id])
 end
 
 return UiMenu

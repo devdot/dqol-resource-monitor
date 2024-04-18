@@ -49,7 +49,7 @@ function Ui.onClick(event)
         elseif command == 'window' then
             local next = iter()
             if next == 'close' then
-                Ui.Window.close(game.players[event.player_index])
+                Ui.Window.onClose(game.players[event.player_index], event)
             end
         elseif command == 'menu' then
             local next = iter()
@@ -72,8 +72,8 @@ end
 
 function Ui.onClosed(event)
     if event.element then
-        if event.element.name == Ui.Window.ROOT_FRAME then
-            Ui.Window.close(game.players[event.player_index])
+        if event.element.tags.dqol_resource_monitor_window then
+            Ui.Window.onClose(game.players[event.player_index], event)
         end
     end
 end
