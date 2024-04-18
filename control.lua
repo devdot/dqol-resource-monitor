@@ -27,6 +27,10 @@ function boot_player(player)
     Ui.bootPlayer(player)
 end
 
+function reboot_players()
+    for key, player in pairs(game.players) do boot_player(player) end    
+end
+
 ---This is called when this mod is new to a save, before migrations
 function on_init(event)
     boot(event)
