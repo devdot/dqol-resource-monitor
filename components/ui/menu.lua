@@ -52,23 +52,21 @@ function UiMenu.show(player, window)
 end
 
 function UiMenu.tabs.sites(tab)
-    -- todo: somehow generate those and add fluids
-    local resources = { 'iron-ore', 'copper-ore', 'coal', 'stone', 'uranium-ore'}
     local filters = tab.add {
         name = 'filters',
         type = 'table',
         style = 'compact_slot_table',
-        column_count = #resources,
+        column_count = table_size(Resources.types),
     }
     filters.style.margin = 8
 
-    for key, resource in pairs(resources) do
+    for key, resource in pairs(Resources.types) do
         filters.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
             toggled = false,
-            sprite = 'item/' .. resource,
-            tooltip = { 'item-name.' .. resource },
+            sprite = resource.type .. '/' .. resource.name,
+            tooltip = { resource.type .. '-name.' .. resource.name },
             -- todo: add actions and make them filter
         }
     end
@@ -103,6 +101,12 @@ function UiMenu.tabs.sites(tab)
                 _action = 'show',
                 site_id = site.id,
             },
+        }
+    end
+    if #filteredSites == 0 then
+        sites_frame.add {
+            type = 'label',
+            caption = {'dqol-resource-monitor.ui-menu-sites-empty'}
         }
     end
 end

@@ -10,6 +10,7 @@ if _DEBUG then require('commands/commands') end
 
 require('util/util')
 
+require('components/resources')
 require('components/sites')
 require('components/scanner')
 require('components/ui/ui')
@@ -17,6 +18,7 @@ require('components/ui/ui')
 
 ---Called on mod startup
 function boot(event)
+    Resources.boot()
     Scanner.boot()
     Sites.boot()
     Ui.boot()
@@ -44,7 +46,7 @@ end
 ---This is called after on_init/on_load when the mod config changed
 ---@see https://lua-api.factorio.com/latest/auxiliary/data-lifecycle.html
 function on_configuration_changed()
-    game.print('config changed')
+    Resources.on_configuration_changed()
 end
 
 script.on_init(on_init)

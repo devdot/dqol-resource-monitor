@@ -259,7 +259,7 @@ local function merge_sites(siteBase, siteAdd)
     return siteBase
 end
 
----@param resources LuaResource[]
+---@param resources LuaEntity[]
 ---@param surface LuaSurface
 ---@param chunk ChunkPositionAndArea
 ---@return Site[]
