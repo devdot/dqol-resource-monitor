@@ -51,7 +51,8 @@ function UiSites.update(player)
     for surface_index, types in pairs(Sites.get_sites_from_cache_all()) do
         for type, sites in pairs(types) do
             for siteKey, site in pairs(sites) do
-                gui.add { type = 'label', caption = '[item=' .. site.type .. ']' }
+                local type = Resources.types[site.type]
+                gui.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
                 gui.add { type = 'label', caption = site.name }
                 gui.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
                 gui.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount) }

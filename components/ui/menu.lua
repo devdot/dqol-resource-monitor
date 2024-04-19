@@ -89,7 +89,8 @@ function UiMenu.tabs.sites(tab)
     -- todo: actual filtering
     local filteredSites = Sites.get_sites_by_id()
     for key, site in pairs(filteredSites) do
-        sites.add { type = 'label', caption = '[item=' .. site.type .. ']' }
+        local type = Resources.types[site.type]
+        sites.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
         sites.add { type = 'label', caption = site.name }
         sites.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
         sites.add {

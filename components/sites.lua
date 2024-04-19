@@ -59,11 +59,10 @@ end
 ---@param name string
 ---@return SignalID
 local function get_signal_id(name)
-    local type = 'item'
-    if name == 'crude-oil' then type = 'fluid' end
+    local type = Resources.types[name]
     return {
-        type = type,
-        name = name,
+        type = type.type,
+        name = type.name,
     }
 end
 
