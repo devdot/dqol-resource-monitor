@@ -6,31 +6,47 @@ local UiSite = {
 ---@param player LuaPlayer
 ---@param window LuaGuiElement?
 function UiSite.show(site, player, window)
+    local type = Resources.types[site.type]
+    local title = '[' .. type.type .. '=' .. type.name .. '] ' .. site.name
+
     -- create a new window if needed
     if window == nil then
-        window = Ui.Window.create(player, 'site' .. site.id, site.name)
+        window = Ui.Window.create(player, 'site' .. site.id, title)
     else
-        Ui.Window.refreshTitle(window, site.name)
+        Ui.Window.refreshTitle(window, title)
         Ui.Window.clearInner(window)
     end
 
     local inner = window.inner
 
     local table = inner.add { type = 'table', column_count = 2 }
-    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', 'ID'} }
-    table.add { type = 'label', caption = '#' .. site.id }
-    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-surface'}} }
-    table.add { type = 'label', caption = game.surfaces[site.surface].name .. ' [' .. site.surface .. ']' }
-    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-tiles'}} }
-    table.add { type = 'label', caption = #site.positions }
-    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-amount'}} }
-    table.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
-    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-initial-amount'}} }
-    table.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount) }
-    table.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-created'}} }
-    table.add { type = 'label', caption = Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)' }
-
+    local stats = {
+        {'type', {type.type .. '-name.' .. type.name}},
+        {'amount', Util.Integer.toExponentString(site.amount)},
+        {'initial-amount', Util.Integer.toExponentString(site.initial_amount)},
+        {'id', '#' .. site.id},
+        {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
+        {'tiles', #site.positions},
+        {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
+    }
+    for key, row in pairs(stats) do
+        table.add {
+            type = 'label',
+            -- style = 'caption_label',
+            caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-' .. row[1]}},
+        }
+        table.add { type = 'label', caption = row[2]}
+    end
+    
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
+    
+    inner.add {
+        type = 'checkbox',
+        state = site.tracking,
+        caption = {'dqol-resource-monitor.ui-site-tracking-tooltip'},
+        -- todo: on_gui_checked_state_changed
+    }
+
     
     local rename = inner.add { type = 'flow', name = 'rename' }
     rename.add {
