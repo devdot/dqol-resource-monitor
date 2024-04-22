@@ -157,7 +157,7 @@ function UiMenu.tabs.sites(tab)
     sites_frame.style.natural_height = 600
     sites_frame.style.margin = 8
     -- sites_frame.style.right_margin = 10
-    local sites = sites_frame.add { name = 'sites', type = 'table', column_count = 4 }
+    local sites = sites_frame.add { name = 'sites', type = 'table', column_count = 5 }
     local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
     preview.style.natural_width = 400
     preview.style.natural_height = 600
@@ -180,21 +180,24 @@ function UiMenu.tabs.sites(tab)
             }
             sites.add { type = 'label' }
             sites.add { type = 'label' }
+            sites.add { type = 'label' }
         end
 
         local type = Resources.types[site.type]
-        sites.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
-        sites.add { type = 'label', caption = site.name }
-        sites.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
+        local tags = {
+            _module = 'menu_site',
+            _action = 'show',
+            site_id = site.id,
+        }
+        sites.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', tags = tags }
+        sites.add { type = 'label', caption = site.name, tags = tags }
+        sites.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), tags = tags }
+        sites.add { type = 'label', caption = Util.Integer.toPercent(site.amount / site.initial_amount), tags = tags }
         sites.add {
             type = 'sprite-button',
             style = 'mini_button',
             sprite = 'utility/list_view',
-            tags = {
-                _module = 'menu_site',
-                _action = 'show',
-                site_id = site.id,
-            },
+            tags = tags,
         }
     end
     if #filteredSites == 0 then

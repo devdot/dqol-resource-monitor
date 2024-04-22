@@ -26,4 +26,12 @@ function integer.toExponentString(integer)
     return string.format('%.2f', integer) .. SI_STRINGS[i]
 end
 
+---@param integer integer
+---@param precision integer?
+---@return string
+function integer.toPercent(integer, precision)
+    if precision == nil then precision = 0 end
+    return string.format('%.' .. precision .. 'f', integer * 100) .. '%'
+end
+
 return integer

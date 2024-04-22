@@ -52,22 +52,23 @@ function UiSites.update(player)
         for type, sites in pairs(types) do
             for siteKey, site in pairs(sites) do
                 local type = Resources.types[site.type]
-                gui.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
-                gui.add { type = 'label', caption = site.name }
-                gui.add { type = 'label', caption = Util.Integer.toExponentString(site.amount) }
-                gui.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount) }
+                local tags = {
+                    _module = 'site',
+                    _action = 'show',
+                    site_id = site.id,
+                }
+                gui.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', tags = tags }
+                gui.add { type = 'label', caption = site.name, tags = tags }
+                gui.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), tags = tags }
+                gui.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount), tags = tags }
 
                 local buttons = gui.add { type = 'flow', direction = 'horizontal' }
                 buttons.add {
                     type = 'sprite-button',
                     style = 'mini_button',
-                    sprite = 'utility/rename_icon_small_black',
+                    sprite = 'utility/list_view',
                     name = 'show',
-                    tags = {
-                        _module = 'site',
-                        _action = 'show',
-                        site_id = site.id,
-                    }
+                    tags = tags,
                 }
             end
         end
