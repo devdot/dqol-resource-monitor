@@ -30,9 +30,9 @@ function Scanner.scan_surface(surface)
 
     -- highlight the sites if debug is on
     if _DEBUG or false then
-        for type, sites in pairs(Sites.get_sites_from_cache(surface.index)) do
+        for type, sites in pairs(Sites.storage.getSurfaceList()[surface.index]) do
             for key, site in pairs(sites) do
-                Sites.highlight_site(site)
+                Sites.site.highlight(site)
             end
         end
     end
@@ -71,8 +71,7 @@ function Scanner.scan_chunk(surface, chunk)
         return false
     end
 
-    local sites = Sites.create_from_chunk_resources(resources, surface, chunk)
-    Sites.add_sites_to_cache(sites)
+    Sites.createFromChunkResources(resources, surface, chunk)
 
     return true
 end

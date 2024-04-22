@@ -228,7 +228,7 @@ function UiMenu.tabs.surfaces(tab)
 
     -- gather data
     local scanCache = Scanner.cache.get()
-    local allSites = Sites.get_sites_from_cache_all()
+    local allSites = Sites.storage.getSurfaceList()
 
     -- fill the surfaces
     for key, surface in pairs(game.surfaces) do
@@ -358,7 +358,7 @@ function UiMenu.filters.getSites()
     ---@type Site[]
     local sites = {}
 
-    for surfaceId, types in pairs(Sites.get_sites_from_cache_all()) do
+    for surfaceId, types in pairs(Sites.storage.getSurfaceList()) do
         -- filter for surface type
         if filterSurface == false or state.surface == surfaceId then
             for type, typeSites in pairs(types) do
@@ -448,17 +448,17 @@ end
 
 function UiMenu.surfaces.onReset(event)
     Scanner.cache.resetSurface(event.element.tags.surfaceId)
-    local sites = Sites.get_sites_from_cache_all()[event.element.tags.surfaceId] or {}
+    local sites = Sites.storage.getSurfaceList()[event.element.tags.surfaceId] or {}
     for _, inner in pairs(sites) do
         for __, site in pairs(inner) do
-            Sites.remove_site_from_cache(site)
+            Sites.storage.remove(site)
         end
     end
     UiMenu.show(game.players[event.player_index])
 end
 
 local function surface_tracking_helper(surfaceId, tracking)
-    for _, sites in pairs(Sites.get_sites_from_cache_all()[surfaceId] or {}) do
+    for _, sites in pairs(Sites.storage.getSurfaceList()[surfaceId] or {}) do
         for __, site in pairs(sites) do
             site.tracking = tracking
         end

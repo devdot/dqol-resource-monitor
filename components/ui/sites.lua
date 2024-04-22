@@ -48,7 +48,7 @@ function UiSites.update(player)
     gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-initial-amount'} }
     gui.add { type = 'label', style = 'caption_label', caption = '' }
 
-    for surface_index, types in pairs(Sites.get_sites_from_cache_all()) do
+    for surface_index, types in pairs(Sites.storage.getSurfaceList()) do
         for type, sites in pairs(types) do
             for siteKey, site in pairs(sites) do
                 local type = Resources.types[site.type]

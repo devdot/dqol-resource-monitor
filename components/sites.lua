@@ -1,6 +1,8 @@
 local Table = require('__stdlib__/stdlib/utils/table')
 
 Sites = {
+    storage = {},
+    site = {},
     updater = {},
 }
 
@@ -117,7 +119,7 @@ end
 
 ---Highlight a given site in the game world
 ---@param site Site
-function Sites.highlight_site(site)
+function Sites.site.highlight(site)
     local color = {
         r = 0,
         g = math.random(0, 255),
@@ -242,8 +244,7 @@ end
 ---@param resources LuaEntity[]
 ---@param surface LuaSurface
 ---@param chunk ChunkPositionAndArea
----@return Site[]
-function Sites.create_from_chunk_resources(resources, surface, chunk)
+function Sites.createFromChunkResources(resources, surface, chunk)
     ---@type Site[]
     local types = {}
     local chunk_key = chunk.x .. ',' .. chunk.y
@@ -326,12 +327,11 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
 
     for _, site in pairs(types) do
         update_site_area_center(site.area)
+        Sites.storage.insert(site)
     end
-
-    return types
 end
 
-function Sites.reset_cache()
+function Sites.resetGlobal()
     global.sites = {
         surfaces = {},
         ids = {},
@@ -342,9 +342,50 @@ function Sites.reset_cache()
     }
 end
 
+function Sites.site.updateMapTag(site)
+    if settings.global['dqol-resource-monitor-site-map-markers'].value == true then
+        local text = site.name .. ' ' .. Util.Integer.toExponentString(site.amount)
+        if site.map_tag == nil then
+            site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
+                position = site.area,
+                text = text,
+                icon = get_signal_id(site.type),
+            })
+        else
+            site.map_tag.text = text
+        end
+    else
+        -- remove if the tag exists
+        if site.map_tag ~= nil then
+            site.map_tag.destroy()
+            site.map_tag = nil
+        end
+    end
+end
+
+---@param site Site
+---@return integer
+function Sites.site.getTiles(site)
+    local tiles = 0
+    for _, chunk in pairs(site.chunks) do
+        tiles = chunk.tiles + tiles
+    end
+    return tiles
+end
+
+---@param site Site
+---@return integer
+function Sites.site.getUpdated(site)
+    local min = nil
+    for _, chunk in pairs(site.chunks) do
+        if min == nil or chunk.updated < min then min = chunk.updated end
+    end
+    return min
+end
+
 ---Add a new site to the cache
 ---@param site Site
-function Sites.add_site_to_cache(site)
+function Sites.storage.insert(site)
     if not global.sites.surfaces[site.surface] then global.sites.surfaces[site.surface] = {} end
     if not global.sites.surfaces[site.surface][site.type] then global.sites.surfaces[site.surface][site.type] = {} end
 
@@ -399,7 +440,7 @@ function Sites.add_site_to_cache(site)
             if site.id > 0 then
                 -- the old site existed before
                 -- now that they are merged the old one can be removed
-                Sites.remove_site_from_cache(site)
+                Sites.storage.remove(site)
 
                 if _DEBUG then
                     game.print('Removed #' .. site.id .. ' after merge')
@@ -426,93 +467,36 @@ function Sites.add_site_to_cache(site)
     end
 end
 
----@param sites Site[]
-function Sites.add_sites_to_cache(sites)
-    for key, site in pairs(sites) do
-        Sites.add_site_to_cache(site)
-    end
-end
-
-function Sites.update_site_map_tag(site)
-    if settings.global['dqol-resource-monitor-site-map-markers'].value == true then
-        local text = site.name .. ' ' .. Util.Integer.toExponentString(site.amount)
-        if site.map_tag == nil then
-            site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
-                position = site.area,
-                text = text,
-                icon = get_signal_id(site.type),
-            })
-        else
-            site.map_tag.text = text
-        end
-    else
-        -- remove if the tag exists
-        if site.map_tag ~= nil then
-            site.map_tag.destroy()
-            site.map_tag = nil
-        end
-    end
-end
-
----@param site Site
----@return integer
-function Sites.get_site_tiles(site)
-    local tiles = 0
-    for _, chunk in pairs(site.chunks) do
-        tiles = chunk.tiles + tiles
-    end
-    return tiles
-end
-
----@param site Site
----@return integer
-function Sites.get_site_updated(site)
-    local min = nil
-    for _, chunk in pairs(site.chunks) do
-        if min == nil or chunk.updated < min then min = chunk.updated end
-    end
-    return min
-end
-
----@param surface_index integer
----@return table<string, Site[]?>
-function Sites.get_sites_from_cache(surface_index)
-    return global.sites.surfaces[surface_index] or {}
-end
-
 ---@return table<integer, table<string, Site[]?>>
-function Sites.get_sites_from_cache_all()
+function Sites.storage.getSurfaceList()
     return global.sites.surfaces
-end
-
----@param surface_index integer
----@param type string
----@param index integer
----@return Site?
-function Sites.get_site_from_cache(surface_index, type, index)
-    if global.sites.surfaces[surface_index] == nil then return nil end
-    if global.sites.surfaces[surface_index][type] == nil then return nil end
-    return global.sites.surfaces[surface_index][type][index] or nil
 end
 
 ---Get site from cache using ID
 ---@param id integer
 ---@return Site?
-function Sites.get_site_by_id(id)
+function Sites.storage.getById(id)
     return global.sites.ids[id] or nil;
 end
 
 ---Get site from cache, just by ID
 ---@param id integer
 ---@return table<integer, Site>
-function Sites.get_sites_by_id()
+function Sites.storage.getIdList()
     return global.sites.ids
+end
+
+---@param site Site
+function Sites.storage.remove(site)
+    if site.map_tag ~= nil then site.map_tag.destroy() end
+    global.sites.ids[site.id] = nil
+    global.sites.surfaces[site.surface][site.type][site.index] = nil
 end
 
 ---@param siteId integer
 ---@param chunkKey SiteChunkKey
-function Sites.update_site_chunk(siteId, chunkKey)
-    local site = Sites.get_site_by_id(siteId)
+function Sites.updater.updateSiteChunk(siteId, chunkKey)
+    local site = Sites.storage.getById(siteId)
     if site == nil then return nil end
     local chunk = site.chunks[chunkKey]
     if chunk == nil then return nil end
@@ -545,36 +529,35 @@ function Sites.update_site_chunk(siteId, chunkKey)
 end
 
 ---@param site Site
-function Sites.update_cached_site(site)
+function Sites.updater.updateSite(site)
     for chunkKey, chunk in pairs(site.chunks) do
-        Sites.update_site_chunk(site.id, chunkKey)
+        Sites.updater.updateSiteChunk(site.id, chunkKey)
     end
 
-    Sites.update_site_map_tag(site)
-end
-
----@param site Site
-function Sites.remove_site_from_cache(site)
-    if site.map_tag ~= nil then site.map_tag.destroy() end
-    global.sites.ids[site.id] = nil
-    global.sites.surfaces[site.surface][site.type][site.index] = nil
+    Sites.site.updateMapTag(site)
 end
 
 function Sites.updater.onIncremental()
     -- local profiler = game.create_profiler(false)
     local set = global.sites.updater.queue[global.sites.updater.pointer]
     if set == nil then
-        -- we need to generate a new queue now
-        Sites.updater.createQueue()
-
-        profiler.stop()
-        -- game.print(profiler)
-        -- game.print('Created queue')
+        if #(global.sites.updater.queue) > 0 then
+            Sites.updater.finishQueue()
+            -- profiler.stop()
+            -- game.print(profiler)
+            -- game.print('Finish queue')
+        else
+            -- we need to generate a new queue now
+            Sites.updater.createQueue()
+            -- profiler.stop()
+            -- game.print(profiler)
+            -- game.print('Created queue')
+        end
         return
     end
 
     for _, tuple in pairs(set) do
-        Sites.update_site_chunk(tuple[1], tuple[2])
+        Sites.updater.updateSiteChunk(tuple[1], tuple[2])
     end
 
     global.sites.updater.pointer = global.sites.updater.pointer + 1
@@ -586,9 +569,9 @@ end
 
 function Sites.updater.onAll()
     -- local profiler = game.create_profiler(false)
-    for siteId, site in pairs(Sites.get_sites_by_id()) do
+    for siteId, site in pairs(Sites.storage.getIdList()) do
         if site.tracking then
-            Sites.update_cached_site(site)
+            Sites.updater.updateSite(site)
         end
     end
     -- profiler.stop()
@@ -599,7 +582,7 @@ function Sites.updater.createQueue()
     local queue = {{}}
     local currentSet = 1
     local setSize = settings.global['dqol-resource-monitor-site-chunks-per-update'].value
-    for siteId, site in pairs(Sites.get_sites_by_id()) do
+    for siteId, site in pairs(Sites.storage.getIdList()) do
         if site.tracking then
             for chunkId, chunk in pairs(site.chunks) do
                 if #(queue[currentSet]) >= setSize then
@@ -618,6 +601,22 @@ function Sites.updater.createQueue()
     }
 end
 
+function Sites.updater.finishQueue()
+    -- go through all the sites and update their tags
+    local sites = {}
+    for _, set in pairs(global.sites.updater.queue) do
+        for __, tuple in pairs(set) do
+            local siteId = tuple[1]
+            if sites[siteId] ~= true then
+                sites[siteId] = true
+                Sites.site.updateMapTag(Sites.storage.getById(siteId))
+            end
+        end
+    end
+
+    global.sites.updater.queue = {}
+end
+
 function Sites.boot()
     local func = Sites.updater.onIncremental
     if settings.global['dqol-resource-monitor-site-chunks-per-update'].value == 0 then
@@ -627,5 +626,5 @@ function Sites.boot()
 end
 
 function Sites.onInitMod()
-    Sites.reset_cache()
+    Sites.resetGlobal()
 end

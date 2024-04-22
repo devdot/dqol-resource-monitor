@@ -71,7 +71,7 @@ end
 
 local function prepare_site(event)
     return {
-        Sites.get_site_by_id(event.element.tags.site_id or 0),
+        Sites.storage.getById(event.element.tags.site_id or 0),
         game.players[event.player_index],
         event,
     }

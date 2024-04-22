@@ -20,14 +20,14 @@ function UiSite.show(site, player, window)
     local inner = window.inner
 
     local table = inner.add { type = 'table', column_count = 2 }
-    local updated = Sites.get_site_updated(site)
+    local updated = Sites.site.getUpdated(site)
     local stats = {
         {'type', {type.type .. '-name.' .. type.name}},
         {'amount', Util.Integer.toExponentString(site.amount)},
         {'initial-amount', Util.Integer.toExponentString(site.initial_amount)},
         {'id', '#' .. site.id},
         {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
-        {'tiles', Sites.get_site_tiles(site)},
+        {'tiles', Sites.site.getTiles(site)},
         {'chunks', table_size(site.chunks)},
         {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
         {'updated', Util.Integer.toTimeString(updated) .. ' (' .. Util.Integer.toTimeString(game.tick - updated) ..' ago)'},
@@ -133,14 +133,14 @@ end
 ---@param site Site
 ---@param player LuaPlayer
 function UiSite.onHighlight(site, player)
-    Sites.highlight_site(site)
+    Sites.site.highlight(site)
     player.zoom_to_world(site.area)
 end
 
 ---@param site Site
 ---@param player LuaPlayer
 function UiSite.onUpdate(site, player, event)
-    Sites.update_cached_site(site) -- todo: will this mess up multiplayer game sync?
+    Sites.updater.updateSite(site)
     local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
     UiSite.show(site, player, window)
 end

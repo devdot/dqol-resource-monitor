@@ -1,3 +1,3 @@
 return function(command)
-    Sites.reset_cache()
+    Sites.resetGlobal()
 end
