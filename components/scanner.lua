@@ -135,3 +135,7 @@ function Scanner.boot()
         -- todo: on chunk deleted?
     end
 end
+
+function Scanner.onInitMod()
+    Scanner.cache.reset()    
+end

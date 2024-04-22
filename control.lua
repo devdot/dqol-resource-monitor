@@ -36,6 +36,10 @@ end
 ---This is called when this mod is new to a save, before migrations
 function on_init(event)
     boot(event)
+
+    Scanner.onInitMod()
+    Sites.onInitMod()
+
     reboot_players()
 end
 

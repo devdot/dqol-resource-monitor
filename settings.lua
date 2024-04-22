@@ -11,7 +11,7 @@ data:extend({
     {
         name = 'dqol-resource-monitor-site-chunks-per-update',
         type = 'int-setting',
-        default_value = 0,
+        default_value = 10,
         minimum_value = 0,
         maximum_value = 1000000,
         setting_type = 'runtime-global',

@@ -1,6 +1,8 @@
 local Table = require('__stdlib__/stdlib/utils/table')
 
-Sites = {}
+Sites = {
+    updater = {},
+}
 
 ---@alias IntPosition {x: integer, y: integer}
 ---@alias DirectionIdentifier 'top'|'bottom'|'left'|'right'
@@ -10,7 +12,8 @@ Sites = {}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
 ---@alias Site {id: integer, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, amount: integer, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
 
----@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?}
+---@alias GlobalSitesUpdater {pointer: integer, queue: table<integer, table<1|2, integer|SiteChunkKey>>} -- queue sub-entries simply have 1: siteId and 2: chunkId
+---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
 ---@cast global {sites: GlobalSites?}
 
 local names = {
@@ -329,16 +332,19 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
 end
 
 function Sites.reset_cache()
-    global.sites = {}
-    global.ids = {}
+    global.sites = {
+        surfaces = {},
+        ids = {},
+        updater = {
+            queue = {},
+            pointer = 1,
+        },
+    }
 end
 
 ---Add a new site to the cache
 ---@param site Site
 function Sites.add_site_to_cache(site)
-    if not global.sites then global.sites = { surfaces = {} } end
-    if not global.sites.ids then global.sites.ids = {} end
-    if not global.sites.surfaces then global.sites.surfaces = {} end
     if not global.sites.surfaces[site.surface] then global.sites.surfaces[site.surface] = {} end
     if not global.sites.surfaces[site.surface][site.type] then global.sites.surfaces[site.surface][site.type] = {} end
 
@@ -471,15 +477,12 @@ end
 ---@param surface_index integer
 ---@return table<string, Site[]?>
 function Sites.get_sites_from_cache(surface_index)
-    if global.sites == nil then return {} end
-    if global.sites.surfaces == nil then return {} end
     return global.sites.surfaces[surface_index] or {}
 end
 
 ---@return table<integer, table<string, Site[]?>>
 function Sites.get_sites_from_cache_all()
-    if global.sites == nil then return {} end
-    return global.sites.surfaces or {}
+    return global.sites.surfaces
 end
 
 ---@param surface_index integer
@@ -487,8 +490,6 @@ end
 ---@param index integer
 ---@return Site?
 function Sites.get_site_from_cache(surface_index, type, index)
-    if global.sites == nil then return nil end
-    if global.sites.surfaces == nil then return nil end
     if global.sites.surfaces[surface_index] == nil then return nil end
     if global.sites.surfaces[surface_index][type] == nil then return nil end
     return global.sites.surfaces[surface_index][type][index] or nil
@@ -498,8 +499,6 @@ end
 ---@param id integer
 ---@return Site?
 function Sites.get_site_by_id(id)
-    if global.sites == nil then return nil end
-    if global.sites.ids == nil then return nil end
     return global.sites.ids[id] or nil;
 end
 
@@ -507,8 +506,7 @@ end
 ---@param id integer
 ---@return table<integer, Site>
 function Sites.get_sites_by_id()
-    if global.sites == nil then return {} end
-    return global.sites.ids or {}
+    return global.sites.ids
 end
 
 ---@param siteId integer
@@ -555,24 +553,6 @@ function Sites.update_cached_site(site)
     Sites.update_site_map_tag(site)
 end
 
-function Sites.update_cached_all()
-    -- todo: implement partial update
-    -- when dqol-resource-monitor-site-entities-per-update is not 0
-    -- local profiler = game.create_profiler(false)
-    if global.sites == nil then return nil end
-    for surfaceKey, surfaces in pairs(Sites.get_sites_from_cache_all()) do
-        for type, sites in pairs(surfaces) do
-            for index, site in pairs(sites) do
-                if site.tracking == true then
-                    Sites.update_cached_site(site)
-                end
-            end
-        end
-    end
-    -- profiler.stop()
-    -- game.print(profiler)
-end
-
 ---@param site Site
 function Sites.remove_site_from_cache(site)
     if site.map_tag ~= nil then site.map_tag.destroy() end
@@ -580,7 +560,72 @@ function Sites.remove_site_from_cache(site)
     global.sites.surfaces[site.surface][site.type][site.index] = nil
 end
 
-function Sites.boot()
-    script.on_nth_tick(settings.global['dqol-resource-monitor-site-ticks-between-updates'].value, function(event) Sites.update_cached_all() end) -- todo adjust
+function Sites.updater.onIncremental()
+    -- local profiler = game.create_profiler(false)
+    local set = global.sites.updater.queue[global.sites.updater.pointer]
+    if set == nil then
+        -- we need to generate a new queue now
+        Sites.updater.createQueue()
+
+        profiler.stop()
+        -- game.print(profiler)
+        -- game.print('Created queue')
+        return
+    end
+
+    for _, tuple in pairs(set) do
+        Sites.update_site_chunk(tuple[1], tuple[2])
+    end
+
+    global.sites.updater.pointer = global.sites.updater.pointer + 1
+
+    -- profiler.stop()
+    -- game.print(profiler)
+    -- game.print('Update ' .. global.sites.updater.pointer .. ' of ' .. #(global.sites.updater.queue) .. ' (' .. #set .. ' chunks)')
 end
 
+function Sites.updater.onAll()
+    -- local profiler = game.create_profiler(false)
+    for siteId, site in pairs(Sites.get_sites_by_id()) do
+        if site.tracking then
+            Sites.update_cached_site(site)
+        end
+    end
+    -- profiler.stop()
+    -- game.print(profiler)
+end
+
+function Sites.updater.createQueue()
+    local queue = {{}}
+    local currentSet = 1
+    local setSize = settings.global['dqol-resource-monitor-site-chunks-per-update'].value
+    for siteId, site in pairs(Sites.get_sites_by_id()) do
+        if site.tracking then
+            for chunkId, chunk in pairs(site.chunks) do
+                if #(queue[currentSet]) >= setSize then
+                    -- start a new set
+                    currentSet = currentSet + 1
+                    queue[currentSet] = {}
+                end
+                -- insert into the current set
+                table.insert(queue[currentSet], { siteId, chunkId })
+            end
+        end
+    end
+    global.sites.updater = {
+        queue = queue,
+        pointer = 1,
+    }
+end
+
+function Sites.boot()
+    local func = Sites.updater.onIncremental
+    if settings.global['dqol-resource-monitor-site-chunks-per-update'].value == 0 then
+        func = Sites.updater.onAll
+    end
+    script.on_nth_tick(settings.global['dqol-resource-monitor-site-ticks-between-updates'].value, func)
+end
+
+function Sites.onInitMod()
+    Sites.reset_cache()
+end
