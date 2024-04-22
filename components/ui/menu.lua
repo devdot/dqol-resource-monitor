@@ -448,7 +448,12 @@ end
 
 function UiMenu.surfaces.onReset(event)
     Scanner.cache.resetSurface(event.element.tags.surfaceId)
-    Sites.get_sites_from_cache_all()[event.element.tags.surfaceId] = nil
+    local sites = Sites.get_sites_from_cache_all()[event.element.tags.surfaceId] or {}
+    for _, inner in pairs(sites) do
+        for __, site in pairs(inner) do
+            Sites.remove_site_from_cache(site)
+        end
+    end
     UiMenu.show(game.players[event.player_index])
 end
 

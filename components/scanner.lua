@@ -56,7 +56,7 @@ function Scanner.scan_chunk(surface, chunk)
     end
 
     if _DEBUG then
-        game.print('Scanning chunk [' .. chunk.x .. ', ' .. chunk.y .. ']')
+        log('Scanning chunk [' .. chunk.x .. ', ' .. chunk.y .. ']')
     end
 
     local area = chunk_to_area(chunk)

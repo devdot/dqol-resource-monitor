@@ -4,9 +4,11 @@ Sites = {}
 
 ---@alias IntPosition {x: integer, y: integer}
 ---@alias DirectionIdentifier 'top'|'bottom'|'left'|'right'
----@alias SiteChunk {x: integer, y: integer, top: integer, bottom: integer, left: integer, right: integer}
+---@alias SiteChunkKey string A special format key, encoding the chunk position
+---@alias SiteChunkBorders {left: integer, right: integer, top: integer, bottom: integer}
+---@alias SiteChunk {x: integer, y: integer, tiles: integer, amount: integer, updated: integer, borders: SiteChunkBorders}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
----@alias Site {id: integer, type: string, name: string, surface: integer, chunks: SiteChunk[], amount: integer, initial_amount: integer, positions: IntPosition[], index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
+---@alias Site {id: integer, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, amount: integer, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
 
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?}
 ---@cast global {sites: GlobalSites?}
@@ -110,33 +112,7 @@ local function helper_highligh_chunk_border_tb(border, xBase, yBase, surface, co
     end
 end
 
----@param chunk SiteChunk
----@param surface integer
-local function helper_highligh_chunk_border_left(chunk, surface)
-    helper_highligh_chunk_border_lr(chunk.left, chunk.x * 32, chunk.y * 32, surface, { r = 255, g = 128, b = 0 })
-end
-
----@param chunk SiteChunk
----@param surface integer
-local function helper_highligh_chunk_border_right(chunk, surface)
-    helper_highligh_chunk_border_lr(chunk.right, ((chunk.x + 1) * 32) - 1, chunk.y * 32, surface,
-        { r = 255, g = 0, b = 128 })
-end
-
----@param chunk SiteChunk
----@param surface integer
-local function helper_highligh_chunk_border_top(chunk, surface)
-    helper_highligh_chunk_border_tb(chunk.top, chunk.x * 32, chunk.y * 32, surface, { r = 255, g = 64, b = 0 })
-end
-
----@param chunk SiteChunk
----@param surface integer
-local function helper_highligh_chunk_border_bottom(chunk, surface)
-    helper_highligh_chunk_border_tb(chunk.bottom, chunk.x * 32, ((chunk.y + 1) * 32) - 1, surface,
-        { r = 255, g = 0, b = 64 })
-end
-
----Highlight a given chunk in the game world
+---Highlight a given site in the game world
 ---@param site Site
 function Sites.highlight_site(site)
     local color = {
@@ -161,44 +137,32 @@ function Sites.highlight_site(site)
         time_to_live = 200,
     }
 
-    for key, pos in pairs(site.positions) do
-        rendering.draw_rectangle {
-            color = color,
-            filled = true,
-            left_top = pos,
-            right_bottom = { x = pos.x + 1, y = pos.y + 1 },
-            surface = site.surface,
-            time_to_live = 200,
-            draw_on_ground = true,
-        }
-    end
-
     for key, chunk in pairs(site.chunks) do
-        if chunk.left > 0 then
-            helper_highligh_chunk_border_left(chunk, site.surface)
+        if chunk.borders.left > 0 then
+            helper_highligh_chunk_border_lr(chunk.borders.left, chunk.x * 32, chunk.y * 32, site.surface, { r = 255, g = 128, b = 0 })
         end
 
-        if chunk.right > 0 then
-            helper_highligh_chunk_border_right(chunk, site.surface)
+        if chunk.borders.right > 0 then
+            helper_highligh_chunk_border_lr(chunk.borders.right, ((chunk.x + 1) * 32) - 1, chunk.y * 32, site.surface, { r = 255, g = 0, b = 128 })
         end
 
-        if chunk.top > 0 then
-            helper_highligh_chunk_border_top(chunk, site.surface)
+        if chunk.borders.top > 0 then
+            helper_highligh_chunk_border_tb(chunk.borders.top, chunk.x * 32, chunk.y * 32, site.surface, { r = 255, g = 64, b = 0 })
         end
 
-        if chunk.bottom > 0 then
-            helper_highligh_chunk_border_bottom(chunk, site.surface)
+        if chunk.borders.bottom > 0 then
+            helper_highligh_chunk_border_tb(chunk.borders.bottom, chunk.x * 32, ((chunk.y + 1) * 32) - 1, site.surface, { r = 255, g = 0, b = 64 })
         end
     end
 end
 
 ---Calculate outer chunks
 ---@param site Site
----@return string[]
+---@return SiteChunkKey[]
 local function get_outer_chunks(site)
     local outer_chunks = {}
     for key, chunk in pairs(site.chunks) do
-        if chunk.bottom > 0 or chunk.top > 0 or chunk.left > 0 or chunk.right > 0 then
+        if chunk.borders.bottom > 0 or chunk.borders.top > 0 or chunk.borders.left > 0 or chunk.borders.right > 0 then
             table.insert(outer_chunks, key)
         end
     end
@@ -207,30 +171,45 @@ end
 
 ---Calculate the keys to the chunks that are neighboring this chun
 ---@param chunk SiteChunk
----@return table<string, {direction: DirectionIdentifier, opposite: DirectionIdentifier}>
+---@return table<SiteChunkKey, {direction: DirectionIdentifier, opposite: DirectionIdentifier, diagonal: nil|'left'|'right'}>
 local function get_neighboring_chunk_keys(chunk)
     local neighbors = {}
-    if chunk.top > 0 then
+    -- directly neighboring
+    if chunk.borders.top > 0 then
         neighbors[chunk.x .. ',' .. chunk.y - 1] = { direction = 'top', opposite = 'bottom' }
     end
-    if chunk.bottom > 0 then
+    if chunk.borders.bottom > 0 then
         neighbors[chunk.x .. ',' .. chunk.y + 1] = { direction = 'bottom', opposite = 'top' }
     end
-    if chunk.left > 0 then
+    if chunk.borders.left > 0 then
         neighbors[chunk.x - 1 .. ',' .. chunk.y] = { direction = 'left', opposite = 'right' }
     end
-    if chunk.right > 0 then
+    if chunk.borders.right > 0 then
         neighbors[chunk.x + 1 .. ',' .. chunk.y] = { direction = 'right', opposite = 'left' }
+    end
+
+    -- diagonal corners
+    if bit32.band(chunk.borders.top, 1) then
+        neighbors[chunk.x - 1 .. ',' .. chunk.y - 1] = { direction = 'top', opposite = 'bottom', diagonal = 'left' }
+    end
+    if bit32.band(chunk.borders.top, 2147483648) then
+        neighbors[chunk.x + 1 .. ',' .. chunk.y - 1] = { direction = 'top', opposite = 'bottom', diagonal = 'right' }
+    end
+    if bit32.band(chunk.borders.bottom, 1) then
+        neighbors[chunk.x - 1 .. ',' .. chunk.y - 1] = { direction = 'bottom', opposite = 'top', diagonal = 'left' }
+    end
+    if bit32.band(chunk.borders.bottom, 2147483648) then
+        neighbors[chunk.x + 1 .. ',' .. chunk.y - 1] = { direction = 'bottom', opposite = 'top', diagonal = 'right' }
     end
     return neighbors
 end
 
----@param site SiteArea
+---@param area SiteArea
 ---@return SiteArea
-local function update_site_area_center(site)
-    site.x = site.left + math.floor((site.right - site.left) / 2)
-    site.y = site.top + math.floor((site.bottom - site.top) / 2)
-    return site
+local function update_site_area_center(area)
+    area.x = area.left + math.floor((area.right - area.left) / 2)
+    area.y = area.top + math.floor((area.bottom - area.top) / 2)
+    return area
 end
 
 ---@param areaBase SiteArea
@@ -252,7 +231,6 @@ local function merge_sites(siteBase, siteAdd)
     siteBase.amount = siteBase.amount + siteAdd.amount
     siteBase.initial_amount = siteBase.initial_amount + siteAdd.initial_amount
     siteBase.chunks = Table.dictionary_combine(siteBase.chunks, siteAdd.chunks)
-    siteBase.positions = Table.array_combine(siteBase.positions, siteAdd.positions)
     siteBase.since = math.min(siteBase.since, siteAdd.since)
     siteBase.area = merge_site_areas(siteBase.area, siteAdd.area)
     return siteBase
@@ -282,7 +260,6 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
                 chunks = {},
                 amount = 0,
                 initial_amount = 0,
-                positions = {},
                 since = game.tick,
                 index = 0,
                 area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
@@ -292,59 +269,63 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
             types[resource.name].chunks[chunk_key] = {
                 x = chunk.x,
                 y = chunk.y,
-                top = 0,
-                bottom = 0,
-                left = 0,
-                right = 0,
+                tiles = 0,
+                amount = 0,
+                updated = game.tick,
+                borders = {
+                    top = 0,
+                    bottom = 0,
+                    left = 0,
+                    right = 0,
+                },
             }
         end
 
-        table.insert(types[resource.name].positions, pos)
-        types[resource.name].amount = types[resource.name].amount + resource.amount
-        types[resource.name].initial_amount = types[resource.name].initial_amount +
-            (resource.initial_amount or resource.amount)
+        local site = types[resource.name]
+        local chunk = site.chunks[chunk_key]
 
+        -- update chunk
+        chunk.amount = chunk.amount + resource.amount
+        chunk.tiles = chunk.tiles + 1
+
+        -- update site
+        site.amount = site.amount + resource.amount
+        site.initial_amount = site.initial_amount + (resource.initial_amount or resource.amount)
+
+        -- check for borders
         local modX = pos.x % 32
         local modY = pos.y % 32
 
         if modX == 0 then
-            types[resource.name].chunks[chunk_key].left = bit32.bor(types[resource.name].chunks[chunk_key].left,
-                bit32.lshift(1, modY))
+            chunk.borders.left = bit32.bor(chunk.borders.left, bit32.lshift(1, modY))
         elseif modX == 31 then
-            types[resource.name].chunks[chunk_key].right = bit32.bor(types[resource.name].chunks[chunk_key].right,
-                bit32.lshift(1, modY))
+            chunk.borders.right = bit32.bor(chunk.borders.right, bit32.lshift(1, modY))
         end
 
         if modY == 0 then
-            types[resource.name].chunks[chunk_key].top = bit32.bor(types[resource.name].chunks[chunk_key].top,
-                bit32.lshift(1, modX))
+            chunk.borders.top = bit32.bor(chunk.borders.top, bit32.lshift(1, modX))
         elseif modY == 31 then
-            types[resource.name].chunks[chunk_key].bottom = bit32.bor(types[resource.name].chunks[chunk_key].bottom,
-                bit32.lshift(1, modX))
+            chunk.borders.bottom = bit32.bor(chunk.borders.bottom, bit32.lshift(1, modX))
         end
-    end
 
-    return types
-end
-
----@param site Site
----@return Site
-function Sites.update_site_area(site)
-    for key, pos in pairs(site.positions) do
+        -- expand area
         if pos.x > site.area.right then
             site.area.right = pos.x
         elseif pos.x < site.area.left then
             site.area.left = pos.x
         end
-
         if pos.y > site.area.bottom then
             site.area.bottom = pos.y
         elseif pos.y < site.area.top then
             site.area.top = pos.y
         end
     end
-    site.area = update_site_area_center(site.area)
-    return site
+
+    for _, site in pairs(types) do
+        update_site_area_center(site.area)
+    end
+
+    return types
 end
 
 function Sites.reset_cache()
@@ -355,71 +336,88 @@ end
 ---Add a new site to the cache
 ---@param site Site
 function Sites.add_site_to_cache(site)
-    if not global.sites then
-        global.sites = { surfaces = {} }
-    end
+    if not global.sites then global.sites = { surfaces = {} } end
+    if not global.sites.ids then global.sites.ids = {} end
+    if not global.sites.surfaces then global.sites.surfaces = {} end
+    if not global.sites.surfaces[site.surface] then global.sites.surfaces[site.surface] = {} end
+    if not global.sites.surfaces[site.surface][site.type] then global.sites.surfaces[site.surface][site.type] = {} end
 
-    if not global.sites.ids then
-        global.sites.ids = {}
-    end
-
-    if not global.sites.surfaces then
-        global.sites.surfaces = {}
-    end
-
-    if not global.sites.surfaces[site.surface] then
-        global.sites.surfaces[site.surface] = {}
-    end
-
-    if not global.sites.surfaces[site.surface][site.type] then
-        global.sites.surfaces[site.surface][site.type] = {}
-    end
-
-    site = Sites.update_site_area(site)
     local outer_chunks = get_outer_chunks(site)
 
     -- now check if this borders any other sites
+    local matches = {}
     for _, chunkKey in pairs(outer_chunks) do
+        local chunk = site.chunks[chunkKey]
         -- calculate the relevant neighbors first
-        local neighborKeys = get_neighboring_chunk_keys(site.chunks[chunkKey])
+        local neighborKeys = get_neighboring_chunk_keys(chunk)
 
         for neighborKey, d in pairs(neighborKeys) do
             local direction = d.direction
             local otherDirection = d.opposite
+            local diagonal = d.diagonal
             for siteKey, otherSite in pairs(global.sites.surfaces[site.surface][site.type]) do
-                if otherSite.chunks[neighborKey] ~= nil then
+                local otherChunk = otherSite.chunks[neighborKey]
+                if otherChunk ~= nil then
                     -- now check if they actually match up
-                    if bit32.band(site.chunks[chunkKey][direction], otherSite.chunks[neighborKey][otherDirection]) > 0 then
-                        if _DEBUG then
-                            game.print('Merge into site ' .. otherSite.name)
+                    if diagonal == nil then
+                        if bit32.band(chunk.borders[direction], otherChunk.borders[otherDirection]) > 0 then
+                            matches[otherSite.id] = otherSite
+                            break
                         end
-
-                        -- we found a match
-                        -- clean up the seam
-                        site.chunks[chunkKey][direction] = 0
-                        otherSite.chunks[neighborKey][otherDirection] = 0
-                        -- merge into here
-                        global.sites.surfaces[site.surface][site.type][siteKey] = merge_sites(otherSite, site)
-                        return
+                    elseif diagonal == 'left' then
+                        if bit32.band(otherChunk.borders[otherDirection], 2147483648) then
+                            matches[otherSite.id] = otherSite
+                            break
+                        end
+                    else -- diagonal == right
+                        if bit32.band(otherChunk.borders[otherDirection], 1) then
+                            matches[otherSite.id] = otherSite
+                            break
+                        end
                     end
                 end
             end
         end
     end
+
+    -- check for the matches array
+    if table_size(matches) > 0 then
+        for _, otherSite in pairs(matches) do
+            -- merge into here
+            otherSite = merge_sites(otherSite, site)
+
+            if _DEBUG then
+                game.print('Merge into site #' .. otherSite.id .. ' ' .. otherSite.name)
+            end
+
+            if site.id > 0 then
+                -- the old site existed before
+                -- now that they are merged the old one can be removed
+                Sites.remove_site_from_cache(site)
+
+                if _DEBUG then
+                    game.print('Removed #' .. site.id .. ' after merge')
+                end
+            end
+
+            -- swap site for next match
+            site = otherSite
+        end
+    else
+        -- we did find any matches, so we simply add it now
+        local index = #global.sites.surfaces[site.surface][site.type] + 1
+        site.index = index
+        global.sites.surfaces[site.surface][site.type][index] = site
     
-    if _DEBUG then
-        game.print('Add new site ' .. site.name)
+        -- add to ids
+        local nextId = #(global.sites.ids) + 1
+        site.id = nextId
+        global.sites.ids[nextId] = site
+    
+        if _DEBUG then
+            game.print('Added new site #' .. site.id .. ' ' .. site.name)
+        end
     end
-
-    -- we did not return yet, so we simply add it now
-    local index = #global.sites.surfaces[site.surface][site.type] + 1
-    site.index = index
-    global.sites.surfaces[site.surface][site.type][index] = site
-
-    -- add to ids
-    local nextId = #(global.sites.ids) + 1
-    site.id = nextId
-    global.sites.ids[nextId] = site
 end
 
 ---@param sites Site[]
@@ -448,6 +446,26 @@ function Sites.update_site_map_tag(site)
             site.map_tag = nil
         end
     end
+end
+
+---@param site Site
+---@return integer
+function Sites.get_site_tiles(site)
+    local tiles = 0
+    for _, chunk in pairs(site.chunks) do
+        tiles = chunk.tiles + tiles
+    end
+    return tiles
+end
+
+---@param site Site
+---@return integer
+function Sites.get_site_updated(site)
+    local min = nil
+    for _, chunk in pairs(site.chunks) do
+        if min == nil or chunk.updated < min then min = chunk.updated end
+    end
+    return min
 end
 
 ---@param surface_index integer
@@ -493,11 +511,15 @@ function Sites.get_sites_by_id()
     return global.sites.ids or {}
 end
 
----@param site Site
-function Sites.update_cached_site(site)
-    local amount = 0
+---@param siteId integer
+---@param chunkKey SiteChunkKey
+function Sites.update_site_chunk(siteId, chunkKey)
+    local site = Sites.get_site_by_id(siteId)
+    if site == nil then return nil end
+    local chunk = site.chunks[chunkKey]
+    if chunk == nil then return nil end
+
     local surface = game.surfaces[site.surface]
-    for _, chunk in pairs(site.chunks) do
         local x = chunk.x * 32
         local y = chunk.y * 32
         local area = { left_top = { x = x, y = y }, right_bottom = { x = x + 32, y = y + 32 } }
@@ -505,12 +527,30 @@ function Sites.update_cached_site(site)
             area = area,
             name = site.type,
         }
+
+    local sum = 0
         for __, resource in pairs(resources) do
-            amount = amount + resource.amount
+        sum = sum + resource.amount
         end
+    -- incrementally update site amount
+    site.amount = site.amount - (chunk.amount - sum)
+
+    -- remove if empty
+    if #resources == 0 then
+        site.chunks[chunkKey] = nil
+        return nil
     end
-    
-    site.amount = amount
+
+    chunk.amount = sum
+    chunk.tiles = #resources
+    chunk.updated = game.tick
+end
+
+---@param site Site
+function Sites.update_cached_site(site)
+    for chunkKey, chunk in pairs(site.chunks) do
+        Sites.update_site_chunk(site.id, chunkKey)
+    end
 
     Sites.update_site_map_tag(site)
 end
@@ -518,7 +558,7 @@ end
 function Sites.update_cached_all()
     -- todo: implement partial update
     -- when dqol-resource-monitor-site-entities-per-update is not 0
-    local profiler = game.create_profiler(false)
+    -- local profiler = game.create_profiler(false)
     if global.sites == nil then return nil end
     for surfaceKey, surfaces in pairs(Sites.get_sites_from_cache_all()) do
         for type, sites in pairs(surfaces) do
@@ -529,8 +569,15 @@ function Sites.update_cached_all()
             end
         end
     end
-    profiler.stop()
-    game.print(profiler)
+    -- profiler.stop()
+    -- game.print(profiler)
+end
+
+---@param site Site
+function Sites.remove_site_from_cache(site)
+    if site.map_tag ~= nil then site.map_tag.destroy() end
+    global.sites.ids[site.id] = nil
+    global.sites.surfaces[site.surface][site.type][site.index] = nil
 end
 
 function Sites.boot()

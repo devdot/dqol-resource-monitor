@@ -9,7 +9,7 @@ data:extend({
         order = 'site01',
     },
     {
-        name = 'dqol-resource-monitor-site-entities-per-update',
+        name = 'dqol-resource-monitor-site-chunks-per-update',
         type = 'int-setting',
         default_value = 0,
         minimum_value = 0,

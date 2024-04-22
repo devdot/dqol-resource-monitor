@@ -20,14 +20,17 @@ function UiSite.show(site, player, window)
     local inner = window.inner
 
     local table = inner.add { type = 'table', column_count = 2 }
+    local updated = Sites.get_site_updated(site)
     local stats = {
         {'type', {type.type .. '-name.' .. type.name}},
         {'amount', Util.Integer.toExponentString(site.amount)},
         {'initial-amount', Util.Integer.toExponentString(site.initial_amount)},
         {'id', '#' .. site.id},
         {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
-        {'tiles', #site.positions},
+        {'tiles', Sites.get_site_tiles(site)},
+        {'chunks', table_size(site.chunks)},
         {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
+        {'updated', Util.Integer.toTimeString(updated) .. ' (' .. Util.Integer.toTimeString(game.tick - updated) ..' ago)'},
     }
     for key, row in pairs(stats) do
         table.add {
