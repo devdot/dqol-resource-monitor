@@ -286,7 +286,7 @@ function Sites.create_from_chunk_resources(resources, surface, chunk)
                 since = game.tick,
                 index = 0,
                 area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
-                tracking = true, -- todo create a default setting for this
+                tracking = settings.global['dqol-resource-monitor-site-track-new'].value,
             }
 
             types[resource.name].chunks[chunk_key] = {
@@ -514,14 +514,19 @@ end
 function Sites.update_cached_all()
     -- todo: implement partial update
     -- when dqol-resource-monitor-site-entities-per-update is not 0
+    local profiler = game.create_profiler(false)
     if global.sites == nil then return nil end
     for surfaceKey, surfaces in pairs(Sites.get_sites_from_cache_all()) do
         for type, sites in pairs(surfaces) do
             for index, site in pairs(sites) do
-                Sites.update_cached_site(site)
+                if site.tracking == true then
+                    Sites.update_cached_site(site)
+                end
             end
         end
     end
+    profiler.stop()
+    game.print(profiler)
 end
 
 function Sites.boot()

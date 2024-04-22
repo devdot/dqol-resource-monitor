@@ -249,7 +249,7 @@ function UiMenu.tabs.surfaces(tab)
             end
         end
 
-        local buttons = table.add { type = 'table', style = 'compact_slot_table', column_count = 2 }
+        local buttons = table.add { type = 'table', style = 'compact_slot_table', column_count = 4 }
         buttons.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
@@ -258,6 +258,28 @@ function UiMenu.tabs.surfaces(tab)
             tags = {
                 _module = 'menu_surfaces',
                 _action = 'scan',
+                surfaceId = surface.index,
+            },
+        }
+        buttons.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-track-all-tooltip' },
+            sprite = 'utility/check_mark',
+            tags = {
+                _module = 'menu_surfaces',
+                _action = 'track_all',
+                surfaceId = surface.index,
+            },
+        }
+        buttons.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-untrack-all-tooltip' },
+            sprite = 'utility/close_black',
+            tags = {
+                _module = 'menu_surfaces',
+                _action = 'untrack_all',
                 surfaceId = surface.index,
             },
         }
@@ -427,6 +449,24 @@ end
 function UiMenu.surfaces.onReset(event)
     Scanner.cache.resetSurface(event.element.tags.surfaceId)
     Sites.get_sites_from_cache_all()[event.element.tags.surfaceId] = nil
+    UiMenu.show(game.players[event.player_index])
+end
+
+local function surface_tracking_helper(surfaceId, tracking)
+    for _, sites in pairs(Sites.get_sites_from_cache_all()[surfaceId] or {}) do
+        for __, site in pairs(sites) do
+            site.tracking = tracking
+        end
+    end
+end
+
+function UiMenu.surfaces.onTrackAll(event)
+    surface_tracking_helper(event.element.tags.surfaceId, true)
+    UiMenu.show(game.players[event.player_index])
+end
+
+function UiMenu.surfaces.onUntrackAll(event)
+    surface_tracking_helper(event.element.tags.surfaceId, false)
     UiMenu.show(game.players[event.player_index])
 end
 
