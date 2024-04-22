@@ -1,3 +1,4 @@
 Util = {
-    Integer = require('util/integer')
+    Integer = require('util/integer'),
+    Naming = require('util/naming'),
 }

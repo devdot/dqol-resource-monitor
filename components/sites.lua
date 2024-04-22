@@ -18,50 +18,6 @@ Sites = {
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
 ---@cast global {sites: GlobalSites?}
 
-local names = {
-    'Julia',
-    'Midderfield',
-    'Amara',
-    'Kaleigh',
-    'Zoe',
-    'Josephine',
-    'Tiara',
-    'Gia',
-    'Julianne',
-    'Leila',
-    'Amari',
-    'Daisy',
-    'Daniella',
-    'Raquel',
-    'Westray',
-    'Carningsby',
-    'Doveport',
-    'Sanlow',
-    'Hillford',
-    'Aberystwyth',
-    'Thorpeness',
-    'Malrton',
-    'Ely',
-}
-
----@param pos IntPosition
----@return string
-local function pos_to_compass_direction(pos)
-    local direction
-    if pos.y < 0 then direction = 'N' else direction = 'S' end
-    if pos.x > 0 then direction = direction .. 'E' else direction = direction .. 'W' end
-    return direction
-end
-
----@param pos IntPosition?
----@return string
-local function get_random_name(pos)
-    local name = names[math.random(1, #names)]
-    if pos ~= nil then
-       name = pos_to_compass_direction(pos) .. ' ' .. name 
-    end
-    return name
-end
 
 ---@param name string
 ---@return SignalID
@@ -259,7 +215,7 @@ function Sites.createFromChunkResources(resources, surface, chunk)
             types[resource.name] = {
                 id = 0,
                 type = resource.name,
-                name = get_random_name(pos),
+                name = Util.Naming.getRandomName(pos),
                 surface = surface.index,
                 chunks = {},
                 amount = 0,
