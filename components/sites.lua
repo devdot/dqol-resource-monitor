@@ -497,15 +497,19 @@ end
 function Sites.update_cached_site(site)
     local amount = 0
     local surface = game.surfaces[site.surface]
-    for key, pos in pairs(site.positions) do
-        local resource = surface.find_entity(site.type, {pos.x + 0.5, pos.y + 0.5})
-        if resource and resource.amount > 0 then
+    for _, chunk in pairs(site.chunks) do
+        local x = chunk.x * 32
+        local y = chunk.y * 32
+        local area = { left_top = { x = x, y = y }, right_bottom = { x = x + 32, y = y + 32 } }
+        local resources = surface.find_entities_filtered {
+            area = area,
+            name = site.type,
+        }
+        for __, resource in pairs(resources) do
             amount = amount + resource.amount
-        else
-            table.remove(site.positions, key)
         end
     end
-
+    
     site.amount = amount
 
     Sites.update_site_map_tag(site)
