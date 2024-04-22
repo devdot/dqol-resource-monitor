@@ -4,6 +4,7 @@ local Position = require('__stdlib__/stdlib/area/position')
 
 Scanner = {
     DEFAULT_FORCE = 1,
+    cache = {},
 }
 
 ---@return LuaForce
@@ -50,6 +51,10 @@ end
 ---@param surface LuaSurface
 ---@param chunk ChunkPositionAndArea
 function Scanner.scan_chunk(surface, chunk)
+    if Scanner.cache.getChunk(surface.index, chunk) then
+        return false
+    end
+
     if _DEBUG then
         game.print('Scanning chunk [' .. chunk.x .. ', ' .. chunk.y .. ']')
     end
@@ -60,6 +65,8 @@ function Scanner.scan_chunk(surface, chunk)
         type = 'resource',
     }
 
+    Scanner.cache.setChunk(surface.index, chunk, true)
+
     if #resources == 0 then
         return false
     end
@@ -68,6 +75,52 @@ function Scanner.scan_chunk(surface, chunk)
     Sites.add_sites_to_cache(sites)
 
     return true
+end
+
+---@alias ScannerCache {chunks: table<integer, table<string, boolean>>}
+---chunks: first index is the surface index, inner index is position_to_key of that chunk
+
+
+---@return ScannerCache
+function Scanner.cache.get()
+    if global.scanner == nil then Scanner.cache.reset() end
+    return global.scanner
+end
+
+function Scanner.cache.reset()
+    global.scanner = {
+        chunks = {}
+    }
+end
+
+---@param surfaceId integer
+function Scanner.cache.resetSurface(surfaceId)
+    if global.scanner == nil then
+        Scanner.cache.reset()
+    else
+        global.scanner.chunks[surfaceId] = {}
+    end
+end
+
+---@param surfaceId integer
+---@param chunk ChunkPositionAndArea
+---@return boolean
+function Scanner.cache.getChunk(surfaceId, chunk)
+    local cache = Scanner.cache.get()
+    if cache.chunks[surfaceId] == nil then cache.chunks[surfaceId] = {} end
+    local key = chunk.x .. ',' .. chunk.y
+    if cache.chunks[surfaceId][key] == nil then cache.chunks[surfaceId][key] = false end
+    return cache.chunks[surfaceId][key]
+end
+
+---@param surfaceId integer
+---@param chunk ChunkPositionAndArea
+---@param bool boolean
+function Scanner.cache.setChunk(surfaceId, chunk, bool)
+    local cache = Scanner.cache.get()
+    if cache.chunks[surfaceId] == nil then cache.chunks[surfaceId] = {} end
+    local key = chunk.x .. ',' .. chunk.y
+    cache.chunks[surfaceId][key] = bool
 end
 
 function on_chunk_charted(event)

@@ -4,6 +4,7 @@ local UiMenu = {
     WINDOW_ID = 'menu',
     tabs = {},
     filters = {},
+    surfaces = {},
 }
 
 ---@param LuaPlayer
@@ -208,6 +209,69 @@ function UiMenu.tabs.sites(tab)
     end
 end
 
+function UiMenu.tabs.surfaces(tab)
+    local table = tab.add {
+        type = 'table',
+        column_count = 3 + table_size(Resources.types),
+    }
+
+    -- do the headers
+    table.add { type = 'label', style = 'caption_label', caption = { 'dqol-resource-monitor.ui-menu-surfaces-name' } }
+    table.add { type = 'label', style = 'caption_label', caption = { 'dqol-resource-monitor.ui-menu-surfaces-chunks' } }
+    for _, type in pairs(Resources.types) do
+        table.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
+    end
+    table.add { type = 'label', caption = '' }
+
+    -- gather data
+    local scanCache = Scanner.cache.get()
+    local allSites = Sites.get_sites_from_cache_all()
+
+    -- fill the surfaces
+    for key, surface in pairs(game.surfaces) do
+        table.add { type = 'label', caption = surface.name }
+        table.add { type = 'label', caption = table_size(scanCache.chunks[surface.index] or {}) }
+        
+        if allSites[surface.index] ~= nil then
+            for _, type in pairs(Resources.types) do
+                local sum = 0
+                for __, site in pairs(allSites[surface.index][type.resource_name] or {}) do
+                    sum = sum + site.amount
+                end
+                table.add { type = 'label', caption = (sum > 0 and Util.Integer.toExponentString(sum)) or '' }
+            end
+        else
+            for _, type in pairs(Resources.types) do
+                table.add { type = 'label', caption = '' }
+            end
+        end
+
+        local buttons = table.add { type = 'table', style = 'compact_slot_table', column_count = 2 }
+        buttons.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-scan-tooltip' },
+            sprite = 'utility/reset',
+            tags = {
+                _module = 'menu_surfaces',
+                _action = 'scan',
+                surfaceId = surface.index,
+            },
+        }
+        buttons.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            tooltip = {'dqol-resource-monitor.ui-menu-surfaces-reset-tooltip'},
+            sprite = 'utility/trash',
+            tags = {
+                _module = 'menu_surfaces',
+                _action = 'reset',
+                surfaceId = surface.index,
+            },
+        }
+    end
+end
+
 function UiMenu.tabs.other(tab)
     tab.add { type = 'label', caption = 'other' }
 
@@ -241,7 +305,7 @@ function UiMenu.filters.resetState()
     if global.ui.menu == nil then global.ui.menu = {} end
     global.ui.menu.filters = {
         resources = {},
-        surface = 0,
+        surface = nil,
         onlyTracked = true,
         onlyEmpty = false,
     }
@@ -350,6 +414,17 @@ end
 function UiMenu.filters.onToggleOnlyEmpty(event, player, state)
     state.onlyEmpty = event.element.state or false
     UiMenu.show(player)
+end
+
+function UiMenu.surfaces.onScan(event)
+    Scanner.scan_surface(game.surfaces[event.element.tags.surfaceId])
+    UiMenu.show(game.players[event.player_index])
+end
+
+function UiMenu.surfaces.onReset(event)
+    Scanner.cache.resetSurface(event.element.tags.surfaceId)
+    Sites.get_sites_from_cache_all()[event.element.tags.surfaceId] = nil
+    UiMenu.show(game.players[event.player_index])
 end
 
 return UiMenu

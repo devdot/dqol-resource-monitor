@@ -32,6 +32,10 @@ Ui.routes = {
         toggle_only_tracked = Ui.Menu.filters.onToggleOnlyTracked,
         toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
     },
+    menu_surfaces = {
+        scan = Ui.Menu.surfaces.onScan,
+        reset = Ui.Menu.surfaces.onReset,
+    },
 }
 
 -- uses a LuaGuiElement's tags to route
