@@ -44,7 +44,12 @@ function UiSite.show(site, player, window)
         type = 'checkbox',
         state = site.tracking,
         caption = {'dqol-resource-monitor.ui-site-tracking-tooltip'},
-        -- todo: on_gui_checked_state_changed
+        tags = {
+            _only = defines.events.on_gui_checked_state_changed,
+            _module = 'site',
+            _action = 'toggle_tracking',
+            site_id = site.id,
+        },
     }
 
     
@@ -83,8 +88,9 @@ function UiSite.show(site, player, window)
     local buttons = inner.add { type = 'flow' }
     buttons.add {
         type = 'sprite-button',
+        style = 'slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
-        sprite = 'utility/show_tags_in_map_view',
+        sprite = 'utility/reference_point',
         tags = {
             _module = 'site',
             _action = 'highlight',
@@ -93,6 +99,7 @@ function UiSite.show(site, player, window)
     }
     buttons.add {
         type = 'sprite-button',
+        style = 'slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-update-tooltip' },
         sprite = 'utility/refresh',
         tags = {
@@ -131,6 +138,14 @@ end
 ---@param player LuaPlayer
 function UiSite.onUpdate(site, player, event)
     Sites.update_cached_site(site) -- todo: will this mess up multiplayer game sync?
+    local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
+    UiSite.show(site, player, window)
+end
+
+---@param site Site
+---@param player LuaPlayer
+function UiSite.onToggleTracking(site, player, event)
+    site.tracking = event.element.state or false
     local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
     UiSite.show(site, player, window)
 end

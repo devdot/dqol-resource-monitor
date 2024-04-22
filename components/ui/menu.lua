@@ -3,6 +3,7 @@ local UiMenu = {
     BUTTON_NAME = Ui.ROOT_FRAME .. '-menu-show',
     WINDOW_ID = 'menu',
     tabs = {},
+    filters = {},
 }
 
 ---@param LuaPlayer
@@ -52,24 +53,103 @@ function UiMenu.show(player, window)
 end
 
 function UiMenu.tabs.sites(tab)
-    local filters = tab.add {
+    local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
+    filterGroup.style.margin = 8
+    local state = UiMenu.filters.getState()
+
+    local showResourceFilterReset = table_size(state.resources) > 0
+    local resourceFilter = filterGroup.add {
         name = 'filters',
         type = 'table',
         style = 'compact_slot_table',
-        column_count = table_size(Resources.types),
+        column_count = table_size(Resources.types) + ((showResourceFilterReset and 1) or 0),
     }
-    filters.style.margin = 8
 
     for key, resource in pairs(Resources.types) do
-        filters.add {
+        resourceFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
-            toggled = false,
+            toggled = state.resources[resource.resource_name] ~= nil,
             sprite = resource.type .. '/' .. resource.name,
-            tooltip = { resource.type .. '-name.' .. resource.name },
-            -- todo: add actions and make them filter
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { resource.type .. '-name.' .. resource.name }},
+            tags = {
+                _module = 'menu_filters',
+                _action = 'toggle_resource',
+                resource_name = resource.resource_name,
+            }
         }
     end
+    -- add reset button if needed
+    if showResourceFilterReset then
+        local reset = resourceFilter.add {
+            type = 'sprite-button',
+            style = 'red_button',
+            sprite = 'utility/reset',
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-reset-tooltip' },
+            tags = {
+                _module = 'menu_filters',
+                _action = 'toggle_resource',
+                reset = true,
+            },
+        }
+        reset.style.size = 36
+    end
+
+    -- generate surfaces
+    local surfaces = {}
+    for index, surface in pairs(game.surfaces) do surfaces[surface.index] = surface.name end
+
+    local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal', }
+    local surfaceSelect = surfaceFilter.add {
+        name = 'surface',
+        type = 'drop-down',
+        items = surfaces,
+        selected_index = state.surface or 0,
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'select_surface',
+            _only = defines.events.on_gui_selection_state_changed,
+        },
+    }
+    -- show reset button if needed
+    if state.surface ~= nil then
+        surfaceFilter.add {
+            type = 'sprite-button',
+            style = 'tool_button_red',
+            sprite = 'utility/reset',
+            tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-reset-tooltip'},
+            tags = {
+                _module = 'menu_filters',
+                _action = 'select_surface',
+                reset = true,
+            },
+        }
+    end
+
+    local stateFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    stateFilter.add {
+        type = 'checkbox',
+        state = state.onlyTracked or false,
+        caption = {'dqol-resource-monitor.ui-menu-filter-only-tracked'},
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-tracked-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_only_tracked',
+            _only = defines.events.on_gui_checked_state_changed,
+        },
+    }
+    stateFilter.add {
+        type = 'checkbox',
+        state = state.onlyEmpty or false,
+        caption = {'dqol-resource-monitor.ui-menu-filter-only-empty'},
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-empty-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_only_empty',
+            _only = defines.events.on_gui_checked_state_changed,
+        }
+    }
 
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
     local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
@@ -86,9 +166,22 @@ function UiMenu.tabs.sites(tab)
     preview.style.padding = 4
 
     -- fill sites
-    -- todo: actual filtering
-    local filteredSites = Sites.get_sites_by_id()
+    local filteredSites = UiMenu.filters.getSites()
+    local lastSurface = 0
     for key, site in pairs(filteredSites) do
+        -- check if we should print the surface name
+        if lastSurface ~= site.surface then
+            lastSurface = site.surface
+            sites.add { type = 'label' }
+            sites.add {
+                type = 'label',
+                style = 'caption_label',
+                caption =  game.surfaces[site.surface].name
+            }
+            sites.add { type = 'label' }
+            sites.add { type = 'label' }
+        end
+
         local type = Resources.types[site.type]
         sites.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
         sites.add { type = 'label', caption = site.name }
@@ -96,7 +189,7 @@ function UiMenu.tabs.sites(tab)
         sites.add {
             type = 'sprite-button',
             style = 'mini_button',
-            sprite = 'utility/rename_icon_small_black',
+            sprite = 'utility/list_view',
             tags = {
                 _module = 'menu_site',
                 _action = 'show',
@@ -138,6 +231,68 @@ function UiMenu.getPreview(player)
     return window['inner']['tabbed']['sites']['main']['preview'] or nil
 end
 
+---@alias MenuFilterState {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean}
+
+function UiMenu.filters.resetState()
+    if global.ui == nil then global.ui = {} end
+    if global.ui.menu == nil then global.ui.menu = {} end
+    global.ui.menu.filters = {
+        resources = {},
+        surface = 0,
+        onlyTracked = true,
+        onlyEmpty = false,
+    }
+end
+
+---@return MenuFilterState
+function UiMenu.filters.getState()
+    if global.ui == nil then
+        UiMenu.filters.resetState()
+    elseif global.ui.menu == nil then
+        UiMenu.filters.resetState()
+    elseif global.ui.menu.filters == nil then
+        UiMenu.filters.resetState()
+    end
+    
+    return global.ui.menu.filters
+end
+
+---@return Site[]
+function UiMenu.filters.getSites()
+    local state = UiMenu.filters.getState()
+    local filterSurface = state.surface ~= nil
+    local filterResources = table_size(state.resources) > 0
+
+    ---@type Site[]
+    local sites = {}
+
+    for surfaceId, types in pairs(Sites.get_sites_from_cache_all()) do
+        -- filter for surface type
+        if filterSurface == false or state.surface == surfaceId then
+            for type, typeSites in pairs(types) do
+                -- filter for resource type
+                if filterResources == false or state.resources[type] ~= nil then
+                    for key, site in pairs(typeSites) do
+                        -- filter for only tracking
+                        local insert = true
+                        if state.onlyTracked == true and site.tracking == false then
+                            insert = false
+                        elseif state.onlyEmpty == true and site.amount > 0 then
+                            insert = false
+                        end
+
+                        if insert then
+                            table.insert(sites, site)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return sites
+end
+
 function UiMenu.onShow(event)
     UiMenu.show(game.players[event.player_index])
 end
@@ -149,6 +304,49 @@ function UiMenu.onSiteShow(site, player)
         Ui.Window.createInner(preview, 'previewsite' .. site.id, site.name)
     end
     Ui.Site.show(site, player, preview[Ui.Window.ROOT_FRAME .. 'previewsite' .. site.id])
+end
+
+---@param player LuaPlayer
+---@param state MenuFilterState
+function UiMenu.filters.onToggleResource(event, player, state)
+    if event.element.tags.reset == true then
+        state.resources = {}
+    else
+        local resource = event.element.tags.resource_name
+        if state.resources[resource] == nil then
+            state.resources[resource] = true
+        else
+            state.resources[resource] = nil
+        end
+    end
+
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state MenuFilterState
+function UiMenu.filters.onSelectSurface(event, player, state)
+    if event.element.tags.reset == nil then
+        state.surface = event.element.selected_index or nil
+    else
+        state.surface = nil
+    end
+
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state MenuFilterState
+function UiMenu.filters.onToggleOnlyTracked(event, player, state)
+    state.onlyTracked = event.element.state or false
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state MenuFilterState
+function UiMenu.filters.onToggleOnlyEmpty(event, player, state)
+    state.onlyEmpty = event.element.state or false
+    UiMenu.show(player)
 end
 
 return UiMenu

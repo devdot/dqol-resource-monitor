@@ -18,13 +18,20 @@ Ui.routes = {
         show = Ui.Site.onShow,
         rename = Ui.Site.onRename,
         update = Ui.Site.onUpdate,
+        toggle_tracking = Ui.Site.onToggleTracking,
     },
     menu = {
         show = Ui.Menu.onShow,
     },
     menu_site = {   
         show = Ui.Menu.onSiteShow,
-    }
+    },
+    menu_filters = {
+        toggle_resource = Ui.Menu.filters.onToggleResource,
+        select_surface = Ui.Menu.filters.onSelectSurface,
+        toggle_only_tracked = Ui.Menu.filters.onToggleOnlyTracked,
+        toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
+    },
 }
 
 -- uses a LuaGuiElement's tags to route
@@ -68,6 +75,16 @@ Ui.routes.menu_site.__prepare = prepare_site
 
 Ui.onClick = route_event
 Ui.onConfirmed = route_event
+Ui.onSelectionChanged = route_event
+Ui.onCheckedChanged = route_event
+
+function Ui.routes.menu_filters.__prepare(event)
+    return {
+        event,
+        game.players[event.player_index],
+        Ui.Menu.filters.getState(),
+    }
+end
 
 function Ui.onClosed(event)
     if event.element then
@@ -81,6 +98,8 @@ end
 function Ui.boot()
     script.on_event({ defines.events.on_gui_click }, Ui.onClick)
     script.on_event({ defines.events.on_gui_confirmed }, Ui.onConfirmed)
+    script.on_event({ defines.events.on_gui_selection_state_changed }, Ui.onSelectionChanged)
+    script.on_event({ defines.events.on_gui_checked_state_changed }, Ui.onCheckedChanged)
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents
