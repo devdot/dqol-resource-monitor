@@ -157,8 +157,11 @@ function UiMenu.tabs.sites(tab)
     sites_frame.style.natural_width = 300
     sites_frame.style.natural_height = 600
     sites_frame.style.margin = 8
+    local sites_scroll = sites_frame.add { type = 'scroll-pane' }
+    sites_scroll.vertical_scroll_policy = 'auto'
+    sites_scroll.style.maximal_height = 600
     -- sites_frame.style.right_margin = 10
-    local sites = sites_frame.add { name = 'sites', type = 'table', column_count = 5 }
+    local sites = sites_scroll.add { name = 'sites', type = 'table', column_count = 5 }
     local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
     preview.style.natural_width = 400
     preview.style.natural_height = 600
