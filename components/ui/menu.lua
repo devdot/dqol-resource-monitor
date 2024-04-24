@@ -80,103 +80,9 @@ function UiMenu.show(player, window)
 end
 
 function UiMenu.tabs.sites(tab)
-    local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
-    filterGroup.style.margin = 8
-    local state = Ui.State.get(tab.player_index).menu.sites
-
-    local showResourceFilterReset = table_size(state.resources) > 0
-    local resourceFilter = filterGroup.add {
-        name = 'filters',
-        type = 'table',
-        style = 'compact_slot_table',
-        column_count = table_size(Resources.types) + ((showResourceFilterReset and 1) or 0),
-    }
-
-    for key, resource in pairs(Resources.types) do
-        resourceFilter.add {
-            type = 'sprite-button',
-            style = 'compact_slot_sized_button',
-            toggled = state.resources[resource.resource_name] ~= nil,
-            sprite = resource.type .. '/' .. resource.name,
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { resource.type .. '-name.' .. resource.name }},
-            tags = {
-                _module = 'menu_filters',
-                _action = 'toggle_resource',
-                resource_name = resource.resource_name,
-            }
-        }
-    end
-    -- add reset button if needed
-    if showResourceFilterReset then
-        local reset = resourceFilter.add {
-            type = 'sprite-button',
-            style = 'red_button',
-            sprite = 'utility/reset',
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-reset-tooltip' },
-            tags = {
-                _module = 'menu_filters',
-                _action = 'toggle_resource',
-                reset = true,
-            },
-        }
-        reset.style.size = 36
-    end
-
-    -- generate surfaces
-    local surfaces = {}
-    for index, surface in pairs(game.surfaces) do surfaces[surface.index] = surface.name end
-
-    local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal', }
-    local surfaceSelect = surfaceFilter.add {
-        name = 'surface',
-        type = 'drop-down',
-        items = surfaces,
-        selected_index = state.surface or 0,
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'select_surface',
-            _only = defines.events.on_gui_selection_state_changed,
-        },
-    }
-    -- show reset button if needed
-    if state.surface ~= nil then
-        surfaceFilter.add {
-            type = 'sprite-button',
-            style = 'tool_button_red',
-            sprite = 'utility/reset',
-            tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-reset-tooltip'},
-            tags = {
-                _module = 'menu_filters',
-                _action = 'select_surface',
-                reset = true,
-            },
-        }
-    end
-
-    local stateFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
-    stateFilter.add {
-        type = 'checkbox',
-        state = state.onlyTracked or false,
-        caption = {'dqol-resource-monitor.ui-menu-filter-only-tracked'},
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-tracked-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'toggle_only_tracked',
-            _only = defines.events.on_gui_checked_state_changed,
-        },
-    }
-    stateFilter.add {
-        type = 'checkbox',
-        state = state.onlyEmpty or false,
-        caption = {'dqol-resource-monitor.ui-menu-filter-only-empty'},
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-empty-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'toggle_only_empty',
-            _only = defines.events.on_gui_checked_state_changed,
-        }
-    }
+    -- add filter with state
+    local state = Ui.State.get(tab.player_index).menu.sites_filters
+    UiMenu.filters.add(tab, state, 'sites_filters')
 
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
     local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
@@ -196,7 +102,7 @@ function UiMenu.tabs.sites(tab)
     preview.style.padding = 4
 
     -- fill sites
-    local filteredSites = UiMenu.filters.getSites(tab.player_index)
+    local filteredSites = UiMenu.filters.getSites(state)
     local lastSurface = 0
     for key, site in pairs(filteredSites) do
         -- check if we should print the surface name
@@ -324,6 +230,9 @@ function UiMenu.tabs.surfaces(tab)
 end
 
 function UiMenu.tabs.dashboard(tab)
+    -- add filter with state
+    local state = Ui.State.get(tab.player_index).menu.dashboard_filters
+    UiMenu.filters.add(tab, state, 'dashboard_filters')
 end
 
 function UiMenu.tabs.other(tab)
@@ -352,10 +261,117 @@ function UiMenu.getPreview(player)
     return window['inner']['tabbed']['sites']['main']['preview'] or nil
 end
 
----@param player_index integer
+---@param tab LuaGuiElement
+---@param state UiStateMenuFilter
+---@param filter_group 'sites_filters'|'dashboard_filters'
+function UiMenu.filters.add(tab, state, filter_group)
+    local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
+    filterGroup.style.margin = 8
+
+    local showResourceFilterReset = table_size(state.resources) > 0
+    local resourceFilter = filterGroup.add {
+        name = 'filters',
+        type = 'table',
+        style = 'compact_slot_table',
+        column_count = table_size(Resources.types) + ((showResourceFilterReset and 1) or 0),
+    }
+
+    for key, resource in pairs(Resources.types) do
+        resourceFilter.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            toggled = state.resources[resource.resource_name] ~= nil,
+            sprite = resource.type .. '/' .. resource.name,
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { resource.type .. '-name.' .. resource.name }},
+            tags = {
+                _module = 'menu_filters',
+                _action = 'toggle_resource',
+                filter_group = filter_group,
+                resource_name = resource.resource_name,
+            }
+        }
+    end
+    -- add reset button if needed
+    if showResourceFilterReset then
+        local reset = resourceFilter.add {
+            type = 'sprite-button',
+            style = 'red_button',
+            sprite = 'utility/reset',
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-reset-tooltip' },
+            tags = {
+                _module = 'menu_filters',
+                _action = 'toggle_resource',
+                filter_group = filter_group,
+                reset = true,
+            },
+        }
+        reset.style.size = 36
+    end
+
+    -- generate surfaces
+    local surfaces = {}
+    for index, surface in pairs(game.surfaces) do surfaces[surface.index] = surface.name end
+
+    local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal', }
+    local surfaceSelect = surfaceFilter.add {
+        name = 'surface',
+        type = 'drop-down',
+        items = surfaces,
+        selected_index = state.surface or 0,
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'select_surface',
+            _only = defines.events.on_gui_selection_state_changed,
+            filter_group = filter_group,
+        },
+    }
+    -- show reset button if needed
+    if state.surface ~= nil then
+        surfaceFilter.add {
+            type = 'sprite-button',
+            style = 'tool_button_red',
+            sprite = 'utility/reset',
+            tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-reset-tooltip'},
+            tags = {
+                _module = 'menu_filters',
+                _action = 'select_surface',
+                filter_group = filter_group,
+                reset = true,
+            },
+        }
+    end
+
+    local stateFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    stateFilter.add {
+        type = 'checkbox',
+        state = state.onlyTracked or false,
+        caption = {'dqol-resource-monitor.ui-menu-filter-only-tracked'},
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-tracked-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_only_tracked',
+            _only = defines.events.on_gui_checked_state_changed,
+            filter_group = filter_group,
+        },
+    }
+    stateFilter.add {
+        type = 'checkbox',
+        state = state.onlyEmpty or false,
+        caption = {'dqol-resource-monitor.ui-menu-filter-only-empty'},
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-empty-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_only_empty',
+            _only = defines.events.on_gui_checked_state_changed,
+            filter_group = filter_group,
+        }
+    }    
+end
+
+---@param state UiStateMenuFilter
 ---@return Site[]
-function UiMenu.filters.getSites(player_index)
-    local state = Ui.State.get(player_index).menu.sites
+function UiMenu.filters.getSites(state)
     local filterSurface = state.surface ~= nil
     local filterResources = table_size(state.resources) > 0
 

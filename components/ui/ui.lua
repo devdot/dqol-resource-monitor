@@ -91,7 +91,7 @@ function Ui.routes.menu_filters.__prepare(event)
     return {
         event,
         game.players[event.player_index],
-        Ui.State.get(event.player_index).menu.sites,
+        Ui.State.get(event.player_index).menu[event.element.tags.filter_group or 'sites_filters'],
     }
 end
 
