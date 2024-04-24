@@ -40,9 +40,33 @@ function UiMenu.show(player, window)
         window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
     end
 
+    if window.titlebar ~= nil and window.titlebar.reload == nil then
+        -- create the reload button
+        window.titlebar.add {
+            name = 'reload',
+            index = #(window.titlebar.children),
+            type = 'sprite-button',
+            style = 'frame_action_button',
+            sprite = 'utility/reset_white',
+            tooltip = {'dqol-resource-monitor.ui-menu-reload-tooltip'},
+            tags = {
+                _module = 'menu',
+                _action = 'show',
+            },
+        }
+    end
+
     if window.inner ~= nil then window.inner.destroy() end
     local inner = window.add { name = 'inner', type = 'frame', style = 'inside_deep_frame' }
-    local tabs = inner.add { name = 'tabbed', type = 'tabbed-pane' }
+    local tabs = inner.add {
+        name = 'tabbed',
+        type = 'tabbed-pane',
+        tags = {
+            _module = 'menu',
+            _action = 'tab_select',
+            _only = defines.events.on_gui_selected_tab_changed,
+        },
+    }
     
     -- add all tabs here
     for name, func in pairs(UiMenu.tabs) do
@@ -51,6 +75,8 @@ function UiMenu.show(player, window)
         func(tab)
         tabs.add_tab(caption, tab)
     end
+
+    tabs.selected_tab_index = global.ui.menu.tab or nil
 end
 
 function UiMenu.tabs.sites(tab)
@@ -387,6 +413,10 @@ end
 
 function UiMenu.onShow(event)
     UiMenu.show(game.players[event.player_index])
+end
+
+function UiMenu.onSelectedTabChanged(event)
+    global.ui.menu.tab = event.element.selected_tab_index or nil
 end
 
 function UiMenu.onSiteShow(site, player)

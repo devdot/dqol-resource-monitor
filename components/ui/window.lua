@@ -63,6 +63,7 @@ function Window.fillTitlebar(gui, title)
     filler.style.height = 24
     filler.style.horizontally_stretchable = true
     titlebar.add {
+        name = 'close',
         type = 'sprite-button',
         style = 'cancel_close_button',
         sprite = 'utility/close_white',

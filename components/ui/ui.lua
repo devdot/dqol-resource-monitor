@@ -22,6 +22,7 @@ Ui.routes = {
     },
     menu = {
         show = Ui.Menu.onShow,
+        tab_select = Ui.Menu.onSelectedTabChanged,
     },
     menu_site = {   
         show = Ui.Menu.onSiteShow,
@@ -83,6 +84,7 @@ Ui.onClick = route_event
 Ui.onConfirmed = route_event
 Ui.onSelectionChanged = route_event
 Ui.onCheckedChanged = route_event
+Ui.onSelectedTabChanged = route_event
 
 function Ui.routes.menu_filters.__prepare(event)
     return {
@@ -106,6 +108,7 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_confirmed }, Ui.onConfirmed)
     script.on_event({ defines.events.on_gui_selection_state_changed }, Ui.onSelectionChanged)
     script.on_event({ defines.events.on_gui_checked_state_changed }, Ui.onCheckedChanged)
+    script.on_event({ defines.events.on_gui_selected_tab_changed }, Ui.onSelectedTabChanged)
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents
