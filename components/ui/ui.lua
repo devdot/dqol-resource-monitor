@@ -33,6 +33,7 @@ Ui.routes = {
         select_surface = Ui.Menu.filters.onSelectSurface,
         toggle_only_tracked = Ui.Menu.filters.onToggleOnlyTracked,
         toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
+        set_max_percent = Ui.Menu.filters.onSetMaxPercent,
     },
     menu_surfaces = {
         scan = Ui.Menu.surfaces.onScan,
@@ -88,6 +89,7 @@ Ui.onClick = route_event
 Ui.onConfirmed = route_event
 Ui.onSelectionChanged = route_event
 Ui.onCheckedChanged = route_event
+Ui.onValueChanged = route_event
 Ui.onSelectedTabChanged = route_event
 
 function Ui.routes.menu_filters.__prepare(event)
@@ -119,6 +121,7 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_confirmed }, Ui.onConfirmed)
     script.on_event({ defines.events.on_gui_selection_state_changed }, Ui.onSelectionChanged)
     script.on_event({ defines.events.on_gui_checked_state_changed }, Ui.onCheckedChanged)
+    script.on_event({ defines.events.on_gui_value_changed }, Ui.onValueChanged)
     script.on_event({ defines.events.on_gui_selected_tab_changed }, Ui.onSelectedTabChanged)
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 

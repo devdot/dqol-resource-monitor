@@ -376,6 +376,25 @@ function UiMenu.filters.add(tab, state, filter_group)
         }
     end
 
+    local percentFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    percentFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-percent'}}
+    percentFilter.add {
+        type = 'textfield',
+        text = state.maxPercent or 100,
+        numeric = true,
+        allow_decimal = false,
+        allow_negative = false,
+        lose_focus_on_confirm = true,
+        style = 'very_short_number_textfield',
+        tags = {
+            _module = 'menu_filters',
+            _action = 'set_max_percent',
+            _only = defines.events.on_gui_confirmed,
+            filter_group = filter_group,
+        },
+    }
+    percentFilter.add { type = 'label', caption = '%'}
+
     local stateFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
     stateFilter.add {
         type = 'checkbox',
@@ -424,6 +443,8 @@ function UiMenu.filters.getSites(state)
                         if state.onlyTracked == true and site.tracking == false then
                             insert = false
                         elseif state.onlyEmpty == true and site.amount > 0 then
+                            insert = false
+                        elseif (site.amount / site.initial_amount) * 100 > (state.maxPercent or 100) then
                             insert = false
                         end
 
@@ -498,6 +519,12 @@ end
 function UiMenu.filters.onToggleOnlyEmpty(event, player, state)
     state.onlyEmpty = event.element.state or false
     UiMenu.show(player)
+end
+
+function UiMenu.filters.onSetMaxPercent(event, player, state)
+    state.maxPercent = tonumber(event.element.text)
+    if state.maxPercent > 100 then state.maxPercent = 100 end
+    UiMenu.show(player)  
 end
 
 function UiMenu.surfaces.onScan(event)
