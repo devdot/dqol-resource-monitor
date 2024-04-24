@@ -1,10 +1,11 @@
 UiState = {}
 
 ---@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean}
-
 ---@alias UiStateMenu {tab: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter}
 
----@alias UiStatePlayer {menu: UiStateMenu}
+---@alias UiStateDashboard {show_headers: boolean, prepend_surface_name: boolean}
+
+---@alias UiStatePlayer {menu: UiStateMenu, dashboard: UiStateDashboard}
 ---@alias GlobalUi {players: table<integer, UiStatePlayer>?}
 ---@cast global {ui: GlobalUi?}
 
@@ -50,7 +51,7 @@ end
 ---@return UiStatePlayer
 function UiState.generateFreshPlayerState()
     return {
-        menu =  {
+        menu = {
             tab = nil,
             sites_filters = {
                 resources = {},
@@ -64,6 +65,10 @@ function UiState.generateFreshPlayerState()
                 onlyTracked = true,
                 onlyEmpty = false,
             }
+        },
+        dashboard = {
+            show_headers = false,
+            prepend_surface_name = false,
         },
     }
 end

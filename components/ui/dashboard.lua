@@ -48,14 +48,17 @@ function UiDashboard.update(player)
         name = 'sites',
         style = 'statistics_element_table',
         column_count = 5,
-        draw_horizontal_line_after_headers = true,
+        draw_horizontal_line_after_headers = state.dashboard.show_headers or false,
     }
+    gui.style.right_cell_padding = 2
 
-    gui.add { type = 'label', style = 'caption_label', caption = '' }
-    gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-name'} }
-    gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-amount'} }
-    gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-initial-amount'} }
-    gui.add { type = 'label', style = 'caption_label', caption = '' }
+    if state.dashboard.show_headers == true then
+        gui.add { type = 'label', style = 'caption_label', caption = '' }
+        gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-name'} }
+        gui.add { type = 'label', style = 'caption_label', caption = {'dqol-resource-monitor.ui-site-amount'} }
+        gui.add { type = 'label', style = 'caption_label', caption = '' }
+        gui.add { type = 'label', style = 'caption_label', caption = '' }
+    end
 
     for siteKey, site in pairs(sites) do
         local type = Resources.types[site.type]
@@ -64,10 +67,21 @@ function UiDashboard.update(player)
             _action = 'show',
             site_id = site.id,
         }
+        local fraction = site.amount / site.initial_amount
+        local color = Util.Integer.toColor(fraction)
+        
+        local name = site.name
+        if state.dashboard.prepend_surface_name == true then
+            name = game.surfaces[site.surface].name .. ' ' .. name
+        end
+
         gui.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', tags = tags }
-        gui.add { type = 'label', caption = site.name, tags = tags }
-        gui.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), tags = tags }
-        gui.add { type = 'label', caption = Util.Integer.toExponentString(site.initial_amount), tags = tags }
+        local nameLabel = gui.add { type = 'label', caption = name, tags = tags }
+        local amountLabel = gui.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), tags = tags }
+        local percentLabel = gui.add { type = 'label', caption = Util.Integer.toPercent(fraction), tags = tags }
+        nameLabel.style.font_color = color
+        amountLabel.style.font_color = color
+        percentLabel.style.font_color = color
 
         local buttons = gui.add { type = 'flow', direction = 'horizontal' }
         buttons.add {

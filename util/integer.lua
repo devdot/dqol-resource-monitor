@@ -34,4 +34,14 @@ function integer.toPercent(integer, precision)
     return string.format('%.' .. precision .. 'f', integer * 100) .. '%'
 end
 
+---@param integer integer
+---@return {r: integer, g: integer, b: integer}
+function integer.toColor(integer)
+    return {
+        r = (1 - integer) * 255,
+        g = integer * 255,
+        b = 0,
+    }
+end
+
 return integer

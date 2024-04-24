@@ -5,6 +5,7 @@ local UiMenu = {
     tabs = {},
     filters = {},
     surfaces = {},
+    dashboard = {},
 }
 
 ---@param LuaPlayer
@@ -128,7 +129,8 @@ function UiMenu.tabs.sites(tab)
         sites.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', tags = tags }
         sites.add { type = 'label', caption = site.name, tags = tags }
         sites.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), tags = tags }
-        sites.add { type = 'label', caption = Util.Integer.toPercent(site.amount / site.initial_amount), tags = tags }
+        local percentLabel = sites.add { type = 'label', caption = Util.Integer.toPercent(site.amount / site.initial_amount), tags = tags }
+        percentLabel.style.font_color = Util.Integer.toColor(site.amount / site.initial_amount)
         sites.add {
             type = 'sprite-button',
             style = 'mini_button',
@@ -230,9 +232,41 @@ function UiMenu.tabs.surfaces(tab)
 end
 
 function UiMenu.tabs.dashboard(tab)
+    local note = tab.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-dashboard-note' } }
+    note.style.margin = 8
+
     -- add filter with state
-    local state = Ui.State.get(tab.player_index).menu.dashboard_filters
-    UiMenu.filters.add(tab, state, 'dashboard_filters')
+    local state = Ui.State.get(tab.player_index)
+    UiMenu.filters.add(tab, state.menu.dashboard_filters, 'dashboard_filters')
+
+    tab.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
+    local settings = tab.add { type = 'flow', direction = 'vertical' }
+    settings.style.margin = 8
+
+    settings.add {
+        type = 'checkbox',
+        state = state.dashboard.show_headers or false,
+        caption = {'dqol-resource-monitor.ui-menu-dashboard-show-headers'},
+        tooltip = {'dqol-resource-monitor.ui-menu-dashboard-show-headers-tooltip'},
+        tags = {
+            _module = 'menu_dashbaord',
+            _action = 'toggle_value',
+            _only = defines.events.on_gui_checked_state_changed,
+            state_key = 'show_headers',
+        }
+    }
+    settings.add {
+        type = 'checkbox',
+        state = state.dashboard.prepend_surface_name or false,
+        caption = {'dqol-resource-monitor.ui-menu-dashboard-prepend-surface-name'},
+        tooltip = {'dqol-resource-monitor.ui-menu-dashboard-prepend-surface-name-tooltip'},
+        tags = {
+            _module = 'menu_dashbaord',
+            _action = 'toggle_value',
+            _only = defines.events.on_gui_checked_state_changed,
+            state_key = 'prepend_surface_name',
+        }
+    }
 end
 
 function UiMenu.tabs.other(tab)
@@ -497,6 +531,12 @@ end
 
 function UiMenu.surfaces.onUntrackAll(event)
     surface_tracking_helper(event.element.tags.surfaceId, false)
+    UiMenu.show(game.players[event.player_index])
+end
+
+---@param state UiStateDashboard
+function UiMenu.dashboard.onToggleValue(event, state)
+    state[event.element.tags.state_key] = event.element.state
     UiMenu.show(game.players[event.player_index])
 end
 

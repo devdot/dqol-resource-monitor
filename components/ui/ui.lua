@@ -40,6 +40,9 @@ Ui.routes = {
         track_all = Ui.Menu.surfaces.onTrackAll,
         untrack_all = Ui.Menu.surfaces.onUntrackAll,
     },
+    menu_dashbaord = {
+        toggle_value = Ui.Menu.dashboard.onToggleValue,
+    },
 }
 
 -- uses a LuaGuiElement's tags to route
@@ -93,6 +96,13 @@ function Ui.routes.menu_filters.__prepare(event)
         game.players[event.player_index],
         Ui.State.get(event.player_index).menu[event.element.tags.filter_group or 'sites_filters'],
     }
+end
+
+function Ui.routes.menu_dashbaord.__prepare(event)
+    return {
+        event,
+        Ui.State.get(event.player_index).dashboard,
+    }    
 end
 
 function Ui.onClosed(event)
