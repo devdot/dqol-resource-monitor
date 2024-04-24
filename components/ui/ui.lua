@@ -7,7 +7,7 @@ Ui = {
 Ui.Window = require('components/ui/window')
 Ui.Menu = require('components/ui/menu')
 Ui.Site = require('components/ui/site')
-Ui.Sites = require('components/ui/sites')
+Ui.Dashboard = require('components/ui/dashboard')
 Ui.State = require('components/ui/state')
 
 Ui.routes = {
@@ -113,7 +113,7 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents
-    Ui.Sites.boot()
+    Ui.Dashboard.boot()
 end
 
 ---This is supposed to run on on_player_created or (or multiplayer join?)
