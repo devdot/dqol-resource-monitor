@@ -8,6 +8,7 @@ Ui.Window = require('components/ui/window')
 Ui.Menu = require('components/ui/menu')
 Ui.Site = require('components/ui/site')
 Ui.Sites = require('components/ui/sites')
+Ui.State = require('components/ui/state')
 
 Ui.routes = {
     window = {
@@ -90,7 +91,7 @@ function Ui.routes.menu_filters.__prepare(event)
     return {
         event,
         game.players[event.player_index],
-        Ui.Menu.filters.getState(),
+        Ui.State.get(event.player_index).menu.sites,
     }
 end
 
@@ -118,5 +119,6 @@ end
 ---This is supposed to run on on_player_created or (or multiplayer join?)
 ---@param LuaPlayer
 function Ui.bootPlayer(player)
+    Ui.State.bootPlayer(player)
     Ui.Menu.bootPlayer(player)
 end

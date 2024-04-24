@@ -76,13 +76,13 @@ function UiMenu.show(player, window)
         tabs.add_tab(caption, tab)
     end
 
-    tabs.selected_tab_index = global.ui.menu.tab or nil
+    tabs.selected_tab_index = Ui.State.get(player.index).menu.tab or 1
 end
 
 function UiMenu.tabs.sites(tab)
     local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
     filterGroup.style.margin = 8
-    local state = UiMenu.filters.getState()
+    local state = Ui.State.get(tab.player_index).menu.sites
 
     local showResourceFilterReset = table_size(state.resources) > 0
     local resourceFilter = filterGroup.add {
@@ -196,7 +196,7 @@ function UiMenu.tabs.sites(tab)
     preview.style.padding = 4
 
     -- fill sites
-    local filteredSites = UiMenu.filters.getSites()
+    local filteredSites = UiMenu.filters.getSites(tab.player_index)
     local lastSurface = 0
     for key, site in pairs(filteredSites) do
         -- check if we should print the surface name
@@ -323,6 +323,9 @@ function UiMenu.tabs.surfaces(tab)
     end
 end
 
+function UiMenu.tabs.dashboard(tab)
+end
+
 function UiMenu.tabs.other(tab)
     tab.add { type = 'label', caption = 'other' }
 
@@ -349,35 +352,10 @@ function UiMenu.getPreview(player)
     return window['inner']['tabbed']['sites']['main']['preview'] or nil
 end
 
----@alias MenuFilterState {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean}
-
-function UiMenu.filters.resetState()
-    if global.ui == nil then global.ui = {} end
-    if global.ui.menu == nil then global.ui.menu = {} end
-    global.ui.menu.filters = {
-        resources = {},
-        surface = nil,
-        onlyTracked = true,
-        onlyEmpty = false,
-    }
-end
-
----@return MenuFilterState
-function UiMenu.filters.getState()
-    if global.ui == nil then
-        UiMenu.filters.resetState()
-    elseif global.ui.menu == nil then
-        UiMenu.filters.resetState()
-    elseif global.ui.menu.filters == nil then
-        UiMenu.filters.resetState()
-    end
-    
-    return global.ui.menu.filters
-end
-
+---@param player_index integer
 ---@return Site[]
-function UiMenu.filters.getSites()
-    local state = UiMenu.filters.getState()
+function UiMenu.filters.getSites(player_index)
+    local state = Ui.State.get(player_index).menu.sites
     local filterSurface = state.surface ~= nil
     local filterResources = table_size(state.resources) > 0
 
@@ -416,7 +394,8 @@ function UiMenu.onShow(event)
 end
 
 function UiMenu.onSelectedTabChanged(event)
-    global.ui.menu.tab = event.element.selected_tab_index or nil
+    local state = Ui.State.get(event.player_index)
+    state.menu.tab = event.element.selected_tab_index or nil
 end
 
 function UiMenu.onSiteShow(site, player)
