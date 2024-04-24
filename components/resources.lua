@@ -1,8 +1,11 @@
 ---@alias ResourceType {type: 'item' | 'fluid', name: string, resource_name: string}
 
----@type {types: table<string, ResourceType>, boot: function, clean: function, on_configuration_changed: function}
+---@type {types: table<string, ResourceType>, looseMerge: table<string, boolean>, boot: function, clean: function, on_configuration_changed: function}
 Resources = {
     types = {},
+    looseMerge = {
+        ['crude-oil'] = true,
+    }
 }
 
 local function generate_resources()

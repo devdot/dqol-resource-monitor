@@ -132,34 +132,35 @@ end
 
 ---Calculate the keys to the chunks that are neighboring this chun
 ---@param chunk SiteChunk
+---@param getAll boolean?
 ---@return table<SiteChunkKey, {direction: DirectionIdentifier, opposite: DirectionIdentifier, diagonal: nil|'left'|'right'}>
-local function get_neighboring_chunk_keys(chunk)
+local function get_neighboring_chunk_keys(chunk, getAll)
     local neighbors = {}
     -- directly neighboring
-    if chunk.borders.top > 0 then
+    if getAll or chunk.borders.top > 0 then
         neighbors[chunk.x .. ',' .. chunk.y - 1] = { direction = 'top', opposite = 'bottom' }
     end
-    if chunk.borders.bottom > 0 then
+    if getAll or chunk.borders.bottom > 0 then
         neighbors[chunk.x .. ',' .. chunk.y + 1] = { direction = 'bottom', opposite = 'top' }
     end
-    if chunk.borders.left > 0 then
+    if getAll or chunk.borders.left > 0 then
         neighbors[chunk.x - 1 .. ',' .. chunk.y] = { direction = 'left', opposite = 'right' }
     end
-    if chunk.borders.right > 0 then
+    if getAll or chunk.borders.right > 0 then
         neighbors[chunk.x + 1 .. ',' .. chunk.y] = { direction = 'right', opposite = 'left' }
     end
 
     -- diagonal corners
-    if bit32.band(chunk.borders.top, 1) then
+    if getAll or bit32.band(chunk.borders.top, 1) then
         neighbors[chunk.x - 1 .. ',' .. chunk.y - 1] = { direction = 'top', opposite = 'bottom', diagonal = 'left' }
     end
-    if bit32.band(chunk.borders.top, 2147483648) then
+    if getAll or bit32.band(chunk.borders.top, 2147483648) then
         neighbors[chunk.x + 1 .. ',' .. chunk.y - 1] = { direction = 'top', opposite = 'bottom', diagonal = 'right' }
     end
-    if bit32.band(chunk.borders.bottom, 1) then
+    if getAll or bit32.band(chunk.borders.bottom, 1) then
         neighbors[chunk.x - 1 .. ',' .. chunk.y - 1] = { direction = 'bottom', opposite = 'top', diagonal = 'left' }
     end
-    if bit32.band(chunk.borders.bottom, 2147483648) then
+    if getAll or bit32.band(chunk.borders.bottom, 2147483648) then
         neighbors[chunk.x + 1 .. ',' .. chunk.y - 1] = { direction = 'bottom', opposite = 'top', diagonal = 'right' }
     end
     return neighbors
@@ -345,14 +346,20 @@ function Sites.storage.insert(site)
     if not global.sites.surfaces[site.surface] then global.sites.surfaces[site.surface] = {} end
     if not global.sites.surfaces[site.surface][site.type] then global.sites.surfaces[site.surface][site.type] = {} end
 
-    local outer_chunks = get_outer_chunks(site)
+    local chunks = {}
+    local looseMerge = Resources.looseMerge[site.type] or false
+    if not looseMerge then
+        chunks = get_outer_chunks(site)
+    else
+        for key, _ in pairs(site.chunks) do table.insert(chunks, key) end
+    end
 
     -- now check if this borders any other sites
     local matches = {}
-    for _, chunkKey in pairs(outer_chunks) do
+    for _, chunkKey in pairs(chunks) do
         local chunk = site.chunks[chunkKey]
         -- calculate the relevant neighbors first
-        local neighborKeys = get_neighboring_chunk_keys(chunk)
+        local neighborKeys = get_neighboring_chunk_keys(chunk, looseMerge)
 
         for neighborKey, d in pairs(neighborKeys) do
             local direction = d.direction
@@ -361,6 +368,11 @@ function Sites.storage.insert(site)
             for siteKey, otherSite in pairs(global.sites.surfaces[site.surface][site.type]) do
                 local otherChunk = otherSite.chunks[neighborKey]
                 if otherChunk ~= nil then
+                    if looseMerge then
+                        matches[otherSite.id] = otherSite
+                        break
+                    end
+
                     -- now check if they actually match up
                     if diagonal == nil then
                         if bit32.band(chunk.borders[direction], otherChunk.borders[otherDirection]) > 0 then
