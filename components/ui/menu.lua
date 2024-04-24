@@ -147,15 +147,16 @@ function UiMenu.tabs.sites(tab)
 end
 
 function UiMenu.tabs.surfaces(tab)
+    local types = Resources.clean{withoutSECore = true}
     local table = tab.add {
         type = 'table',
-        column_count = 3 + table_size(Resources.types),
+        column_count = 3 + table_size(types),
     }
 
     -- do the headers
     table.add { type = 'label', style = 'caption_label', caption = { 'dqol-resource-monitor.ui-menu-surfaces-name' } }
     table.add { type = 'label', style = 'caption_label', caption = { 'dqol-resource-monitor.ui-menu-surfaces-chunks' } }
-    for _, type in pairs(Resources.types) do
+    for _, type in pairs(types) do
         table.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
     end
     table.add { type = 'label', caption = '' }
@@ -170,7 +171,7 @@ function UiMenu.tabs.surfaces(tab)
         table.add { type = 'label', caption = table_size(scanCache.chunks[surface.index] or {}) }
         
         if allSites[surface.index] ~= nil then
-            for _, type in pairs(Resources.types) do
+            for _, type in pairs(types) do
                 local sum = 0
                 for __, site in pairs(allSites[surface.index][type.resource_name] or {}) do
                     sum = sum + site.amount
@@ -178,7 +179,7 @@ function UiMenu.tabs.surfaces(tab)
                 table.add { type = 'label', caption = (sum > 0 and Util.Integer.toExponentString(sum)) or '' }
             end
         else
-            for _, type in pairs(Resources.types) do
+            for _, type in pairs(types) do
                 table.add { type = 'label', caption = '' }
             end
         end
@@ -290,6 +291,15 @@ function UiMenu.tabs.other(tab)
         style = 'slot_button',
         caption = 'test',
     }
+
+    if _DEBUG then
+        local table = tab.add { type = 'table', column_count = 3 }
+        for _, type in pairs(Resources.types) do
+            table.add { type = 'label', caption = type.name }
+            table.add { type = 'label', caption = type.type }
+            table.add { type = 'label', caption = type.resource_name }
+        end
+    end
 end
 
 ---@param player LuaPlayer
@@ -314,14 +324,15 @@ function UiMenu.filters.add(tab, state, filter_group)
     filterGroup.style.margin = 8
 
     local showResourceFilterReset = table_size(state.resources) > 0
+    local resources = Resources.clean()
     local resourceFilter = filterGroup.add {
         name = 'filters',
         type = 'table',
         style = 'compact_slot_table',
-        column_count = table_size(Resources.types) + ((showResourceFilterReset and 1) or 0),
+        column_count = table_size(resources) + ((showResourceFilterReset and 1) or 0),
     }
 
-    for key, resource in pairs(Resources.types) do
+    for key, resource in pairs(resources) do
         resourceFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
@@ -549,11 +560,11 @@ function UiMenu.surfaces.onAutoTrack(event)
     for _, inner in pairs(types or {}) do
         for __, site in pairs(inner) do
             if site.tracking == false then
-                local miners = surface.find_entities_filtered {
+                local miners = surface.count_entities_filtered {
                     area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
                     type = 'mining-drill',
                 }
-                if #miners > 0 then
+                if miners > 0 then
                     site.tracking = true
                 end
             end
