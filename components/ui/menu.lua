@@ -183,7 +183,7 @@ function UiMenu.tabs.surfaces(tab)
             end
         end
 
-        local buttons = table.add { type = 'table', style = 'compact_slot_table', column_count = 4 }
+        local buttons = table.add { type = 'table', style = 'compact_slot_table', column_count = 5 }
         buttons.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
@@ -192,6 +192,17 @@ function UiMenu.tabs.surfaces(tab)
             tags = {
                 _module = 'menu_surfaces',
                 _action = 'scan',
+                surfaceId = surface.index,
+            },
+        }
+        buttons.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-auto-track-tooltip' },
+            sprite = 'item/electric-mining-drill',
+            tags = {
+                _module = 'menu_surfaces',
+                _action = 'auto_track',
                 surfaceId = surface.index,
             },
         }
@@ -530,6 +541,24 @@ end
 function UiMenu.surfaces.onScan(event)
     Scanner.scan_surface(game.surfaces[event.element.tags.surfaceId])
     UiMenu.show(game.players[event.player_index])
+end
+
+function UiMenu.surfaces.onAutoTrack(event)
+    local types = Sites.storage.getSurfaceList()[event.element.tags.surfaceId]
+    local surface = game.surfaces[event.element.tags.surfaceId]
+    for _, inner in pairs(types or {}) do
+        for __, site in pairs(inner) do
+            if site.tracking == false then
+                local miners = surface.find_entities_filtered {
+                    area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
+                    type = 'mining-drill',
+                }
+                if #miners > 0 then
+                    site.tracking = true
+                end
+            end
+        end
+    end
 end
 
 function UiMenu.surfaces.onReset(event)

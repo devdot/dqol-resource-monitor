@@ -37,6 +37,7 @@ Ui.routes = {
     },
     menu_surfaces = {
         scan = Ui.Menu.surfaces.onScan,
+        auto_track = Ui.Menu.surfaces.onAutoTrack,
         reset = Ui.Menu.surfaces.onReset,
         track_all = Ui.Menu.surfaces.onTrackAll,
         untrack_all = Ui.Menu.surfaces.onUntrackAll,
