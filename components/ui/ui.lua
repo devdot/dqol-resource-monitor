@@ -19,6 +19,7 @@ Ui.routes = {
         show = Ui.Site.onShow,
         rename = Ui.Site.onRename,
         update = Ui.Site.onUpdate,
+        delete = Ui.Site.onDelete,
         toggle_tracking = Ui.Site.onToggleTracking,
     },
     menu = {

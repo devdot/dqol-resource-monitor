@@ -111,6 +111,17 @@ function UiSite.show(site, player, window)
             site_id = site.id,
         },
     }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'slot_sized_button',
+        tooltip = { 'dqol-resource-monitor.ui-site-delete-tooltip' },
+        sprite = 'utility/trash',
+        tags = {
+            _module = 'site',
+            _action = 'delete',
+            site_id = site.id,
+        },
+    }
 end
 
 ---@param site Site
@@ -162,6 +173,11 @@ function UiSite.onUpdate(site, player, event)
     Sites.updater.updateSite(site)
     local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
     UiSite.show(site, player, window)
+end
+
+function UiSite.onDelete(site, player, event)
+    Sites.storage.remove(site)
+    Ui.Window.close(player)
 end
 
 ---@param site Site
