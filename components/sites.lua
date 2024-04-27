@@ -302,7 +302,7 @@ end
 function Sites.site.updateMapTag(site)
     if settings.global['dqol-resource-monitor-site-map-markers'].value == true then
         local text = site.name .. ' ' .. Util.Integer.toExponentString(site.amount)
-        if site.map_tag == nil then
+        if site.map_tag == nil or site.map_tag.valid ~= true then
             site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
                 position = site.area,
                 text = text,
@@ -337,7 +337,7 @@ function Sites.site.getUpdated(site)
     for _, chunk in pairs(site.chunks) do
         if min == nil or chunk.updated < min then min = chunk.updated end
     end
-    return min
+    return min or game.tick
 end
 
 ---Add a new site to the cache
@@ -401,6 +401,9 @@ function Sites.storage.insert(site)
             -- merge into here
             otherSite = merge_sites(otherSite, site)
 
+            -- update map tag
+            Sites.site.updateMapTag(otherSite)
+
             if _DEBUG then
                 game.print('Merge into site #' .. otherSite.id .. ' ' .. otherSite.name)
             end
@@ -428,6 +431,9 @@ function Sites.storage.insert(site)
         local nextId = #(global.sites.ids) + 1
         site.id = nextId
         global.sites.ids[nextId] = site
+
+        -- update map tag
+        Sites.site.updateMapTag(site)
     
         if _DEBUG then
             game.print('Added new site #' .. site.id .. ' ' .. site.name)
