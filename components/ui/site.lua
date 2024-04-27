@@ -134,7 +134,26 @@ end
 ---@param player LuaPlayer
 function UiSite.onHighlight(site, player)
     Sites.site.highlight(site)
-    player.zoom_to_world(site.area)
+
+    -- show in game world
+    if game.active_mods["space-exploration"] ~= nil then
+        local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = site.surface})
+        if not zone then
+            -- zone is not available?!
+            player.print('Cannot go to zone!')
+            return
+        end
+        remote.call("space-exploration", "remote_view_start",
+            {
+                player = player,
+                zone_name = zone.name,
+                position = site.area,
+                location_name = site.name,
+                freeze_history = true
+            })
+    else
+        player.zoom_to_world(site.area)
+    end
 end
 
 ---@param site Site
