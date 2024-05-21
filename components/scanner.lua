@@ -128,11 +128,33 @@ function on_chunk_charted(event)
     end
 end
 
+function on_chunk_deleted(event)
+    for _, chunk in pairs(event.positions) do
+        if _DEBUG then
+            game.print('Deleting chunk [' .. chunk.x .. ', ' .. chunk.y .. ']')
+        end
+
+        Scanner.cache.setChunk(event.surface_index, chunk, false)
+        Sites.deleteChunk(event.surface_index, chunk)
+    end
+end
+
+function on_surface_deleted(event)
+    if _DEBUG then
+        game.print('Deleted surface #' .. event.surface_index)
+    end
+
+    Scanner.cache.resetSurface(event.surface_index)
+    Sites.deleteSurface(event.surface_index)
+end
+
 function Scanner.boot()
     if settings.global['dqol-resource-monitor-site-auto-scan'].value then
         script.on_event(defines.events.on_chunk_charted, on_chunk_charted)
-        -- todo: on chunk deleted?
     end
+
+    script.on_event(defines.events.on_chunk_deleted, on_chunk_deleted)
+    script.on_event(defines.events.on_surface_deleted, on_surface_deleted)
 end
 
 function Scanner.onInitMod()

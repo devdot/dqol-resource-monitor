@@ -1,4 +1,4 @@
-_DEBUG = true
+_DEBUG = false
 _VERSION = {
     major = 0,
     minor = 1,

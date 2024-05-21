@@ -288,6 +288,39 @@ function Sites.createFromChunkResources(resources, surface, chunk)
     end
 end
 
+---@param surface uint
+function Sites.deleteSurface(surface)
+    local types = Sites.storage.getSurfaceList()[surface] or {}
+
+    for _, sites in pairs(types) do
+        for __, site in pairs(sites) do
+            Sites.storage.remove(site)
+        end
+    end
+end
+
+---@param surface uint
+---@param chunk {x: integer, y: integer}
+function Sites.deleteChunk(surface, chunk)
+    local chunk_key = chunk.x .. ',' .. chunk.y
+
+    local types = Sites.storage.getSurfaceList()[surface] or {}
+    for _, sites in pairs(types) do
+        for __, site in pairs(sites) do
+            -- now check if this site has this chunk
+            if site.chunks[chunk_key] ~= nil then
+                site.amount = site.amount - site.chunks[chunk_key].amount
+                site.chunks[chunk_key] = nil
+
+                -- remove the site if it is effectively deleted now
+                if table_size(site.chunks) == 0 then
+                    Sites.storage.remove(site)
+                end
+            end
+        end
+    end
+end
+
 function Sites.resetGlobal()
     global.sites = {
         surfaces = {},
