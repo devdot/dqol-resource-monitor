@@ -614,9 +614,12 @@ function Sites.updater.finishQueue()
     for _, set in pairs(global.sites.updater.queue) do
         for __, tuple in pairs(set) do
             local siteId = tuple[1]
+            local site = Sites.storage.getById(siteId)
             if sites[siteId] ~= true then
                 sites[siteId] = true
-                Sites.site.updateMapTag(Sites.storage.getById(siteId))
+                if site then
+                    Sites.site.updateMapTag(site)
+                end
             end
         end
     end
