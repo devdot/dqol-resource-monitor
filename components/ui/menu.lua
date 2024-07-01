@@ -347,11 +347,18 @@ function UiMenu.filters.add(tab, state, filter_group)
 
     -- generate surfaces
     local surfaces = {}
-    for index, surface in pairs(Surfaces.getVisibleSurfaces()) do table.insert(surfaces, Surfaces.surface.getName(surface)) end
+    local surfaceIndex = nil
+    local selectToSurfaceId = {}
+    for index, surface in pairs(Surfaces.getVisibleSurfaces()) do
+        table.insert(surfaces, Surfaces.surface.getName(surface))
+        table.insert(selectToSurfaceId, index, surface.id)
+        if surface.id == state.surface then surfaceIndex = index end
+    end
+    -- for index, surface in pairs(Surfaces.getVisibleSurfaces()) do table.insert(surfaces, Surfaces.surface.getName(surface)) end
+    -- for index, surface in pairs(Surfaces.getVisibleSurfaces()) do table.insert(surfaces, surface.id, Surfaces.surface.getName(surface)) end
 
+    
     local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
-    local surfaceIndex = state.surface or nil
-    if surfaces[surfaceIndex] == nil then surfaceIndex = nil end
     local surfaceSelect = surfaceFilter.add {
         name = 'surface',
         type = 'drop-down',
@@ -363,6 +370,7 @@ function UiMenu.filters.add(tab, state, filter_group)
             _action = 'select_surface',
             _only = defines.events.on_gui_selection_state_changed,
             filter_group = filter_group,
+            selectToSurfaceId = selectToSurfaceId,
         },
     }
     -- show reset button if needed
@@ -532,7 +540,7 @@ end
 ---@param state UiStateMenuFilter
 function UiMenu.filters.onSelectSurface(event, player, state)
     if event.element.tags.reset == nil then
-        state.surface = event.element.selected_index or nil
+        state.surface = (event.element.tags.selectToSurfaceId and event.element.tags.selectToSurfaceId[event.element.selected_index]) or nil
     else
         state.surface = nil
     end
