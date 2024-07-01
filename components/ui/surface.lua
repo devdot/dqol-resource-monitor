@@ -81,7 +81,7 @@ function UiSurface.show(surface, window)
             value = data.sum / maxResourceValue,
             caption = data.sum_display .. ' (' .. data.sites .. ')',
             style = 'dqol_resource_monitor_resource_bar',
-            tooltip = 'dqol-resource-monitor.ui-surface-resource-sum-total',
+            tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-total', data.sum_display, data.sites },
         }
         bar.style.color = data.type.color
         bar.style.bar_width = 14
@@ -91,7 +91,7 @@ function UiSurface.show(surface, window)
             value = data.sum_tracking / maxResourceValue,
             caption = data.sum_tracking_display .. ' (' .. data.sites_tracking .. ')',
             style = 'dqol_resource_monitor_resource_bar',
-            tooltip = 'dqol-resource-monitor.ui-surface-resource-sum-tracking',
+            tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-tracking', data.sum_tracking_display, data.sites_tracking },
         }
         bar.style.color = data.type.color
         bar.style.bar_width = 14
