@@ -569,6 +569,7 @@ function UiMenu.surfaces.onAutoTrack(event)
                 if miners > 0 then
                     site.tracking = true
                 end
+                game.players[event.player_index].print('Now tracking ' .. site.name)
             end
         end
     end
