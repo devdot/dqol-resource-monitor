@@ -86,15 +86,19 @@ function UiMenu.tabs.sites(tab)
     UiMenu.filters.add(tab, state, 'sites_filters')
 
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
+    
+    -- left side
     local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
-    sites_frame.style.natural_width = 300
+    sites_frame.style.width = 450
     sites_frame.style.natural_height = 600
     sites_frame.style.margin = 8
     local sites_scroll = sites_frame.add { type = 'scroll-pane' }
-    sites_scroll.vertical_scroll_policy = 'auto'
-    sites_scroll.style.maximal_height = 600
-    -- sites_frame.style.right_margin = 10
-    local sites = sites_scroll.add { name = 'sites', type = 'table', column_count = 5 }
+    sites_scroll.vertical_scroll_policy = 'always'
+    sites_scroll.style.horizontally_stretchable = "stretch_and_expand"
+    sites_scroll.style.vertically_stretchable = "stretch_and_expand"
+    local sites = sites_scroll.add { name = 'sites', type = 'flow', direction = 'vertical' }
+
+    -- right side
     local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
     preview.style.natural_width = 400
     preview.style.natural_height = 600
@@ -108,36 +112,39 @@ function UiMenu.tabs.sites(tab)
     for key, site in pairs(filteredSites) do
         -- check if we should print the surface name
         if lastSurface ~= site.surface then
+            -- surface label row
+            local row = sites.add { type = 'flow', style = 'dqol_resource_monitor_table_row_subheading' }
+
             lastSurface = site.surface
-            sites.add { type = 'label' }
-            sites.add {
+            row.add {
                 type = 'label',
                 style = 'caption_label',
-                caption =  game.surfaces[site.surface].name
+                caption = game.surfaces[site.surface].name
             }
-            sites.add { type = 'label' }
-            sites.add { type = 'label' }
-            sites.add { type = 'label' }
         end
 
+        -- site row
+        local row_button = sites.add {
+            type = 'button',
+            style = 'dqol_resource_monitor_table_row_button',
+            tags = {
+                _module = 'menu_site',
+                _action = 'show',
+                site_id = site.id,
+            },
+        }
+        
+        local row = row_button.add{ type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
         local type = Resources.types[site.type]
-        local tags = {
-            _module = 'menu_site',
-            _action = 'show',
-            site_id = site.id,
-        }
-        sites.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', tags = tags }
-        sites.add { type = 'label', caption = site.name, tags = tags }
-        sites.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), tags = tags }
-        local percentLabel = sites.add { type = 'label', caption = Util.Integer.toPercent(site.amount / site.initial_amount), tags = tags }
+        row.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', style = 'dqol_resource_monitor_table_cell_resource' }
+        row.add { type = 'label', caption = site.name, style = 'dqol_resource_monitor_table_cell_name' }
+        row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
+        row.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), style = 'dqol_resource_monitor_table_cell_number' }
+        row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
+        local percentLabel = row.add { type = 'label', caption = Util.Integer.toPercent(site.amount / site.initial_amount) }
         percentLabel.style.font_color = Util.Integer.toColor(site.amount / site.initial_amount)
-        sites.add {
-            type = 'sprite-button',
-            style = 'mini_button',
-            sprite = 'utility/list_view',
-            tags = tags,
-        }
     end
+    
     if #filteredSites == 0 then
         sites_frame.add {
             type = 'label',
