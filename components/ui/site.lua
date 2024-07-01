@@ -93,7 +93,7 @@ function UiSite.show(site, player, window)
         type = 'sprite-button',
         style = 'slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
-        sprite = 'utility/reference_point',
+        sprite = 'utility/go_to_arrow',
         tags = {
             _module = 'site',
             _action = 'highlight',
