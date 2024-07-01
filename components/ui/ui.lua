@@ -31,6 +31,8 @@ Ui.routes = {
         reset = Ui.Surface.onReset,
         track_all = Ui.Surface.onTrackAll,
         untrack_all = Ui.Surface.onUntrackAll,
+        add_map_tags = Ui.Surface.onAddMapTags,
+        remove_map_tags = Ui.Surface.onRemoveMapTags,
     },
     menu = {
         show = Ui.Menu.onShow,

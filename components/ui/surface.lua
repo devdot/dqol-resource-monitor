@@ -100,7 +100,7 @@ function UiSurface.show(surface, window)
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
     -- buttons at the bottom
-    local buttons = inner.add { type = 'table', style = 'compact_slot_table', column_count = 5 }
+    local buttons = inner.add { type = 'table', style = 'compact_slot_table', column_count = 7 }
     buttons.add {
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
@@ -142,6 +142,28 @@ function UiSurface.show(surface, window)
         tags = {
             _module = 'surface',
             _action = 'untrack_all',
+            surface_id = surface.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
+        tooltip = { 'dqol-resource-monitor.ui-surface-add-map-tags' },
+        sprite = 'utility/custom_tag_in_map_view',
+        tags = {
+            _module = 'surface',
+            _action = 'add_map_tags',
+            surface_id = surface.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
+        tooltip = { 'dqol-resource-monitor.ui-surface-remove-map-tags' },
+        sprite = 'utility/custom_tag_in_map_view', -- todo: find better icon
+        tags = {
+            _module = 'surface',
+            _action = 'remove_map_tags',
             surface_id = surface.id,
         },
     }
@@ -226,6 +248,31 @@ end
 ---@param player LuaPlayer
 function UiSurface.onUntrackAll(surface, player)
     surface_tracking_helper(surface.id, false)
+    Ui.Menu.onSurfaceShow(surface, player)
+end
+
+---@param surface Surface
+---@param player LuaPlayer
+function UiSurface.onAddMapTags(surface, player)
+    for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
+        for __, site in pairs(inner) do
+            Sites.site.updateMapTag(site)
+        end
+    end
+    Ui.Menu.onSurfaceShow(surface, player)
+end
+
+---@param surface Surface
+---@param player LuaPlayer
+function UiSurface.onRemoveMapTags(surface, player)
+    for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
+        for __, site in pairs(inner) do
+            if site.tracking == false and site.map_tag and site.map_tag.valid then
+                site.map_tag.destroy()
+                site.map_tag = nil
+            end
+        end
+    end
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
