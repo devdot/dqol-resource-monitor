@@ -86,12 +86,16 @@ function UiMenu.tabs.sites(tab)
     UiMenu.filters.add(tab, state, 'sites_filters')
 
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
+    main.style.horizontally_stretchable = 'stretch_and_expand'
+    main.style.vertically_stretchable = 'stretch_and_expand'
     
     -- left side
     local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
     sites_frame.style.width = 450
     sites_frame.style.natural_height = 600
     sites_frame.style.margin = 8
+    sites_frame.style.horizontally_stretchable = 'stretch_and_expand'
+    sites_frame.style.vertically_stretchable = 'stretch_and_expand'
     local sites_scroll = sites_frame.add { type = 'scroll-pane' }
     sites_scroll.vertical_scroll_policy = 'always'
     sites_scroll.style.horizontally_stretchable = "stretch_and_expand"
@@ -105,6 +109,7 @@ function UiMenu.tabs.sites(tab)
     preview.style.margin = 8
     preview.style.left_margin = 0
     preview.style.padding = 4
+    preview.style.vertically_stretchable = 'stretch_and_expand'
 
     -- fill sites
     local filteredSites = UiMenu.filters.getSites(state)
@@ -146,7 +151,7 @@ function UiMenu.tabs.sites(tab)
     end
     
     if #filteredSites == 0 then
-        sites_frame.add {
+        sites_scroll.add {
             type = 'label',
             caption = {'dqol-resource-monitor.ui-menu-sites-empty'}
         }
@@ -154,99 +159,54 @@ function UiMenu.tabs.sites(tab)
 end
 
 function UiMenu.tabs.surfaces(tab)
-    local types = Resources.clean{withoutSECore = true}
-    local table = tab.add {
-        type = 'table',
-        column_count = 3 + table_size(types),
-    }
+    local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
+    main.style.horizontally_stretchable = 'stretch_and_expand'
+    main.style.vertically_stretchable = 'stretch_and_expand'
 
-    -- do the headers
-    table.add { type = 'label', style = 'caption_label', caption = { 'dqol-resource-monitor.ui-menu-surfaces-name' } }
-    table.add { type = 'label', style = 'caption_label', caption = { 'dqol-resource-monitor.ui-menu-surfaces-chunks' } }
-    for _, type in pairs(types) do
-        table.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']' }
-    end
-    table.add { type = 'label', caption = '' }
+    -- left side
+    local surfaces_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
+    surfaces_frame.style.width = 500
+    surfaces_frame.style.natural_height = 600
+    surfaces_frame.style.margin = 8
+    local surfaces_scroll = surfaces_frame.add { type = 'scroll-pane' }
+    surfaces_scroll.vertical_scroll_policy = 'always'
+    surfaces_scroll.style.horizontally_stretchable = 'stretch_and_expand'
+    surfaces_scroll.style.vertically_stretchable = 'stretch_and_expand'
+    local surfaces = surfaces_scroll.add { name = 'surfaces', type = 'flow', direction = 'vertical' }
 
-    -- gather data
-    local scanCache = Scanner.cache.get()
-    local allSites = Sites.storage.getSurfaceList()
+    -- right side
+    local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
+    preview.style.minimal_width = 400
+    preview.style.natural_height = 600
+    preview.style.margin = 8
+    preview.style.left_margin = 0
+    preview.style.padding = 4
+    preview.style.vertically_stretchable = 'stretch_and_expand'
 
-    -- fill the surfaces
-    for key, surface in pairs(game.surfaces) do
-        table.add { type = 'label', caption = surface.name }
-        table.add { type = 'label', caption = table_size(scanCache.chunks[surface.index] or {}) }
+    for index, surface in pairs(Surfaces.getVisibleSurfaces()) do
+        local row_button = surfaces.add {
+            type = 'button',
+            style = 'dqol_resource_monitor_table_row_button',
+            tags = {
+                _module = 'surface',
+                _action = 'show',
+                surface_id = surface.id,
+            },
+        }
         
-        if allSites[surface.index] ~= nil then
-            for _, type in pairs(types) do
-                local sum = 0
-                for __, site in pairs(allSites[surface.index][type.resource_name] or {}) do
-                    sum = sum + site.amount
-                end
-                table.add { type = 'label', caption = (sum > 0 and Util.Integer.toExponentString(sum)) or '' }
-            end
-        else
-            for _, type in pairs(types) do
-                table.add { type = 'label', caption = '' }
-            end
+        local row = row_button.add{ type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
+        
+        -- add resources
+        local resources_string = ''
+        for _, resource in pairs(surface.resources) do
+            local type = Resources.types[resource]
+            resources_string = resources_string .. '[' .. type.type .. '=' .. type.name .. ']'
         end
 
-        local buttons = table.add { type = 'table', style = 'compact_slot_table', column_count = 5 }
-        buttons.add {
-            type = 'sprite-button',
-            style = 'compact_slot_sized_button',
-            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-scan-tooltip' },
-            sprite = 'utility/reset',
-            tags = {
-                _module = 'menu_surfaces',
-                _action = 'scan',
-                surfaceId = surface.index,
-            },
-        }
-        buttons.add {
-            type = 'sprite-button',
-            style = 'compact_slot_sized_button',
-            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-auto-track-tooltip' },
-            sprite = 'item/electric-mining-drill',
-            tags = {
-                _module = 'menu_surfaces',
-                _action = 'auto_track',
-                surfaceId = surface.index,
-            },
-        }
-        buttons.add {
-            type = 'sprite-button',
-            style = 'compact_slot_sized_button',
-            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-track-all-tooltip' },
-            sprite = 'utility/check_mark',
-            tags = {
-                _module = 'menu_surfaces',
-                _action = 'track_all',
-                surfaceId = surface.index,
-            },
-        }
-        buttons.add {
-            type = 'sprite-button',
-            style = 'compact_slot_sized_button',
-            tooltip = { 'dqol-resource-monitor.ui-menu-surfaces-untrack-all-tooltip' },
-            sprite = 'utility/close_black',
-            tags = {
-                _module = 'menu_surfaces',
-                _action = 'untrack_all',
-                surfaceId = surface.index,
-            },
-        }
-        buttons.add {
-            type = 'sprite-button',
-            style = 'compact_slot_sized_button',
-            tooltip = {'dqol-resource-monitor.ui-menu-surfaces-reset-tooltip'},
-            sprite = 'utility/trash',
-            tags = {
-                _module = 'menu_surfaces',
-                _action = 'reset',
-                surfaceId = surface.index,
-            },
-        }
+        row.add { type = 'label', caption = Surfaces.surface.getName(surface), style = 'dqol_resource_monitor_table_cell_name' }
+        row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
+        local resources_label = row.add { type = 'label', caption = resources_string, style = 'dqol_resource_monitor_table_cell' }
+        resources_label.style.width = 200
     end
 end
 
@@ -311,7 +271,7 @@ end
 
 ---@param player LuaPlayer
 ---@return LuaGuiElement?
-function UiMenu.getPreview(player)
+function UiMenu.getSitePreview(player)
     local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
     if window == nil then
         UiMenu.show(player)
@@ -321,6 +281,20 @@ function UiMenu.getPreview(player)
     if window == nil then return nil end
     if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
     return window['inner']['tabbed']['sites']['main']['preview'] or nil
+end
+
+---@param player LuaPlayer
+---@return LuaGuiElement?
+function UiMenu.getSurfacePreview(player)
+    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
+    if window == nil then
+        UiMenu.show(player)
+        window = Ui.Window.get(player, UiMenu.WINDOW_ID)
+    end
+
+    if window == nil then return nil end
+    if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
+    return window['inner']['tabbed']['surfaces']['main']['preview'] or nil
 end
 
 ---@param tab LuaGuiElement
@@ -373,7 +347,7 @@ function UiMenu.filters.add(tab, state, filter_group)
 
     -- generate surfaces
     local surfaces = {}
-    for index, surface in pairs(game.surfaces) do table.insert(surfaces, surface.name) end
+    for index, surface in pairs(Surfaces.getVisibleSurfaces()) do table.insert(surfaces, Surfaces.surface.getName(surface)) end
 
     local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
     local surfaceIndex = state.surface or nil
@@ -517,12 +491,24 @@ function UiMenu.onSelectedTabChanged(event)
 end
 
 function UiMenu.onSiteShow(site, player)
-    local preview = UiMenu.getPreview(player)
+    local preview = UiMenu.getSitePreview(player)
     if preview ~= nil then
         preview.clear()
         Ui.Window.createInner(preview, 'previewsite' .. site.id, site.name)
     end
     Ui.Site.show(site, player, preview[Ui.Window.ROOT_FRAME .. 'previewsite' .. site.id])
+end
+
+
+---@param surface Surface
+---@param player LuaPlayer
+function UiMenu.onSurfaceShow(surface, player)
+    local window = Ui.Menu.getSurfacePreview(player)
+    if window then
+        window.clear()
+        Ui.Window.createInner(window, 'previewsurface' .. surface.id, Surfaces.surface.getName(surface))
+        Ui.Surface.show(surface, window)
+    end    
 end
 
 ---@param player LuaPlayer
@@ -582,59 +568,6 @@ function UiMenu.filters.onSetSearch(event, player, state)
     state.search = event.element.text
     if state.search == '' then state.search = nil end
     UiMenu.show(player)
-end
-
-function UiMenu.surfaces.onScan(event)
-    Scanner.scan_surface(game.surfaces[event.element.tags.surfaceId])
-    UiMenu.show(game.players[event.player_index])
-end
-
-function UiMenu.surfaces.onAutoTrack(event)
-    local types = Sites.storage.getSurfaceList()[event.element.tags.surfaceId]
-    local surface = game.surfaces[event.element.tags.surfaceId]
-    for _, inner in pairs(types or {}) do
-        for __, site in pairs(inner) do
-            if site.tracking == false then
-                local miners = surface.count_entities_filtered {
-                    area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
-                    type = 'mining-drill',
-                }
-                if miners > 0 then
-                    site.tracking = true
-                end
-                game.players[event.player_index].print('Now tracking ' .. site.name)
-            end
-        end
-    end
-end
-
-function UiMenu.surfaces.onReset(event)
-    Scanner.cache.resetSurface(event.element.tags.surfaceId)
-    local sites = Sites.storage.getSurfaceList()[event.element.tags.surfaceId] or {}
-    for _, inner in pairs(sites) do
-        for __, site in pairs(inner) do
-            Sites.storage.remove(site)
-        end
-    end
-    UiMenu.show(game.players[event.player_index])
-end
-
-local function surface_tracking_helper(surfaceId, tracking)
-    for _, sites in pairs(Sites.storage.getSurfaceList()[surfaceId] or {}) do
-        for __, site in pairs(sites) do
-            site.tracking = tracking
-        end
-    end
-end
-
-function UiMenu.surfaces.onTrackAll(event)
-    surface_tracking_helper(event.element.tags.surfaceId, true)
-    UiMenu.show(game.players[event.player_index])
-end
-
-function UiMenu.surfaces.onUntrackAll(event)
-    surface_tracking_helper(event.element.tags.surfaceId, false)
-    UiMenu.show(game.players[event.player_index])
 end
 
 ---@param state UiStateDashboard

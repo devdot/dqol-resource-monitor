@@ -1,4 +1,4 @@
----@alias ResourceType {type: 'item' | 'fluid', name: string, resource_name: string}
+---@alias ResourceType {type: 'item' | 'fluid', name: string, resource_name: string, color: Color}
 
 ---@type {types: table<string, ResourceType>, looseMerge: table<string, boolean>, boot: function, clean: function, on_configuration_changed: function}
 Resources = {
@@ -8,6 +8,16 @@ Resources = {
     }
 }
 
+local function generate_color(resource_name)
+    local proto = game.entity_prototypes[resource_name]
+
+    if proto and proto.map_color then
+        return proto.map_color
+    end
+
+    return { r = .5, b = .5, g = .5 }
+end
+
 local function generate_resources()
     for key, resource in pairs(game.get_filtered_entity_prototypes({ { filter = 'type', type = 'resource' } }) or {}) do
         -- expect resource to be LuaEntityPrototype
@@ -16,6 +26,7 @@ local function generate_resources()
                 type = product.type,
                 name = product.name,
                 resource_name = resource.name,
+                color = generate_color(resource.name),
             }
         end
     end

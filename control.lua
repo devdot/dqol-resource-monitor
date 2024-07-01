@@ -2,8 +2,8 @@ _DEBUG = false
 _VERSION = {
     major = 0,
     minor = 1,
-    patch = 2,
-    string = '0.1.2',
+    patch = 3,
+    string = '0.1.3',
 }
 
 if _DEBUG then require('commands/commands') end
@@ -12,6 +12,7 @@ require('util/util')
 
 require('components/resources')
 require('components/sites')
+require('components/surfaces')
 require('components/scanner')
 require('components/ui/ui')
 
@@ -39,6 +40,7 @@ function on_init(event)
 
     Scanner.onInitMod()
     Sites.onInitMod()
+    Surfaces.onInitMod()
 
     reboot_players()
 end
@@ -52,6 +54,7 @@ end
 ---@see https://lua-api.factorio.com/latest/auxiliary/data-lifecycle.html
 function on_configuration_changed()
     Resources.on_configuration_changed()
+    Surfaces.on_configuration_changed()
 end
 
 script.on_init(on_init)

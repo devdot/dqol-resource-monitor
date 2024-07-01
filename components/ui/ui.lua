@@ -7,6 +7,7 @@ Ui = {
 Ui.Window = require('components/ui/window')
 Ui.Menu = require('components/ui/menu')
 Ui.Site = require('components/ui/site')
+Ui.Surface = require('components/ui/surface')
 Ui.Dashboard = require('components/ui/dashboard')
 Ui.State = require('components/ui/state')
 
@@ -22,6 +23,15 @@ Ui.routes = {
         delete = Ui.Site.onDelete,
         toggle_tracking = Ui.Site.onToggleTracking,
     },
+    surface = {
+        show = Ui.Menu.onSurfaceShow,
+        
+        scan = Ui.Surface.onScan,
+        auto_track = Ui.Surface.onAutoTrack,
+        reset = Ui.Surface.onReset,
+        track_all = Ui.Surface.onTrackAll,
+        untrack_all = Ui.Surface.onUntrackAll,
+    },
     menu = {
         show = Ui.Menu.onShow,
         tab_select = Ui.Menu.onSelectedTabChanged,
@@ -36,13 +46,6 @@ Ui.routes = {
         toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
         set_max_percent = Ui.Menu.filters.onSetMaxPercent,
         set_search = Ui.Menu.filters.onSetSearch,
-    },
-    menu_surfaces = {
-        scan = Ui.Menu.surfaces.onScan,
-        auto_track = Ui.Menu.surfaces.onAutoTrack,
-        reset = Ui.Menu.surfaces.onReset,
-        track_all = Ui.Menu.surfaces.onTrackAll,
-        untrack_all = Ui.Menu.surfaces.onUntrackAll,
     },
     menu_dashbaord = {
         toggle_value = Ui.Menu.dashboard.onToggleValue,
@@ -94,6 +97,14 @@ Ui.onSelectionChanged = route_event
 Ui.onCheckedChanged = route_event
 Ui.onValueChanged = route_event
 Ui.onSelectedTabChanged = route_event
+
+function Ui.routes.surface.__prepare(event)
+    return {
+        Surfaces.storage.getById(event.element.tags.surface_id),
+        game.players[event.player_index],
+        event,
+    }
+end
 
 function Ui.routes.menu_filters.__prepare(event)
     return {

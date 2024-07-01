@@ -290,7 +290,7 @@ end
 
 ---@param surface uint
 function Sites.deleteSurface(surface)
-    local types = Sites.storage.getSurfaceList()[surface] or {}
+    local types = Sites.storage.getSurfaceSubList(surface)
 
     for _, sites in pairs(types) do
         for __, site in pairs(sites) do
@@ -304,7 +304,7 @@ end
 function Sites.deleteChunk(surface, chunk)
     local chunk_key = chunk.x .. ',' .. chunk.y
 
-    local types = Sites.storage.getSurfaceList()[surface] or {}
+    local types = Sites.storage.getSurfaceSubList(surface)
     for _, sites in pairs(types) do
         for __, site in pairs(sites) do
             -- now check if this site has this chunk
@@ -479,6 +479,11 @@ function Sites.storage.getSurfaceList()
     return global.sites.surfaces
 end
 
+---@return table<string, Site[]?>
+function Sites.storage.getSurfaceSubList(index)
+    return global.sites.surfaces[index] or {}
+end
+
 ---Get site from cache using ID
 ---@param id integer
 ---@return Site?
@@ -623,6 +628,9 @@ function Sites.updater.finishQueue()
             end
         end
     end
+
+    -- update the surfaces now
+    Surfaces.updateAll();
 
     global.sites.updater.queue = {}
 end

@@ -71,3 +71,14 @@ style.dqol_resource_monitor_table_cell_number = {
     width = 60,
 }
 
+style.dqol_resource_monitor_resource_bar = {
+    type = 'progressbar_style',
+    bar_width = 28,
+    horizontally_stretchable = 'on',
+    font = 'default-bold',
+    vertical_align = 'center',
+    embed_text_in_bar = true,
+    font_color = {r=230/255, g=227/255, b=230/255},
+    filled_font_color = {r=0/255, g=0/255, b=0/255},
+    bar_background = table.deepcopy(style['progressbar'].bar_background),
+}

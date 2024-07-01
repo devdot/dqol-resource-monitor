@@ -30,7 +30,7 @@ function Scanner.scan_surface(surface)
 
     -- highlight the sites if debug is on
     if _DEBUG or false then
-        for type, sites in pairs(Sites.storage.getSurfaceList()[surface.index]) do
+        for type, sites in pairs(Sites.storage.getSurfaceSubList(surface.index)) do
             for key, site in pairs(sites) do
                 Sites.site.highlight(site)
             end
@@ -146,6 +146,11 @@ function on_surface_deleted(event)
 
     Scanner.cache.resetSurface(event.surface_index)
     Sites.deleteSurface(event.surface_index)
+    Surfaces.surface.delete(event.surface_index)
+end
+
+function on_surface_created(event)
+    Surfaces.generateFromGame(game.surfaces[event.surface_index])
 end
 
 function Scanner.boot()
@@ -155,8 +160,9 @@ function Scanner.boot()
 
     script.on_event(defines.events.on_chunk_deleted, on_chunk_deleted)
     script.on_event(defines.events.on_surface_deleted, on_surface_deleted)
+    script.on_event(defines.events.on_surface_created, on_surface_created)
 end
 
 function Scanner.onInitMod()
-    Scanner.cache.reset()    
+    Scanner.cache.reset()
 end
