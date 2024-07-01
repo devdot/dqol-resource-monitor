@@ -368,12 +368,14 @@ function UiMenu.filters.add(tab, state, filter_group)
     local surfaces = {}
     for index, surface in pairs(game.surfaces) do surfaces[surface.index] = surface.name end
 
-    local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal', }
+    local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    local surfaceIndex = state.surface or 0
+    if surfaces[surfaceIndex] == nil then surfaceIndex = 0 end
     local surfaceSelect = surfaceFilter.add {
         name = 'surface',
         type = 'drop-down',
         items = surfaces,
-        selected_index = state.surface or 0,
+        selected_index = surfaceIndex,
         tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-tooltip'},
         tags = {
             _module = 'menu_filters',
