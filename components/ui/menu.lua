@@ -424,7 +424,21 @@ function UiMenu.filters.add(tab, state, filter_group)
             filter_group = filter_group,
         },
     }
-    percentFilter.add { type = 'label', caption = '%'}
+    percentFilter.add { type = 'label', caption = '%' }
+    
+    local searchFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    searchFilter.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-filter-search' } }
+    searchFilter.add {
+        type = 'textfield',
+        text = state.search or '',
+        lose_focus_on_confirm = true,
+        tags = {
+            _module = 'menu_filters',
+            _action = 'set_search',
+            _only = defines.events.on_gui_confirmed,
+            filter_group = filter_group,
+        },
+    }
 
     local stateFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
     stateFilter.add {
@@ -477,6 +491,8 @@ function UiMenu.filters.getSites(state)
                             insert = false
                         elseif (site.amount / site.initial_amount) * 100 > (state.maxPercent or 100) then
                             insert = false
+                        elseif state.search ~= nil and string.find(string.lower(site.name), string.lower(state.search)) == nil then
+                            insert = false
                         end
 
                         if insert then
@@ -510,7 +526,7 @@ function UiMenu.onSiteShow(site, player)
 end
 
 ---@param player LuaPlayer
----@param state MenuFilterState
+---@param state UiStateMenuFilter
 function UiMenu.filters.onToggleResource(event, player, state)
     if event.element.tags.reset == true then
         state.resources = {}
@@ -527,7 +543,7 @@ function UiMenu.filters.onToggleResource(event, player, state)
 end
 
 ---@param player LuaPlayer
----@param state MenuFilterState
+---@param state UiStateMenuFilter
 function UiMenu.filters.onSelectSurface(event, player, state)
     if event.element.tags.reset == nil then
         state.surface = event.element.selected_index or nil
@@ -539,23 +555,33 @@ function UiMenu.filters.onSelectSurface(event, player, state)
 end
 
 ---@param player LuaPlayer
----@param state MenuFilterState
+---@param state UiStateMenuFilter
 function UiMenu.filters.onToggleOnlyTracked(event, player, state)
     state.onlyTracked = event.element.state or false
     UiMenu.show(player)
 end
 
 ---@param player LuaPlayer
----@param state MenuFilterState
+---@param state UiStateMenuFilter
 function UiMenu.filters.onToggleOnlyEmpty(event, player, state)
     state.onlyEmpty = event.element.state or false
     UiMenu.show(player)
 end
 
+---@param player LuaPlayer
+---@param state UiStateMenuFilter
 function UiMenu.filters.onSetMaxPercent(event, player, state)
     state.maxPercent = tonumber(event.element.text)
     if state.maxPercent > 100 then state.maxPercent = 100 end
-    UiMenu.show(player)  
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state UiStateMenuFilter
+function UiMenu.filters.onSetSearch(event, player, state)
+    state.search = event.element.text
+    if state.search == '' then state.search = nil end
+    UiMenu.show(player)
 end
 
 function UiMenu.surfaces.onScan(event)
