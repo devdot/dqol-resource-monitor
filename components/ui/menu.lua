@@ -24,7 +24,7 @@ function UiMenu.createButton(player)
         type = 'sprite-button',
         name = UiMenu.BUTTON_NAME,
         tooltip = { 'dqol-resource-monitor.ui-menu-button-tooltip' },
-        sprite = 'item/rocket-control-unit',
+        sprite = 'dqol-resource-monitor-thumbnail',
         style = Ui.mod_gui.button_style,
         tags = {
             _module = 'menu',
@@ -118,7 +118,7 @@ function UiMenu.tabs.sites(tab)
     local filteredSites = UiMenu.filters.getSites(state)
     local lastSurface = 0
 
-    local showSurfaceSubheading = state.orderBy == nil and state.surface == nil
+    local showSurfaceSubheading = state.orderBy == nil and state.surface == nil and #game.surfaces > 1
     local appendSurfaceName = state.orderBy ~= nil and state.surface == nil and #game.surfaces > 1
     for key, site in pairs(filteredSites) do
         -- check if we should print the surface name
@@ -629,7 +629,7 @@ function UiMenu.filters.getSites(state)
         table.sort(sites, compare)
     elseif state.orderBy == 'depletion'then
         local function compare(siteA, siteB)
-            return siteA.calculated.estimated_depletion and siteA.calculated.estimated_depletion < siteB.calculated.estimated_depletion
+            return (siteA.calculated.estimated_depletion or 1000000000) < (siteB.calculated.estimated_depletion or 1000000000)
         end
         table.sort(sites, compare)
     end

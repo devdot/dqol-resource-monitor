@@ -95,7 +95,7 @@ for _, direction in pairs({'asc', 'desc'}) do
             priority = 'extra-high',
             width = 64,
             height = 64,
-            flags = {'icon'}
+            flags = {'gui-icon'}
         })
     end
 end
@@ -103,12 +103,21 @@ end
 data:extend {
     {
         type = 'sprite',
+        name = 'dqol-resource-monitor-thumbnail',
+        filename = '__dqol-resource-monitor__/thumbnail.png',
+        priority = 'extra-high',
+        width = 144,
+        height = 144,
+        flags = {'gui-icon'}
+    },
+    {
+        type = 'sprite',
         name = 'dqol-resource-monitor-remove-map-tag',
         filename = '__dqol-resource-monitor__/graphics/remove-map-tag.png',
         priority = 'extra-high',
         width = 37,
         height = 49,
-        flags = {'icon'}
+        flags = {'gui-icon'}
     },
     table.unpack(filter_sprites)
 }
