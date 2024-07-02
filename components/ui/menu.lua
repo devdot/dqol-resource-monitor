@@ -502,7 +502,6 @@ function UiMenu.filters.add(tab, state, filter_group)
         }
     }
     
-    -- nil|'resource'|'name'|'amount'|'percent'|'rate'
     local orderBy = {
         { value = nil },
         { value = 'resource' },
@@ -510,6 +509,7 @@ function UiMenu.filters.add(tab, state, filter_group)
         { value = 'amount' },
         { value = 'percent' },
         { value = 'rate' },
+        { value = 'depletion' },
     }
     local orderByFilter = filterGroup.add {
         type = 'table',
@@ -520,19 +520,25 @@ function UiMenu.filters.add(tab, state, filter_group)
     for _, item in pairs(orderBy) do
         local toggled = state.orderBy == item.value
         local direction = 'asc'
+        local name = item.value or 'default'
         if toggled then
             -- check for the state to find direction
             if state.orderByDesc ~= true then
-                direction = 'desc'    
+                direction = 'desc'
             end
         end
-
+        local hoverDirection = direction
+        if toggled then
+            hoverDirection = (state.orderByDesc and 'desc') or 'asc'
+        end
+        
         orderByFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
             toggled = toggled,
-            -- sprite = 'entity/copper',
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-order-' .. (item.value or 'default') .. '-' .. direction },
+            sprite = 'dqol-resource-monitor-filter-' .. name .. '-' .. direction,
+            hovered_sprite = 'dqol-resource-monitor-filter-' .. name .. '-' .. hoverDirection,
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-order-by', {'dqol-resource-monitor.ui-menu-filter-order-' .. name}, {'dqol-resource-monitor.ui-menu-filter-order-by-' .. hoverDirection} },
             tags = {
                 _module = 'menu_filters',
                 _action = 'set_order_by',
@@ -617,7 +623,7 @@ function UiMenu.filters.getSites(state)
         table.sort(sites, compare)
     elseif state.orderBy == 'depletion'then
         local function compare(siteA, siteB)
-            return siteA.calculated.estimated_depletion < siteB.calculated.estimated_depletion
+            return siteA.calculated.estimated_depletion and siteA.calculated.estimated_depletion < siteB.calculated.estimated_depletion
         end
         table.sort(sites, compare)
     end

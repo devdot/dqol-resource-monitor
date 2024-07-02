@@ -82,3 +82,33 @@ style.dqol_resource_monitor_resource_bar = {
     filled_font_color = {r=0/255, g=0/255, b=0/255},
     bar_background = table.deepcopy(style['progressbar'].bar_background),
 }
+
+-- sprites
+local filter_names = {'default', 'resource', 'name', 'amount', 'percent', 'rate', 'depletion'}
+local filter_sprites = {}
+for _, direction in pairs({'asc', 'desc'}) do
+    for __, name in pairs(filter_names) do
+        table.insert(filter_sprites, {
+            type = 'sprite',
+            name = 'dqol-resource-monitor-filter-' .. name .. '-' .. direction,
+            filename = '__dqol-resource-monitor__/graphics/filter-' .. name .. '-' .. direction .. '.png',
+            priority = 'extra-high',
+            width = 64,
+            height = 64,
+            flags = {'icon'}
+        })
+    end
+end
+
+data:extend {
+    {
+        type = 'sprite',
+        name = 'dqol-resource-monitor-remove-map-tag',
+        filename = '__dqol-resource-monitor__/graphics/remove-map-tag.png',
+        priority = 'extra-high',
+        width = 37,
+        height = 49,
+        flags = {'icon'}
+    },
+    table.unpack(filter_sprites)
+}

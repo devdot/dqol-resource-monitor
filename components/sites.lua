@@ -358,7 +358,12 @@ function Sites.site.updateCalculated(site, amount)
             if perTick ~= 0 then
                 estimatedDepletion = math.floor(amount / perTick)
             else
-                estimatedDepletion = nil
+                -- make sure empty sites are depleting now
+                if amount ~= 0 then
+                    estimatedDepletion = nil
+                else
+                    estimatedDepletion = 0
+                end
             end
         else
             rate = site.calculated.rate

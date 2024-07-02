@@ -160,7 +160,7 @@ function UiSurface.show(surface, window)
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-surface-remove-map-tags-tooltip' },
-        sprite = 'utility/custom_tag_in_map_view', -- todo: find better icon
+        sprite = 'dqol-resource-monitor-remove-map-tag',
         tags = {
             _module = 'surface',
             _action = 'remove_map_tags',
