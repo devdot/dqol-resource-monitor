@@ -148,7 +148,7 @@ function UiSurface.show(surface, window)
     buttons.add {
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
-        tooltip = { 'dqol-resource-monitor.ui-surface-add-map-tags' },
+        tooltip = { 'dqol-resource-monitor.ui-surface-add-map-tags-tooltip' },
         sprite = 'utility/custom_tag_in_map_view',
         tags = {
             _module = 'surface',
@@ -159,7 +159,7 @@ function UiSurface.show(surface, window)
     buttons.add {
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
-        tooltip = { 'dqol-resource-monitor.ui-surface-remove-map-tags' },
+        tooltip = { 'dqol-resource-monitor.ui-surface-remove-map-tags-tooltip' },
         sprite = 'utility/custom_tag_in_map_view', -- todo: find better icon
         tags = {
             _module = 'surface',
