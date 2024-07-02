@@ -391,7 +391,9 @@ function UiMenu.filters.add(tab, state, filter_group)
         surfaceIndex = 1
     end
     
-    local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    local textGroup = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    local surfaceFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    textGroup.add { type = 'label', caption = '' }.style.width = 30
     local surfaceSelect = surfaceFilter.add {
         name = 'surface',
         type = 'drop-down',
@@ -422,9 +424,9 @@ function UiMenu.filters.add(tab, state, filter_group)
         }
     end
 
-    local textGroup = filterGroup.add { type = 'flow', direction = 'horizontal' }
-
     local percentFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    textGroup.add { type = 'label', caption = '' }.style.width = 30
+    percentFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent-asc]' }
     percentFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-percent'}}
     percentFilter.add {
         type = 'textfield',
@@ -444,6 +446,8 @@ function UiMenu.filters.add(tab, state, filter_group)
     percentFilter.add { type = 'label', caption = '%' }
 
     local depletionFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    textGroup.add { type = 'label', caption = '' }.style.width = 30
+    depletionFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion-asc]' }
     depletionFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-estimated-depletion'}}
     depletionFilter.add {
         type = 'textfield',
@@ -463,6 +467,7 @@ function UiMenu.filters.add(tab, state, filter_group)
     depletionFilter.add { type = 'label', caption = 'h' }
     
     local searchFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    searchFilter.add { type = 'label', caption = '[img=utility/search_icon]' }
     searchFilter.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-filter-search' } }
     searchFilter.add {
         type = 'textfield',
@@ -489,6 +494,7 @@ function UiMenu.filters.add(tab, state, filter_group)
             filter_group = filter_group,
         },
     }
+    stateFilter.add { type = 'label', caption = '' }.style.width = 30
     stateFilter.add {
         type = 'checkbox',
         state = state.onlyEmpty or false,
