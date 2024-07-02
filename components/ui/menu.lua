@@ -249,15 +249,31 @@ function UiMenu.tabs.dashboard(tab)
 end
 
 function UiMenu.tabs.other(tab)
-    tab.add { type = 'label', caption = 'other' }
-
-    local buttons = tab.add { name = 'buttons', type = 'frame', style = 'slot_button_deep_frame', direction = 'horizontal' }
-    buttons.style.margin = 8
-    buttons.add {
-        type = 'button',
-        style = 'slot_button',
-        caption = 'test',
-    }
+    local info = tab.add { type = 'table', column_count = 2 }
+    info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-info-headline'}, style = 'caption_label' }
+    info.add { type = 'label', caption = '' }
+    
+    if global.sites and global.sites.updater then
+        local queueLength = #global.sites.updater.queue 
+        local chunksPerUpdate = settings.global['dqol-resource-monitor-site-chunks-per-update'].value
+        local ticksBetweenUpdates = settings.global['dqol-resource-monitor-site-ticks-between-updates'].value
+        local ticksToFinishQueue = ticksBetweenUpdates * (queueLength + 1)
+        info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-length' } }
+        info.add { type = 'label', caption = queueLength}
+        info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-position' } }
+        info.add { type = 'label', caption = global.sites.updater.pointer }
+        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-queue-total-chunks'}}
+        info.add { type = 'label', caption = ((queueLength - 1) * chunksPerUpdate) + (#(global.sites.updater.queue[#global.sites.updater.queue] or {})) }
+        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-chunks-per-update'}}
+        info.add { type = 'label', caption = chunksPerUpdate }
+        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-ticks-between-updates'}}
+        info.add { type = 'label', caption = ticksBetweenUpdates }
+        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-queue-duration'}}
+        info.add { type = 'label', caption = Util.Integer.toTimeString(ticksToFinishQueue) .. ' (' .. ticksToFinishQueue .. ')' }
+    else
+        info.add { type = 'label', caption = 'Updater is not initialized yet. If the mod was just loaded, you may need to wait a little. Otherwise, check that there are sites with tracking enabled.' }
+        info.add { type = 'label', caption = '' }
+    end
 
     if _DEBUG then
         local table = tab.add { type = 'table', column_count = 3 }
@@ -354,9 +370,11 @@ function UiMenu.filters.add(tab, state, filter_group)
         table.insert(selectToSurfaceId, index, surface.id)
         if surface.id == state.surface then surfaceIndex = index end
     end
-    -- for index, surface in pairs(Surfaces.getVisibleSurfaces()) do table.insert(surfaces, Surfaces.surface.getName(surface)) end
-    -- for index, surface in pairs(Surfaces.getVisibleSurfaces()) do table.insert(surfaces, surface.id, Surfaces.surface.getName(surface)) end
-
+    
+    -- select default surface if there is only one
+    if #surfaces == 1 then
+        surfaceIndex = 1
+    end
     
     local surfaceFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
     local surfaceSelect = surfaceFilter.add {
