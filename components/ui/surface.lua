@@ -40,9 +40,9 @@ function UiSurface.show(surface, window)
             local sum_tracking = 0
             local sites_tracking = 0
             for __, site in pairs(sites or {}) do
-                sum = sum + site.amount
+                sum = sum + site.calculated.amount
                 if site.tracking == true then
-                    sum_tracking = sum_tracking + site.amount
+                    sum_tracking = sum_tracking + site.calculated.amount
                     sites_tracking = sites_tracking + 1
                 end
             end

@@ -1,8 +1,13 @@
 local integer = {}
 
 ---@param ticks integer
+---@param default string?
 ---@return string
-function integer.toTimeString(ticks)
+function integer.toTimeString(ticks, default)
+    if ticks == nil then
+        return default or '0:00:00'
+    end
+
     local sec = math.floor(ticks / 60)
     local min = math.floor(sec / 60)
     local hour = math.floor(min / 60)
@@ -19,11 +24,11 @@ local SI_STRINGS = {'', 'k', 'M', 'G', 'T', 'P', 'E', 'Z'}
 ---@return string
 function integer.toExponentString(integer)
     local i = 1
-    while integer > 100 do
+    while integer >= 1000 do
         integer = integer / 1000
         i = i + 1
     end
-    return string.format('%.2f', integer) .. SI_STRINGS[i]
+    return string.format((i > 1 and '%.2f') or '%d', integer) .. SI_STRINGS[i]
 end
 
 ---@param integer integer

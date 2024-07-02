@@ -91,7 +91,7 @@ function UiMenu.tabs.sites(tab)
     
     -- left side
     local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
-    sites_frame.style.width = 450
+    sites_frame.style.width = 500
     sites_frame.style.natural_height = 600
     sites_frame.style.margin = 8
     sites_frame.style.horizontally_stretchable = 'stretch_and_expand'
@@ -154,10 +154,12 @@ function UiMenu.tabs.sites(tab)
         row.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', style = 'dqol_resource_monitor_table_cell_resource' }
         row.add { type = 'label', caption = name, style = 'dqol_resource_monitor_table_cell_name' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
-        row.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), style = 'dqol_resource_monitor_table_cell_number' }
+        row.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount), style = 'dqol_resource_monitor_table_cell_number' }
+        local rateString = (site.calculated.rate and Util.Integer.toExponentString(site.calculated.rate) .. '/s') or '-'
+        row.add { type = 'label', caption = rateString, style = 'dqol_resource_monitor_table_cell_number' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
-        local percentLabel = row.add { type = 'label', caption = Util.Integer.toPercent(site.amount / site.initial_amount) }
-        percentLabel.style.font_color = Util.Integer.toColor(site.amount / site.initial_amount)
+        local percentLabel = row.add { type = 'label', caption = Util.Integer.toPercent(site.calculated.percent) }
+        percentLabel.style.font_color = Util.Integer.toColor(site.calculated.percent)
     end
     
     if #filteredSites == 0 then
@@ -420,7 +422,9 @@ function UiMenu.filters.add(tab, state, filter_group)
         }
     end
 
-    local percentFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    local textGroup = filterGroup.add { type = 'flow', direction = 'horizontal' }
+
+    local percentFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
     percentFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-percent'}}
     percentFilter.add {
         type = 'textfield',
@@ -438,8 +442,27 @@ function UiMenu.filters.add(tab, state, filter_group)
         },
     }
     percentFilter.add { type = 'label', caption = '%' }
+
+    local depletionFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    depletionFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-estimated-depletion'}}
+    depletionFilter.add {
+        type = 'textfield',
+        text = (state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '', -- convert from ticks to hours
+        numeric = true,
+        allow_decimal = true,
+        allow_negative = false,
+        lose_focus_on_confirm = true,
+        style = 'very_short_number_textfield',
+        tags = {
+            _module = 'menu_filters',
+            _action = 'set_max_estimated_depletion',
+            _only = defines.events.on_gui_confirmed,
+            filter_group = filter_group,
+        },
+    }
+    depletionFilter.add { type = 'label', caption = 'h' }
     
-    local searchFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    local searchFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
     searchFilter.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-filter-search' } }
     searchFilter.add {
         type = 'textfield',
@@ -538,13 +561,20 @@ function UiMenu.filters.getSites(state)
                 -- filter for resource type
                 if filterResources == false or state.resources[type] ~= nil then
                     for key, site in pairs(typeSites) do
+                        -- legacy, deal with missing computed on sites
+                        if site.calculated == nil then
+                            Sites.site.updateCalculated(site)
+                        end
+
                         -- filter for only tracking
                         local insert = true
                         if state.onlyTracked == true and site.tracking == false then
                             insert = false
-                        elseif state.onlyEmpty == true and site.amount > 0 then
+                        elseif state.onlyEmpty == true and site.calculated.amount > 0 then
                             insert = false
-                        elseif (site.amount / site.initial_amount) * 100 > (state.maxPercent or 100) then
+                        elseif (site.calculated.percent) * 100 > (state.maxPercent or 100) then
+                            insert = false
+                        elseif state.maxEstimatedDepletion and (site.calculated.estimated_depletion == nil or site.calculated.estimated_depletion > state.maxEstimatedDepletion) then
                             insert = false
                         elseif state.search ~= nil and string.find(string.lower(site.name), string.lower(state.search)) == nil then
                             insert = false
@@ -572,11 +602,24 @@ function UiMenu.filters.getSites(state)
         table.sort(sites, compare)
     elseif state.orderBy == 'amount' then
         local function compare(siteA, siteB)
-            return siteA.amount < siteB.amount
+            return siteA.calculated.amount < siteB.calculated.amount
         end
         table.sort(sites, compare)
     elseif state.orderBy == 'percent' then
+        local function compare(siteA, siteB)
+            return siteA.calculated.percent < siteB.calculated.percent
+        end
+        table.sort(sites, compare)
     elseif state.orderBy == 'rate' then
+        local function compare(siteA, siteB)
+            return siteA.calculated.rate < siteB.calculated.rate
+        end
+        table.sort(sites, compare)
+    elseif state.orderBy == 'depletion'then
+        local function compare(siteA, siteB)
+            return siteA.calculated.estimated_depletion < siteB.calculated.estimated_depletion
+        end
+        table.sort(sites, compare)
     end
 
     if state.orderByDesc then
@@ -667,6 +710,18 @@ end
 function UiMenu.filters.onSetMaxPercent(event, player, state)
     state.maxPercent = tonumber(event.element.text)
     if state.maxPercent > 100 then state.maxPercent = 100 end
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state UiStateMenuFilter
+function UiMenu.filters.onSetMaxEstimatedDepletion(event, player, state)
+    if event.element.text == '' then
+        state.maxEstimatedDepletion = nil
+    else
+        state.maxEstimatedDepletion = tonumber(event.element.text) * 60 * 60 * 60 -- store in ticks
+        if state.maxEstimatedDepletion < 0 then state.maxEstimatedDepletion = 0 end
+    end
     UiMenu.show(player)
 end
 

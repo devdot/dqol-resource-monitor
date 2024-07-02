@@ -38,6 +38,15 @@ data:extend({
         setting_type = 'runtime-global',
         order = 'site05',
     },
+    {
+        name = 'dqol-resource-monitor-site-estimation-threshold',
+        type = 'int-setting',
+        default_value = 3600,
+        minimum_value = 60,
+        maximum_value = 216000,
+        setting_type = 'runtime-global',
+        order = 'site06',
+    },
 
     -- per player
 })

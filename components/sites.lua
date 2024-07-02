@@ -12,7 +12,8 @@ Sites = {
 ---@alias SiteChunkBorders {left: integer, right: integer, top: integer, bottom: integer}
 ---@alias SiteChunk {x: integer, y: integer, tiles: integer, amount: integer, updated: integer, borders: SiteChunkBorders}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
----@alias Site {id: integer, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, amount: integer, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
+---@alias SiteCalculated {updated_at: integer, amount: integer, percent: number, rate: number, estimated_depletion: integer?, last_amount: integer, last_amount_tick: integer}
+---@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
 
 ---@alias GlobalSitesUpdater {pointer: integer, queue: table<integer, table<1|2, integer|SiteChunkKey>>} -- queue sub-entries simply have 1: siteId and 2: chunkId
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
@@ -98,6 +99,8 @@ function Sites.site.highlight(site)
         time_to_live = 200,
     }
 
+    -- show chunk borders for debug
+    if _DEBUG ~= true then return end
     for key, chunk in pairs(site.chunks) do
         if chunk.borders.left > 0 then
             helper_highligh_chunk_border_lr(chunk.borders.left, chunk.x * 32, chunk.y * 32, site.surface, { r = 255, g = 128, b = 0 })
@@ -190,11 +193,11 @@ end
 ---@param siteAdd Site
 ---@return Site
 local function merge_sites(siteBase, siteAdd)
-    siteBase.amount = siteBase.amount + siteAdd.amount
     siteBase.initial_amount = siteBase.initial_amount + siteAdd.initial_amount
     siteBase.chunks = Table.dictionary_combine(siteBase.chunks, siteAdd.chunks)
     siteBase.since = math.min(siteBase.since, siteAdd.since)
     siteBase.area = merge_site_areas(siteBase.area, siteAdd.area)
+    Sites.site.updateCalculated(siteBase)
     return siteBase
 end
 
@@ -219,7 +222,6 @@ function Sites.createFromChunkResources(resources, surface, chunk)
                 name = Util.Naming.getRandomName(pos),
                 surface = surface.index,
                 chunks = {},
-                amount = 0,
                 initial_amount = 0,
                 since = game.tick,
                 index = 0,
@@ -250,8 +252,8 @@ function Sites.createFromChunkResources(resources, surface, chunk)
         chunk.tiles = chunk.tiles + 1
 
         -- update site
-        site.amount = site.amount + resource.amount
         site.initial_amount = site.initial_amount + (resource.initial_amount or resource.amount)
+        Sites.site.updateCalculated(site)
 
         -- check for borders
         local modX = pos.x % 32
@@ -309,7 +311,7 @@ function Sites.deleteChunk(surface, chunk)
         for __, site in pairs(sites) do
             -- now check if this site has this chunk
             if site.chunks[chunk_key] ~= nil then
-                site.amount = site.amount - site.chunks[chunk_key].amount
+                Sites.site.updateCalculated(site, site.calculated.amount - site.chunks[chunk_key].amount)
                 site.chunks[chunk_key] = nil
 
                 -- remove the site if it is effectively deleted now
@@ -332,9 +334,54 @@ function Sites.resetGlobal()
     }
 end
 
+---@param site Site
+---@param amount integer?
+function Sites.site.updateCalculated(site, amount)
+    if amount == nil then
+        -- calculate it from all the chunks
+        amount = 0
+        for _, chunk in pairs(site.chunks) do amount = amount + chunk.amount end
+    end
+
+    local lastAmount = 0
+    local lastAmountTick = 0
+    local rate = 0
+    local estimatedDepletion = nil
+    if site.calculated and site.calculated.last_amount_tick then
+        if site.calculated.last_amount_tick < game.tick - settings.global['dqol-resource-monitor-site-estimation-threshold'].value then
+            -- calculate rate of depletion per second 
+            local perTick = (site.calculated.last_amount - amount) / (game.tick - site.calculated.last_amount_tick)
+            rate = math.ceil(perTick * 60)
+            lastAmount = amount
+            lastAmountTick = game.tick
+            -- make sure there is no division by zero
+            if perTick ~= 0 then
+                estimatedDepletion = math.floor(amount / perTick)
+            else
+                estimatedDepletion = nil
+            end
+        else
+            rate = site.calculated.rate
+            lastAmount = site.calculated.last_amount
+            lastAmountTick = site.calculated.last_amount_tick
+            estimatedDepletion = site.calculated.estimated_depletion
+        end
+    end
+
+    site.calculated = {
+        updated_at = game.tick,
+        amount = amount,
+        rate = rate,
+        percent = amount / site.initial_amount,
+        estimated_depletion = estimatedDepletion,
+        last_amount = lastAmount,
+        last_amount_tick = lastAmountTick,
+    }
+end
+
 function Sites.site.updateMapTag(site)
     if settings.global['dqol-resource-monitor-site-map-markers'].value == true then
-        local text = site.name .. ' ' .. Util.Integer.toExponentString(site.amount)
+        local text = site.name .. ' ' .. Util.Integer.toExponentString(site.calculated.amount)
         if site.map_tag == nil or site.map_tag.valid ~= true then
             site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
                 position = site.area,
@@ -527,7 +574,7 @@ function Sites.updater.updateSiteChunk(siteId, chunkKey)
         sum = sum + resource.amount
         end
     -- incrementally update site amount
-    site.amount = site.amount - (chunk.amount - sum)
+    Sites.site.updateCalculated(site, site.calculated.amount - (chunk.amount - sum))
 
     -- remove if empty
     if #resources == 0 then

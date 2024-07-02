@@ -20,17 +20,19 @@ function UiSite.show(site, player, window)
     local inner = window.inner
 
     local table = inner.add { type = 'table', column_count = 2 }
-    local updated = Sites.site.getUpdated(site)
     local stats = {
         {'type', {type.type .. '-name.' .. type.name}},
-        {'amount', Util.Integer.toExponentString(site.amount)},
+        {'amount', Util.Integer.toExponentString(site.calculated.amount)},
         {'initial-amount', Util.Integer.toExponentString(site.initial_amount)},
+        {'percent', Util.Integer.toPercent(site.calculated.percent)},
+        {'rate', Util.Integer.toExponentString(site.calculated.rate) .. '/s'},
+        {'estimated-depletion', Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')},
         {'id', '#' .. site.id},
         {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
         {'tiles', Sites.site.getTiles(site)},
         {'chunks', table_size(site.chunks)},
         {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
-        {'updated', Util.Integer.toTimeString(updated) .. ' (' .. Util.Integer.toTimeString(game.tick - updated) ..' ago)'},
+        {'updated', Util.Integer.toTimeString(site.calculated.updated_at) .. ' (' .. Util.Integer.toTimeString(game.tick - site.calculated.updated_at) ..' ago)'},
     }
     for key, row in pairs(stats) do
         table.add {
