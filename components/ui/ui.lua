@@ -48,6 +48,7 @@ Ui.routes = {
         toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
         set_max_percent = Ui.Menu.filters.onSetMaxPercent,
         set_search = Ui.Menu.filters.onSetSearch,
+        set_order_by = Ui.Menu.filters.onSetOrderBy,
     },
     menu_dashbaord = {
         toggle_value = Ui.Menu.dashboard.onToggleValue,

@@ -1,6 +1,6 @@
 UiState = {}
 
----@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean, maxPercent: integer, search: string?}
+---@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean, maxPercent: integer, search: string?, orderBy: nil|'resource'|'name'|'amount'|'percent'|'rate', orderByDesc: boolean?}
 ---@alias UiStateMenu {tab: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter}
 
 ---@alias UiStateDashboard {show_headers: boolean, prepend_surface_name: boolean}
@@ -60,6 +60,8 @@ function UiState.generateFreshPlayerState()
                 onlyEmpty = false,
                 maxPercent = 100,
                 search = nil,
+                orderBy = nil,
+                orderByDesc = false,
             },
             dashboard_filters = {
                 resources = {},
@@ -68,6 +70,8 @@ function UiState.generateFreshPlayerState()
                 onlyEmpty = false,
                 maxPercent = 100,
                 search = nil,
+                orderBy = 'percent',
+                orderByDesc = false,
             }
         },
         dashboard = {

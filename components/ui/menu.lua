@@ -114,9 +114,12 @@ function UiMenu.tabs.sites(tab)
     -- fill sites
     local filteredSites = UiMenu.filters.getSites(state)
     local lastSurface = 0
+
+    local showSurfaceSubheading = state.orderBy == nil and state.surface == nil
+    local appendSurfaceName = state.orderBy ~= nil and state.surface == nil and #game.surfaces > 1
     for key, site in pairs(filteredSites) do
         -- check if we should print the surface name
-        if lastSurface ~= site.surface then
+        if showSurfaceSubheading and lastSurface ~= site.surface then
             -- surface label row
             local row = sites.add { type = 'flow', style = 'dqol_resource_monitor_table_row_subheading' }
 
@@ -141,8 +144,12 @@ function UiMenu.tabs.sites(tab)
         
         local row = row_button.add{ type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
         local type = Resources.types[site.type]
+        local name = site.name
+        if appendSurfaceName then
+            name = game.surfaces[site.surface].name .. ' ' .. name
+        end
         row.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', style = 'dqol_resource_monitor_table_cell_resource' }
-        row.add { type = 'label', caption = site.name, style = 'dqol_resource_monitor_table_cell_name' }
+        row.add { type = 'label', caption = name, style = 'dqol_resource_monitor_table_cell_name' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
         row.add { type = 'label', caption = Util.Integer.toExponentString(site.amount), style = 'dqol_resource_monitor_table_cell_number' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
@@ -464,7 +471,49 @@ function UiMenu.filters.add(tab, state, filter_group)
             _only = defines.events.on_gui_checked_state_changed,
             filter_group = filter_group,
         }
-    }    
+    }
+    
+    -- nil|'resource'|'name'|'amount'|'percent'|'rate'
+    local orderBy = {
+        { value = nil },
+        { value = 'resource' },
+        { value = 'name' },
+        { value = 'amount' },
+        { value = 'percent' },
+        { value = 'rate' },
+    }
+    local orderByFilter = filterGroup.add {
+        type = 'table',
+        style = 'compact_slot_table',
+        column_count = #orderBy,
+    }
+
+    for _, item in pairs(orderBy) do
+        local toggled = state.orderBy == item.value
+        local direction = 'asc'
+        if toggled then
+            -- check for the state to find direction
+            if state.orderByDesc ~= true then
+                direction = 'desc'    
+            end
+        end
+
+        orderByFilter.add {
+            type = 'sprite-button',
+            style = 'compact_slot_sized_button',
+            toggled = toggled,
+            -- sprite = 'entity/copper',
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-order-' .. (item.value or 'default') .. '-' .. direction },
+            tags = {
+                _module = 'menu_filters',
+                _action = 'set_order_by',
+                filter_group = filter_group,
+                order_by = item.value,
+                order_by_direction = direction,
+            }
+        }
+    end
+
 end
 
 ---@param state UiStateMenuFilter
@@ -501,6 +550,33 @@ function UiMenu.filters.getSites(state)
                     end
                 end
             end
+        end
+    end
+
+    -- deal with ordering
+    if state.orderBy == 'resource' then
+        local function compare(siteA, siteB)
+            return siteA.type < siteB.type
+        end
+        table.sort(sites, compare)
+    elseif state.orderBy == 'name' then
+        local function compare(siteA, siteB)
+            return siteA.name < siteB.name
+        end
+        table.sort(sites, compare)
+    elseif state.orderBy == 'amount' then
+        local function compare(siteA, siteB)
+            return siteA.amount < siteB.amount
+        end
+        table.sort(sites, compare)
+    elseif state.orderBy == 'percent' then
+    elseif state.orderBy == 'rate' then
+    end
+
+    if state.orderByDesc then
+        -- quick reverse
+        for i = 1, math.floor(#sites/2), 1 do
+            sites[i], sites[#sites-i+1] = sites[#sites-i+1], sites[i]
         end
     end
 
@@ -593,6 +669,14 @@ end
 function UiMenu.filters.onSetSearch(event, player, state)
     state.search = event.element.text
     if state.search == '' then state.search = nil end
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state UiStateMenuFilter
+function UiMenu.filters.onSetOrderBy(event, player, state)
+    state.orderBy = event.element.tags.order_by
+    state.orderByDesc = event.element.tags.order_by_direction == 'desc'
     UiMenu.show(player)
 end
 
