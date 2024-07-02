@@ -103,13 +103,16 @@ function UiMenu.tabs.sites(tab)
     local sites = sites_scroll.add { name = 'sites', type = 'flow', direction = 'vertical' }
 
     -- right side
-    local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
+    local preview = main.add { name = 'preview_outer', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
     preview.style.natural_width = 400
     preview.style.natural_height = 600
     preview.style.margin = 8
     preview.style.left_margin = 0
     preview.style.padding = 4
     preview.style.vertically_stretchable = 'stretch_and_expand'
+    preview.style.horizontally_stretchable = 'stretch_and_expand'
+    local preview_scroll = preview.add { type = 'scroll-pane', name = 'preview' }
+    preview_scroll.style.horizontally_stretchable = 'stretch_and_expand'
 
     -- fill sites
     local filteredSites = UiMenu.filters.getSites(state)
@@ -182,13 +185,16 @@ function UiMenu.tabs.surfaces(tab)
     local surfaces = surfaces_scroll.add { name = 'surfaces', type = 'flow', direction = 'vertical' }
 
     -- right side
-    local preview = main.add { name = 'preview', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
+    local preview = main.add { name = 'preview_outer', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
     preview.style.minimal_width = 400
     preview.style.natural_height = 600
     preview.style.margin = 8
     preview.style.left_margin = 0
     preview.style.padding = 4
     preview.style.vertically_stretchable = 'stretch_and_expand'
+    local preview_scroll = preview.add { type = 'scroll-pane', name = 'preview' }
+    preview_scroll.style.horizontally_stretchable = "stretch_and_expand"
+    preview_scroll.style.vertically_stretchable = "stretch_and_expand"
 
     for index, surface in pairs(Surfaces.getVisibleSurfaces()) do
         local row_button = surfaces.add {
@@ -303,7 +309,7 @@ function UiMenu.getSitePreview(player)
 
     if window == nil then return nil end
     if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
-    return window['inner']['tabbed']['sites']['main']['preview'] or nil
+    return window['inner']['tabbed']['sites']['main']['preview_outer']['preview'] or nil
 end
 
 ---@param player LuaPlayer
@@ -317,7 +323,7 @@ function UiMenu.getSurfacePreview(player)
 
     if window == nil then return nil end
     if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
-    return window['inner']['tabbed']['surfaces']['main']['preview'] or nil
+    return window['inner']['tabbed']['surfaces']['main']['preview_outer']['preview'] or nil
 end
 
 ---@param tab LuaGuiElement
