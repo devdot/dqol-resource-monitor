@@ -8,6 +8,30 @@ Surfaces = {
 
 ---@alias GlobalSurfaces {surface_storage: Surface[]|nil}
 
+local finish_generate_surface_list = {}
+
+local function finish_generate_from_game()
+    -- find a way to work this queue more performatly?
+    for _, surface in pairs(finish_generate_surface_list) do
+        if script.active_mods['space-exploration'] then
+            local zone = remote.call("space-exploration", "get_surface_type", { surface_index = surface.id })
+
+            if _DEBUG then
+                game.print('Used SE universe to find zone type for ' .. surface.id .. ': ' .. (zone or 'nil'))
+            end
+
+            if zone == nil then
+                surface.hidden = true
+                surface.tracking = false
+            else
+                surface.hidden = false
+                surface.tracking = true
+            end
+        end
+    end
+    finish_generate_surface_list = {}
+end
+
 ---@param surface Surface
 function Surfaces.storage.insert(surface)
     global.surface_storage[surface.id] = surface
@@ -21,11 +45,13 @@ end
 ---@param id integer
 ---@return Surface?
 function Surfaces.storage.getById(id)
+    finish_generate_from_game()
     return global.surface_storage[id] or nil
 end
 
 ---@return Surface[]
 function Surfaces.storage.all()
+    finish_generate_from_game()
     return global.surface_storage or {}
 end
 
@@ -40,6 +66,7 @@ function Surfaces.storage.reset()
 end
 
 function Surfaces.getVisibleSurfaces()
+    finish_generate_from_game()
     local list = {}
     for _, surface in pairs(Surfaces.storage.all()) do
         if surface.hidden == false then
@@ -52,29 +79,19 @@ end
 ---@param luaSurface LuaSurface
 ---@return Surface
 function Surfaces.generateFromGame(luaSurface)
-    local hidden = false
-    local tracking = settings.global['dqol-resource-monitor-site-auto-scan'].value
-
-    -- check some mod-specific surfaces
-    if script.active_mods['space-exploration'] then
-        local zone = remote.call("space-exploration", "get_surface_type", {surface_index = luaSurface.index})
-        
-        if _DEBUG then
-            game.print('Used SE universe to find zone type for ' .. luaSurface.name .. ': ' .. (zone or 'nil'))
-        end
-
-        if zone == nil then
-            hidden = true
-            tracking = false
-        end
-    end
-
     local surface = {
         id = luaSurface.index,
         resources = {},
-        tracking = tracking,
-        hidden = hidden,
+        tracking = settings.global['dqol-resource-monitor-site-auto-scan'].value,
+        hidden = false,
     }
+
+    if _DEBUG then
+        game.print('Added surface ' .. serpent.line(surface))
+    end
+
+    -- add to the finish generate list
+    table.insert(finish_generate_surface_list, surface)
 
     Surfaces.storage.insert(surface)
     Surfaces.surface.updateResources(surface)
@@ -88,7 +105,7 @@ function Surfaces.initialize()
         if surface == nil then
             Surfaces.generateFromGame(luaSurface)
         end
-    end    
+    end
 end
 
 function Surfaces.updateAll()

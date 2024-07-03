@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.2
+Date: 03.07.2024
+  Bugfixes:
+    - Crash on game start with Space Exploration
+    - Fix issues with created surfaces in Space Exploration
+---------------------------------------------------------------------------------------------------
 Version: 1.0.1
 Date: 03.07.2024
   Bugfixes:
