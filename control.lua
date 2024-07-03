@@ -1,9 +1,9 @@
-_DEBUG = true
+_DEBUG = false
 _VERSION = {
     major = 1,
     minor = 0,
-    patch = 2,
-    string = '1.0.2',
+    patch = 3,
+    string = '1.0.3',
 }
 
 if _DEBUG then require('commands/commands') end
