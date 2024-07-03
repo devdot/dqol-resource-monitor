@@ -13,9 +13,12 @@ function UiSurface.show(surface, window)
     -- some info
     local info = inner.add { type = 'table', column_count = 2 }
     if script.active_mods['space-exploration'] then
-        info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-zonetype' } } }
-        local icon = remote.call("space-exploration", "get_zone_icon", {zone_index = remote.call("space-exploration", "get_zone_from_surface_index", {surface_index = surface.id}).index})
-        info.add { type = 'label', caption = '[img=' .. icon .. ']' }
+        local zone = remote.call("space-exploration", "get_zone_from_surface_index", {surface_index = surface.id})
+        if zone ~= nil then
+            local icon = remote.call("space-exploration", "get_zone_icon", {zone_index = zone.index})
+            info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-zonetype' } } }
+            info.add { type = 'label', caption = '[img=' .. icon .. ']' }
+        end
     end
     info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-id' } } }
     info.add { type = 'label', caption = '#' .. surface.id }
