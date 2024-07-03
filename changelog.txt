@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.1.59
+Version: 1.0.1
 Date: 03.07.2024
   Bugfixes:
     - Crash when pressing delete button on deleted surface
