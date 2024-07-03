@@ -1,0 +1,11 @@
+---------------------------------------------------------------------------------------------------
+Version: 1.1.59
+Date: 03.07.2024
+  Bugfixes:
+    - Crash when pressing delete button on deleted surface
+    - Close site window for deleted site
+---------------------------------------------------------------------------------------------------
+Version: 1.0.0
+Date: 02.07.2024
+  Major Features:
+    - Initial release.

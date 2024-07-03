@@ -80,6 +80,11 @@ function UiMenu.show(player, window)
     tabs.selected_tab_index = Ui.State.get(player.index).menu.tab or 1
 end
 
+function UiMenu.isOpen(player)
+    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
+    return window ~= nil
+end
+
 function UiMenu.tabs.sites(tab)
     -- add filter with state
     local state = Ui.State.get(tab.player_index).menu.sites_filters
