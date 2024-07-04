@@ -55,6 +55,7 @@ end
 function on_configuration_changed()
     Resources.on_configuration_changed()
     Surfaces.on_configuration_changed()
+    Ui.on_configuration_changed()
 end
 
 script.on_init(on_init)

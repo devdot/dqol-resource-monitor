@@ -36,6 +36,7 @@ Ui.routes = {
     },
     menu = {
         show = Ui.Menu.onShow,
+        toggle = Ui.Menu.onToggle,
         tab_select = Ui.Menu.onSelectedTabChanged,
     },
     menu_site = {   
@@ -148,8 +149,14 @@ function Ui.boot()
 end
 
 ---This is supposed to run on on_player_created or (or multiplayer join?)
----@param LuaPlayer
+---@param player LuaPlayer
 function Ui.bootPlayer(player)
     Ui.State.bootPlayer(player)
     Ui.Menu.bootPlayer(player)
+end
+
+function Ui.on_configuration_changed()
+    for _, player in pairs(game.players) do
+        Ui.bootPlayer(player)
+    end
 end

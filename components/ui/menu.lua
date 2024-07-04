@@ -28,7 +28,7 @@ function UiMenu.createButton(player)
         style = Ui.mod_gui.button_style,
         tags = {
             _module = 'menu',
-            _action = 'show',
+            _action = 'toggle',
         }
     }
 end
@@ -651,6 +651,15 @@ end
 
 function UiMenu.onShow(event)
     UiMenu.show(game.players[event.player_index])
+end
+
+function UiMenu.onToggle(event)
+    local player = game.players[event.player_index]
+    if UiMenu.isOpen(player) then
+        Ui.Window.close(player, UiMenu.WINDOW_ID)
+    else
+        UiMenu.show(player)
+    end
 end
 
 function UiMenu.onSelectedTabChanged(event)
