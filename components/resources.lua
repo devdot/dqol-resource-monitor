@@ -5,6 +5,8 @@ Resources = {
     types = {},
     looseMerge = {
         ['crude-oil'] = true,
+        ['phosphate-rock'] = true, -- py
+        ['ore-titanium'] = true, -- py, not working as expected
     }
 }
 
@@ -21,7 +23,8 @@ end
 local function generate_resources()
     for key, resource in pairs(game.get_filtered_entity_prototypes({ { filter = 'type', type = 'resource' } }) or {}) do
         -- expect resource to be LuaEntityPrototype
-        for key, product in pairs(resource.mineable_properties.products) do
+        for key, product in pairs(resource.mineable_properties.products or {}) do
+            -- log(resource.name .. ' ' .. product.type .. ' ' .. product.name)
             Resources.types[resource.name] = {
                 type = product.type,
                 name = product.name,

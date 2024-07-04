@@ -23,7 +23,7 @@ Sites = {
 ---@param name string
 ---@return SignalID
 local function get_signal_id(name)
-    local type = Resources.types[name]
+    local type = Resources.types[name] or {}
     return {
         type = type.type,
         name = type.name,
@@ -209,7 +209,15 @@ function Sites.createFromChunkResources(resources, surface, chunk)
     local types = {}
     local chunk_key = chunk.x .. ',' .. chunk.y
 
+    -- prefilter the resources
+    local filteredResources = {}
     for key, resource in pairs(resources) do
+        if Resources.types[resource.name] ~= nil then
+            table.insert(filteredResources, resource)
+        end
+    end
+
+    for key, resource in pairs(filteredResources) do
         local pos = {
             x = math.floor(resource.position.x),
             y = math.floor(resource.position.y),
