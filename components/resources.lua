@@ -119,7 +119,7 @@ function Resources.getIconString(resource)
         return '[' .. product.type .. '=' .. product.name .. ']'
     else
         -- does not exist!
-        return '[img=resource/' .. resource .. ']'
+        return '[img=entity/' .. resource .. ']'
     end
 end
 
@@ -131,7 +131,8 @@ function Resources.getSpriteString(resource)
         return product.type .. '/' .. product.name
     else
         -- does not exist!
-        return 'utility/green_dot'
+        -- return 'utility/green_dot'
+        return 'entity/' .. resource
     end
 end
 
