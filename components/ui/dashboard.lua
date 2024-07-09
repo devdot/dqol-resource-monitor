@@ -33,7 +33,7 @@ end
 ---@param player LuaPlayer
 function UiDashboard.update(player)
     local state = Ui.State.get(player.index)
-    local sites = Ui.Menu.filters.getSites(state.menu.dashboard_filters)
+    local sites = Ui.Menu.filters.getSites(state.menu.dashboard_filters, state.menu.use_products)
 
     if #sites == 0 then
         -- hide when empty

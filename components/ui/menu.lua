@@ -120,7 +120,7 @@ function UiMenu.tabs.sites(tab)
     preview_scroll.style.horizontally_stretchable = 'stretch_and_expand'
 
     -- fill sites
-    local filteredSites = UiMenu.filters.getSites(state)
+    local filteredSites = UiMenu.filters.getSites(state, Ui.State.get(tab.player_index).menu.use_products)
     local lastSurface = 0
 
     local showSurfaceSubheading = state.orderBy == nil and state.surface == nil and #game.surfaces > 1
@@ -272,28 +272,44 @@ function UiMenu.tabs.other(tab)
     info.add { type = 'label', caption = '' }
     
     if global.sites and global.sites.updater then
-        local queueLength = #global.sites.updater.queue 
+        local queueLength = #global.sites.updater.queue
         local chunksPerUpdate = settings.global['dqol-resource-monitor-site-chunks-per-update'].value
         local ticksBetweenUpdates = settings.global['dqol-resource-monitor-site-ticks-between-updates'].value
         local ticksToFinishQueue = ticksBetweenUpdates * (queueLength + 1)
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-length' } }
-        info.add { type = 'label', caption = queueLength}
+        info.add { type = 'label', caption = queueLength }
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-position' } }
         info.add { type = 'label', caption = global.sites.updater.pointer }
-        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-queue-total-chunks'}}
+        info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-total-chunks' } }
         info.add { type = 'label', caption = ((queueLength - 1) * chunksPerUpdate) + (#(global.sites.updater.queue[#global.sites.updater.queue] or {})) }
-        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-chunks-per-update'}}
+        info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-chunks-per-update' } }
         info.add { type = 'label', caption = chunksPerUpdate }
-        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-ticks-between-updates'}}
+        info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-ticks-between-updates' } }
         info.add { type = 'label', caption = ticksBetweenUpdates }
-        info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-updater-queue-duration'}}
+        info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-duration' } }
         info.add { type = 'label', caption = Util.Integer.toTimeString(ticksToFinishQueue) .. ' (' .. ticksToFinishQueue .. ')' }
     else
         info.add { type = 'label', caption = 'Updater is not initialized yet. If the mod was just loaded, you may need to wait a little. Otherwise, check that there are sites with tracking enabled.' }
         info.add { type = 'label', caption = '' }
     end
-
+    
+    tab.add { type = 'line' }
+    tab.add {
+        type = 'switch',
+        switch_state = (Ui.State.get(tab.player_index).menu.use_products and 'right') or 'left',
+        allow_none_state = 'false',
+        left_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products'},
+        left_label_tooltip = {'dqol-resource-monitor.ui-menu-other-use-products-switch-resources'},
+        right_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products-tooltip'},
+        right_label_tooltip = {'dqol-resource-monitor.ui-menu-other-use-products-switch-resources-tooltip'},
+        tags = {
+            _module = 'menu',
+            _action = 'use_products_toggle',
+        }
+    }
+    
     if _DEBUG then
+        tab.add { type = 'line' }
         local scroll = tab.add { type = 'scroll-pane' }
         local table = scroll.add { type = 'table', column_count = 6 }
         table.add { type = 'label', caption = 'resource name' }
@@ -315,6 +331,12 @@ function UiMenu.tabs.other(tab)
             table.add { type = 'label', caption = products }
         end
     end
+end
+
+function UiMenu.onUseProductsToggle(event)
+    local toggle = event.element.switch_state == 'right'
+    Ui.State.get(event.player_index).menu.use_products = toggle
+    UiMenu.show(game.players[event.player_index])
 end
 
 ---@param player LuaPlayer
@@ -352,28 +374,48 @@ function UiMenu.filters.add(tab, state, filter_group)
     local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
     filterGroup.style.margin = 8
 
+    local useProductsForFilter = Ui.State.get(tab.player_index).menu.use_products or false
     local showResourceFilterReset = table_size(state.resources) > 0
-    local resources = Resources.cleanResources()
+    local items = (useProductsForFilter and Resources.cleanProducts()) or Resources.cleanResources()
     local resourceFilter = filterGroup.add {
         name = 'filters',
         type = 'table',
         style = 'compact_slot_table',
-        column_count = table_size(resources) + ((showResourceFilterReset and 1) or 0),
+        column_count = math.min(24, table_size(items)) + ((showResourceFilterReset and 1) or 0),
     }
 
-    for key, resource in pairs(resources) do
-        local product = Resources.getProduct(resource.resource_name)
+    ---@type {toggled: boolean, sprite: string, tooltip: string, filter_name: string}[]
+    local data = {}
+    for _, item in pairs(items) do
+        if useProductsForFilter then
+            table.insert(data, {
+                toggled = state.resources[item.name] ~= nil,
+                sprite = item.type .. '/' .. item.name,
+                tooltip = item.type .. '-name.' .. item.name,
+                filter_name = item.name,
+            })
+        else
+            table.insert(data, {
+                toggled = state.resources[item.resource_name] ~= nil,
+                sprite = Resources.getSpriteString(item.resource_name),
+                tooltip = 'entity-name.' .. item.resource_name,
+                filter_name = item.resource_name,
+            })
+        end
+    end
+
+    for key, item in pairs(data) do
         resourceFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
-            toggled = state.resources[resource.resource_name] ~= nil,
-            sprite = Resources.getSpriteString(resource.resource_name),
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', {(product and product.type .. '-name.' .. product.name) or ('entity-name.' .. resource.resource_name)} },
+            toggled = item.toggled,
+            sprite = item.sprite,
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', {item.tooltip} },
             tags = {
                 _module = 'menu_filters',
                 _action = 'toggle_resource',
                 filter_group = filter_group,
-                resource_name = resource.resource_name,
+                resource_name = item.filter_name,
             }
         }
     end
@@ -576,10 +618,12 @@ function UiMenu.filters.add(tab, state, filter_group)
 end
 
 ---@param state UiStateMenuFilter
+---@param use_products? boolean
 ---@return Site[]
-function UiMenu.filters.getSites(state)
+function UiMenu.filters.getSites(state, use_products)
     local filterSurface = state.surface ~= nil
     local filterResources = table_size(state.resources) > 0
+    use_products = use_products or false
 
     ---@type Site[]
     local sites = {}
@@ -589,7 +633,17 @@ function UiMenu.filters.getSites(state)
         if filterSurface == false or state.surface == surfaceId then
             for type, typeSites in pairs(types) do
                 -- filter for resource type
-                if filterResources == false or state.resources[type] ~= nil then
+                local allowType = false
+                if not use_products then
+                    allowType = state.resources[type] ~= nil
+                else
+                    for _, key in pairs(Resources.types[type].products) do
+                        if state.resources[key] ~= nil then
+                            allowType = true
+                        end
+                    end
+                end
+                if filterResources == false or allowType then
                     for key, site in pairs(typeSites) do
                         -- legacy, deal with missing computed on sites
                         if site.calculated == nil then

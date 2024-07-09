@@ -38,6 +38,7 @@ Ui.routes = {
         show = Ui.Menu.onShow,
         toggle = Ui.Menu.onToggle,
         tab_select = Ui.Menu.onSelectedTabChanged,
+        use_products_toggle = Ui.Menu.onUseProductsToggle,
     },
     menu_site = {   
         show = Ui.Menu.onSiteShow,
@@ -102,6 +103,7 @@ Ui.onSelectionChanged = route_event
 Ui.onCheckedChanged = route_event
 Ui.onValueChanged = route_event
 Ui.onSelectedTabChanged = route_event
+Ui.onSwitchStateChanged = route_event
 
 function Ui.routes.surface.__prepare(event)
     return {
@@ -142,6 +144,7 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_checked_state_changed }, Ui.onCheckedChanged)
     script.on_event({ defines.events.on_gui_value_changed }, Ui.onValueChanged)
     script.on_event({ defines.events.on_gui_selected_tab_changed }, Ui.onSelectedTabChanged)
+    script.on_event({ defines.events.on_gui_switch_state_changed }, Ui.onSwitchStateChanged)
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
 
     -- subcomponents
