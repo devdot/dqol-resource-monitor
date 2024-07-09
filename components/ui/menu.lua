@@ -368,7 +368,7 @@ function UiMenu.filters.add(tab, state, filter_group)
             style = 'compact_slot_sized_button',
             toggled = state.resources[resource.resource_name] ~= nil,
             sprite = Resources.getSpriteString(resource.resource_name),
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { product and product.type .. '-name.' .. product.name }},
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', {(product and product.type .. '-name.' .. product.name) or ('entity-name.' .. resource.resource_name)} },
             tags = {
                 _module = 'menu_filters',
                 _action = 'toggle_resource',

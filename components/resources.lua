@@ -15,7 +15,7 @@ Resources = {
         immersite = true, -- K2
         ['mineral-water'] = true, -- K2
         ['phosphate-rock'] = true, -- py
-        ['ore-titanium'] = true, -- py, not working as expected
+        ['titanium-rock'] = true, -- py
     }
 }
 
@@ -131,7 +131,7 @@ function Resources.getSpriteString(resource)
         return product.type .. '/' .. product.name
     else
         -- does not exist!
-        return 'resource/' .. resource
+        return 'utility/green_dot'
     end
 end
 
@@ -146,7 +146,7 @@ function Resources.getSignalId(resource)
         }
     else
         -- invalid
-        return { type = '', name = '' }
+        return { type = 'virtual', name = 'signal-dot' }
     end
 end
 
