@@ -11,8 +11,12 @@ Surfaces = {
 local finish_generate_surface_list = {}
 
 local function finish_generate_from_game()
+    -- filter the list (remove surfaces that do not exist anymore)
+    local list = {}
+    for _, surface in pairs(finish_generate_surface_list) do if game.surfaces[surface.id] then table.insert(list, surface) end end
+
     -- find a way to work this queue more performatly?
-    for _, surface in pairs(finish_generate_surface_list) do
+    for _, surface in pairs(list) do
         if script.active_mods['space-exploration'] then
             local zone = remote.call("space-exploration", "get_surface_type", { surface_index = surface.id })
 
