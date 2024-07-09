@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.5
+Date: 09.07.2024
+  Bugfixes:
+    - Crash when deleting a surface shortly after it was generated (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6689b17ac9212d3671dfb44a)
+    - Wrong messages when using the "automatically look for miners" button on the surface panel.
+  Features:
+    - Improved resource auto detection
+    - Better handling of SE's core mining
+    - Handle K2 resources
+---------------------------------------------------------------------------------------------------
 Version: 1.0.4
 Date: 03.07.2024
   Minor Features:
