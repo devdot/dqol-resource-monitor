@@ -3,7 +3,7 @@ Surfaces = {
     surface = {},
 }
 
----@alias SurfaceResources string[]
+---@alias SurfaceResources ResourceIdentifier[]
 ---@alias Surface {id: integer, resources: SurfaceResources, tracking: boolean, hidden: boolean}
 
 ---@alias GlobalSurfaces {surface_storage: Surface[]|nil}

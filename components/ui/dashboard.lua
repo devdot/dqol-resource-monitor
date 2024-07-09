@@ -61,7 +61,6 @@ function UiDashboard.update(player)
     end
 
     for siteKey, site in pairs(sites) do
-        local type = Resources.types[site.type]
         local tags = {
             _module = 'site',
             _action = 'show',
@@ -74,7 +73,7 @@ function UiDashboard.update(player)
             name = game.surfaces[site.surface].name .. ' ' .. name
         end
 
-        gui.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', tags = tags }
+        gui.add { type = 'label', caption = Resources.getIconString(site.type), tags = tags }
         local nameLabel = gui.add { type = 'label', caption = name, tags = tags }
         local amountLabel = gui.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount), tags = tags }
         local percentLabel = gui.add { type = 'label', caption = Util.Integer.toPercent(site.calculated.percent), tags = tags }

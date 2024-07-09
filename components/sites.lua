@@ -19,17 +19,6 @@ Sites = {
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
 ---@cast global {sites: GlobalSites?}
 
-
----@param name string
----@return SignalID
-local function get_signal_id(name)
-    local type = Resources.types[name] or {}
-    return {
-        type = type.type,
-        name = type.name,
-    }
-end
-
 ---@param border integer
 ---@param xBase integer
 ---@param yBase integer
@@ -392,6 +381,7 @@ function Sites.site.updateCalculated(site, amount)
     }
 end
 
+---@param site Site
 function Sites.site.updateMapTag(site)
     if settings.global['dqol-resource-monitor-site-map-markers'].value == true then
         local text = site.name .. ' ' .. Util.Integer.toExponentString(site.calculated.amount)
@@ -399,7 +389,7 @@ function Sites.site.updateMapTag(site)
             site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {
                 position = site.area,
                 text = text,
-                icon = get_signal_id(site.type),
+                icon = Resources.getSignalId(site.type),
             })
         else
             site.map_tag.text = text

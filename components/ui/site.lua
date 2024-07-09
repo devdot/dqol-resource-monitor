@@ -6,8 +6,8 @@ local UiSite = {
 ---@param player LuaPlayer
 ---@param window LuaGuiElement?
 function UiSite.show(site, player, window)
-    local type = Resources.types[site.type]
-    local title = '[' .. type.type .. '=' .. type.name .. '] ' .. site.name
+    local title = Resources.getIconString(site.type) .. ' ' .. site.name
+    local product = Resources.getProduct(site.type)
 
     -- create a new window if needed
     if window == nil then
@@ -21,7 +21,7 @@ function UiSite.show(site, player, window)
 
     local table = inner.add { type = 'table', column_count = 2 }
     local stats = {
-        {'type', {type.type .. '-name.' .. type.name}},
+        {'type', {product and product.type .. '-name.' .. product.name}},
         {'amount', Util.Integer.toExponentString(site.calculated.amount)},
         {'initial-amount', Util.Integer.toExponentString(site.initial_amount)},
         {'percent', Util.Integer.toPercent(site.calculated.percent)},

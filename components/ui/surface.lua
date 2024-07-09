@@ -77,7 +77,7 @@ function UiSurface.show(surface, window)
     local resource_flow = inner.add { type = 'flow', direction = 'vertical' }
     for _, data in pairs(resources) do
         local flow = resource_flow.add { type = 'flow', direction = 'horizontal' }
-        flow.add { type = 'sprite', sprite = data.type.type .. '/' .. data.type.name }
+        flow.add { type = 'sprite', sprite = Resources.getSpriteString(data.type.resource_name) }
         local subflow = flow.add { type = 'flow', direction = 'vertical' }
         local bar = subflow.add {
             type = 'progressbar',

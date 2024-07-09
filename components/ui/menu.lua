@@ -151,12 +151,11 @@ function UiMenu.tabs.sites(tab)
         }
         
         local row = row_button.add{ type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
-        local type = Resources.types[site.type]
         local name = site.name
         if appendSurfaceName then
             name = game.surfaces[site.surface].name .. ' ' .. name
         end
-        row.add { type = 'label', caption = '[' .. type.type .. '=' .. type.name .. ']', style = 'dqol_resource_monitor_table_cell_resource' }
+        row.add { type = 'label', caption = Resources.getIconString(site.type), style = 'dqol_resource_monitor_table_cell_resource' }
         row.add { type = 'label', caption = name, style = 'dqol_resource_monitor_table_cell_name' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
         row.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount), style = 'dqol_resource_monitor_table_cell_number' }
@@ -219,8 +218,7 @@ function UiMenu.tabs.surfaces(tab)
         -- add resources
         local resources_string = ''
         for _, resource in pairs(surface.resources) do
-            local type = Resources.types[resource]
-            resources_string = resources_string .. '[' .. type.type .. '=' .. type.name .. ']'
+            resources_string = resources_string .. Resources.getIconString(resource)
         end
 
         row.add { type = 'label', caption = Surfaces.surface.getName(surface), style = 'dqol_resource_monitor_table_cell_name' }
@@ -296,11 +294,14 @@ function UiMenu.tabs.other(tab)
     end
 
     if _DEBUG then
-        local table = tab.add { type = 'table', column_count = 3 }
+        local table = tab.add { type = 'table', column_count = 2 }
         for _, type in pairs(Resources.types) do
-            table.add { type = 'label', caption = type.name }
-            table.add { type = 'label', caption = type.type }
             table.add { type = 'label', caption = type.resource_name }
+            local products = ''
+            for __, product in pairs(Resources.getProducts(type.resource_name)) do
+                products = products .. ' ' .. product.name
+            end
+            table.add { type = 'label', caption = products }
         end
     end
 end
@@ -341,7 +342,7 @@ function UiMenu.filters.add(tab, state, filter_group)
     filterGroup.style.margin = 8
 
     local showResourceFilterReset = table_size(state.resources) > 0
-    local resources = Resources.clean()
+    local resources = Resources.cleanResources()
     local resourceFilter = filterGroup.add {
         name = 'filters',
         type = 'table',
@@ -350,12 +351,13 @@ function UiMenu.filters.add(tab, state, filter_group)
     }
 
     for key, resource in pairs(resources) do
+        local product = Resources.getProduct(resource.resource_name)
         resourceFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
             toggled = state.resources[resource.resource_name] ~= nil,
-            sprite = resource.type .. '/' .. resource.name,
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { resource.type .. '-name.' .. resource.name }},
+            sprite = Resources.getSpriteString(resource.resource_name),
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { product and product.type .. '-name.' .. product.name }},
             tags = {
                 _module = 'menu_filters',
                 _action = 'toggle_resource',
