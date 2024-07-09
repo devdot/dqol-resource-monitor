@@ -12,6 +12,8 @@ Resources = {
     products = {},
     looseMerge = {
         ['crude-oil'] = true,
+        immersite = true, -- K2
+        ['mineral-water'] = true, -- K2
         ['phosphate-rock'] = true, -- py
         ['ore-titanium'] = true, -- py, not working as expected
     }
