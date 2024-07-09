@@ -379,6 +379,9 @@ function Sites.site.updateCalculated(site, amount)
         last_amount = lastAmount,
         last_amount_tick = lastAmountTick,
     }
+
+    -- cap percent
+    if site.calculated.percent > 1 then site.calculated.percent = 1 end
 end
 
 ---@param site Site
@@ -645,7 +648,7 @@ function Sites.updater.createQueue()
     local currentSet = 1
     local setSize = settings.global['dqol-resource-monitor-site-chunks-per-update'].value
     for siteId, site in pairs(Sites.storage.getIdList()) do
-        if site.tracking then
+        if site.tracking and Resources.types[site.type].tracking_ignore == false then
             for chunkId, chunk in pairs(site.chunks) do
                 if #(queue[currentSet]) >= setSize then
                     -- start a new set

@@ -1,6 +1,6 @@
 ---@alias ResourceIdentifier string
 --   the name of a prototype of ResourceEntityPrototype
----@alias ResourceType { resource_name: ResourceIdentifier, category: string, infinite: boolean, hidden: boolean, color: Color, products: ProductIdentifier[]}
+---@alias ResourceType { resource_name: ResourceIdentifier, category: string, infinite: boolean, hidden: boolean, tracking_ignore: boolean, color: Color, products: ProductIdentifier[]}
 
 ---@alias ProductIdentifier string
 --    the name of a prototype, is unqiue across all entity types
@@ -29,8 +29,13 @@ end
 
 ---@param resource ResourceType
 local function resource_postprocess(resource)
+    if table_size(resource.products) == 0 then
+        resource.tracking_ignore = true
+    end
+
     if resource.category == 'se-core-mining' then
         resource.hidden = true
+        resource.tracking_ignore = true
     end
 end
 
@@ -46,6 +51,7 @@ local function generate_resources()
             category = resource.resource_category,
             infinite = resource.infinite_resource or false,
             hidden = false,
+            tracking_ignore = false,
             color = generate_color(resource.name),
             products = {},
         }

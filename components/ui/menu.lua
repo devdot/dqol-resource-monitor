@@ -294,9 +294,20 @@ function UiMenu.tabs.other(tab)
     end
 
     if _DEBUG then
-        local table = tab.add { type = 'table', column_count = 2 }
+        local scroll = tab.add { type = 'scroll-pane' }
+        local table = scroll.add { type = 'table', column_count = 6 }
+        table.add { type = 'label', caption = 'resource name' }
+        table.add { type = 'label', caption = 'category' }
+        table.add { type = 'label', caption = 'infinite' }
+        table.add { type = 'label', caption = 'hidden' }
+        table.add { type = 'label', caption = 'ignore tracking' }
+        table.add { type = 'label', caption = 'products' }
         for _, type in pairs(Resources.types) do
             table.add { type = 'label', caption = type.resource_name }
+            table.add { type = 'label', caption = type.category }
+            table.add { type = 'label', caption = (type.infinite and 'true') or 'false' }
+            table.add { type = 'label', caption = (type.hidden and 'true') or 'false' }
+            table.add { type = 'label', caption = (type.tracking_ignore and 'true') or 'false' }
             local products = ''
             for __, product in pairs(Resources.getProducts(type.resource_name)) do
                 products = products .. ' ' .. product.name
@@ -585,7 +596,6 @@ function UiMenu.filters.getSites(state)
                             Sites.site.updateCalculated(site)
                         end
 
-                        -- filter for only tracking
                         local insert = true
                         if state.onlyTracked == true and site.tracking == false then
                             insert = false

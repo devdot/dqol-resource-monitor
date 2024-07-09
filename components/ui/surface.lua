@@ -33,12 +33,9 @@ function UiSurface.show(surface, window)
     local resources = {}
     local maxResourceValue = 0
     for resource, sites in pairs(sitesByType) do
-        local skip = false
-        if string.sub(resource, 1, 7) == 'se-core' then
-            skip = true
-        end
+        local type = Resources.types[resource]
 
-        if skip == false then
+        if type.hidden == false then
             local sum = 0
             local sum_tracking = 0
             local sites_tracking = 0
@@ -53,7 +50,7 @@ function UiSurface.show(surface, window)
             if sum > maxResourceValue then maxResourceValue = sum end
 
             local data = {
-                type = Resources.types[resource],
+                type = type,
                 sites = table_size(sites),
                 sites_tracking = sites_tracking,
                 sum = sum,
@@ -197,8 +194,7 @@ function UiSurface.onAutoTrack(surface, player)
     local luaSurface = game.surfaces[surface.id]
     local found = false
     for type, inner in pairs(types or {}) do
-        local skipType = string.sub(type, 1, 7) == 'se-core'
-        for __, site in pairs((skipType == false and inner) or {}) do
+        for __, site in pairs(inner or {}) do
             if site.tracking == false then
                 local miners = luaSurface.count_entities_filtered {
                     area = { left_top = { x = site.area.left, y = site.area.top }, right_bottom = { x = site.area.right, y = site.area.bottom } },
@@ -208,8 +204,9 @@ function UiSurface.onAutoTrack(surface, player)
                 if miners > 0 then
                     site.tracking = true
                     found = true
+                    Sites.site.updateCalculated(site)
+                    player.print('Now tracking ' .. Resources.getIconString(site.type) .. site.name)
                 end
-                player.print('Now tracking ' .. site.name)
             end
         end
     end
