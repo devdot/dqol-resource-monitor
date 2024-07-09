@@ -192,7 +192,7 @@ function Resources.cleanProducts()
         end
 
         if insert then
-            products[key] = type
+            products[key] = product
         end
     end
     return products
