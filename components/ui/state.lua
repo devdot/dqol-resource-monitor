@@ -53,7 +53,7 @@ function UiState.generateFreshPlayerState()
     return {
         menu = {
             tab = nil,
-            use_products = true,
+            use_products = table_size(Resources.cleanResources()) > table_size(Resources.cleanProducts()),
             sites_filters = {
                 resources = {},
                 surface = nil,
