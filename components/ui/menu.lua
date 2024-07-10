@@ -299,8 +299,8 @@ function UiMenu.tabs.other(tab)
         switch_state = (Ui.State.get(tab.player_index).menu.use_products and 'right') or 'left',
         allow_none_state = 'false',
         left_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products'},
-        left_label_tooltip = {'dqol-resource-monitor.ui-menu-other-use-products-switch-resources'},
-        right_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products-tooltip'},
+        left_label_tooltip = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products-tooltip'},
+        right_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-resources'},
         right_label_tooltip = {'dqol-resource-monitor.ui-menu-other-use-products-switch-resources-tooltip'},
         tags = {
             _module = 'menu',
