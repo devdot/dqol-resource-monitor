@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+Date: 09.07.2024
+  Features:
+    - Allow filtering by resource product instead of resource type (this will benefit mods that add multiple resources with the same product)
+    - Improve UI with many resources
+    - Auto-detection of loosely scattered resources (like crude oil), improving compatibility with modded resources (like Py)
+---------------------------------------------------------------------------------------------------
 Version: 1.0.5
 Date: 09.07.2024
   Bugfixes:
