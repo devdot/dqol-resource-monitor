@@ -1,22 +1,15 @@
 ---@alias ResourceIdentifier string
 --   the name of a prototype of ResourceEntityPrototype
----@alias ResourceType { resource_name: ResourceIdentifier, category: string, infinite: boolean, hidden: boolean, tracking_ignore: boolean, color: Color, products: ProductIdentifier[]}
+---@alias ResourceType { resource_name: ResourceIdentifier, category: string, infinite: boolean, hidden: boolean, tracking_ignore: boolean, color: Color, products: ProductIdentifier[], loose_merge: boolean}
 
 ---@alias ProductIdentifier string
 --    the name of a prototype, is unqiue across all entity types
 ---@alias ProductType {type: 'item' | 'fluid', name: ProductIdentifier, produced_by: ResourceIdentifier[]}
 
----@type {types: table<ResourceIdentifier, ResourceType>, products: table<ProductIdentifier, ProductType>, looseMerge: table<string, boolean>, boot: function, getProduct: function, getProducts: function, getIconString: function, getSpriteString: function, getSignalId: function, cleanResources: function, cleanProducts: function, on_configuration_changed: function}
+---@type {types: table<ResourceIdentifier, ResourceType>, products: table<ProductIdentifier, ProductType>, boot: function, getProduct: function, getProducts: function, getIconString: function, getSpriteString: function, getSignalId: function, cleanResources: function, cleanProducts: function, on_configuration_changed: function}
 Resources = {
     types = {},
     products = {},
-    looseMerge = {
-        ['crude-oil'] = true,
-        immersite = true, -- K2
-        ['mineral-water'] = true, -- K2
-        ['phosphate-rock'] = true, -- py
-        ['titanium-rock'] = true, -- py
-    }
 }
 
 local function generate_color(resource_name)
@@ -41,6 +34,25 @@ local function resource_postprocess(resource)
     end
 end
 
+---@param resource LuaEntityPrototype
+---@returns boolean
+local function resource_is_loose_merge(resource)
+    -- see if collision_box is smaller than {left_top = {x = -0.5, y = -0.5}, right_bottom = {x = 0.5, y = 0.5}}
+    local box = resource.collision_box or {}
+    local left_top = box.left_top or {}
+    local right_bottom = box.right_bottom or {}
+
+    if (left_top.x and left_top.x >= -0.5)
+        and (left_top.y and left_top.y >= -0.5)
+        and (right_bottom.x and right_bottom.x <= 0.5)
+        and (right_bottom.y and right_bottom.y <= 0.5)
+    then
+        return false
+    end
+
+    return true
+end
+
 local function generate_resources()
     Resources.types = {}
     Resources.products = {}
@@ -54,6 +66,7 @@ local function generate_resources()
             infinite = resource.infinite_resource or false,
             hidden = false,
             tracking_ignore = false,
+            loose_merge = resource_is_loose_merge(resource),
             color = generate_color(resource.name),
             products = {},
         }

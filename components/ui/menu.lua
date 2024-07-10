@@ -311,12 +311,13 @@ function UiMenu.tabs.other(tab)
     if _DEBUG then
         tab.add { type = 'line' }
         local scroll = tab.add { type = 'scroll-pane' }
-        local table = scroll.add { type = 'table', column_count = 6 }
+        local table = scroll.add { type = 'table', column_count = 7 }
         table.add { type = 'label', caption = 'resource name' }
         table.add { type = 'label', caption = 'category' }
         table.add { type = 'label', caption = 'infinite' }
         table.add { type = 'label', caption = 'hidden' }
         table.add { type = 'label', caption = 'ignore tracking' }
+        table.add { type = 'label', caption = 'loose merge' }
         table.add { type = 'label', caption = 'products' }
         for _, type in pairs(Resources.types) do
             table.add { type = 'label', caption = type.resource_name }
@@ -324,6 +325,7 @@ function UiMenu.tabs.other(tab)
             table.add { type = 'label', caption = (type.infinite and 'true') or 'false' }
             table.add { type = 'label', caption = (type.hidden and 'true') or 'false' }
             table.add { type = 'label', caption = (type.tracking_ignore and 'true') or 'false' }
+            table.add { type = 'label', caption = (type.loose_merge and 'true') or 'false' }
             local products = ''
             for __, product in pairs(Resources.getProducts(type.resource_name)) do
                 products = products .. ' ' .. product.name

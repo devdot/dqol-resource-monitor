@@ -433,7 +433,7 @@ function Sites.storage.insert(site)
     if not global.sites.surfaces[site.surface][site.type] then global.sites.surfaces[site.surface][site.type] = {} end
 
     local chunks = {}
-    local looseMerge = Resources.looseMerge[site.type] or false
+    local looseMerge = Resources.types[site.type].loose_merge or false
     if not looseMerge then
         chunks = get_outer_chunks(site)
     else
