@@ -127,6 +127,10 @@ end
 ---@param resource ResourceIdentifier
 ---@returns string
 function Resources.getIconString(resource)
+    if game.is_valid_sprite_path('entity/' .. resource) then
+        return '[img=entity/' .. resource .. ']'
+    end
+
     local product = Resources.getProduct(resource)
     if product then
         return '[' .. product.type .. '=' .. product.name .. ']'
@@ -139,13 +143,16 @@ end
 ---@param resource ResourceIdentifier
 ---@returns string
 function Resources.getSpriteString(resource)
+    if game.is_valid_sprite_path('entity/' .. resource) then
+        return 'entity/' .. resource
+    end
+
     local product = Resources.getProduct(resource)
     if product then
         return product.type .. '/' .. product.name
     else
         -- does not exist!
-        -- return 'utility/green_dot'
-        return 'entity/' .. resource
+        return 'utility/green_dot'
     end
 end
 
