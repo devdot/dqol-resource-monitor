@@ -2,6 +2,6 @@ _DEBUG = false
 _VERSION = {
     major = 1,
     minor = 1,
-    patch = 0,
-    string = '1.1.0',
+    patch = 1,
+    string = '1.1.1',
 }

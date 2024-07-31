@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.1.1
+Date: 31.07.2024
+  Bugfixes:
+    - Keep UI settings when other mods are updated (previously, the settings were reset even when updates did not affect this mod)
+    - Attempt to fix mysterious crash with some unknown surfaces when SE is active
+    - Attempt to fix rare UI crash (#1)
+---------------------------------------------------------------------------------------------------
 Version: 1.1.0
 Date: 09.07.2024
   Features:
