@@ -158,7 +158,12 @@ function Ui.bootPlayer(player)
     Ui.Menu.bootPlayer(player)
 end
 
-function Ui.on_configuration_changed()
+function Ui.on_configuration_changed(event)
+    -- check if we changed or just some other mods
+    if event.mod_changes['dqol-resource-monitor'] == nil then
+        return
+    end
+
     for _, player in pairs(game.players) do
         Ui.bootPlayer(player)
     end

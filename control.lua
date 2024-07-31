@@ -46,10 +46,10 @@ end
 
 ---This is called after on_init/on_load when the mod config changed
 ---@see https://lua-api.factorio.com/latest/auxiliary/data-lifecycle.html
-function on_configuration_changed()
+function on_configuration_changed(event)
     Resources.on_configuration_changed()
     Surfaces.on_configuration_changed()
-    Ui.on_configuration_changed()
+    Ui.on_configuration_changed(event)
 end
 
 script.on_init(on_init)
