@@ -2,7 +2,7 @@ local Window = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-window'
 }
 
----@alias WindowGui: LuaGuiElement
+---@alias WindowGui LuaGuiElement
 
 ---Create a new window
 ---@param player LuaPlayer
@@ -107,7 +107,12 @@ end
 ---@param id string?
 ---@return WindowGui?
 function Window.get(player, id)
-    return player.gui.screen[Window.ROOT_FRAME .. (id or '')]
+    local window = player.gui.screen[Window.ROOT_FRAME .. (id or '')]
+    if window ~= nil and window.tags.dqol_resource_monitor_window then
+        return window
+    else
+        return nil
+    end
 end
 
 ---@param window WindowGui
