@@ -13,18 +13,19 @@ local finish_generate_surface_list = {}
 local function finish_generate_from_game()
     -- filter the list (remove surfaces that do not exist anymore)
     local list = {}
-    for _, surface in pairs(finish_generate_surface_list) do if game.surfaces[surface.id] then table.insert(list, surface) end end
+    for _, surface in pairs(finish_generate_surface_list) do if game.get_surface(surface.id) then table.insert(list, surface) end end
 
     -- find a way to work this queue more performatly?
     for _, surface in pairs(list) do
         if script.active_mods['space-exploration'] then
-            local zone = remote.call("space-exploration", "get_surface_type", { surface_index = surface.id })
+            local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = surface.id })
+            local type = zone and zone.type
 
             if _DEBUG then
-                game.print('Used SE universe to find zone type for ' .. surface.id .. ': ' .. (zone or 'nil'))
+                game.print('Used SE universe to find zone type for ' .. surface.id .. ': ' .. (type or 'nil'))
             end
 
-            if zone == nil then
+            if type == nil then
                 surface.hidden = true
                 surface.tracking = false
             else
