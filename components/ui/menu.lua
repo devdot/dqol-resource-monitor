@@ -8,7 +8,7 @@ local UiMenu = {
     dashboard = {},
 }
 
----@param LuaPlayer
+---@param player LuaPlayer
 function UiMenu.bootPlayer(player)
     UiMenu.createButton(player)
 end
@@ -741,7 +741,7 @@ function UiMenu.onSiteShow(site, player)
         preview.clear()
         Ui.Window.createInner(preview, 'previewsite' .. site.id, site.name)
     end
-    Ui.Site.show(site, player, preview[Ui.Window.ROOT_FRAME .. 'previewsite' .. site.id])
+    Ui.Site.show(site, player, preview and preview[Ui.Window.ROOT_FRAME .. 'previewsite' .. site.id])
 end
 
 
@@ -802,7 +802,7 @@ end
 ---@param player LuaPlayer
 ---@param state UiStateMenuFilter
 function UiMenu.filters.onSetMaxPercent(event, player, state)
-    state.maxPercent = tonumber(event.element.text)
+    state.maxPercent = tonumber(event.element.text) or 100
     if state.maxPercent > 100 then state.maxPercent = 100 end
     UiMenu.show(player)
 end

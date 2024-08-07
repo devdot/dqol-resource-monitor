@@ -9,7 +9,7 @@ UiState = {}
 ---@alias GlobalUi {players: table<integer, UiStatePlayer>?}
 ---@cast global {ui: GlobalUi?}
 
----@param LuaPlayer
+---@param player LuaPlayer
 function UiState.bootPlayer(player)
     UiState.reset(player.index)
 end

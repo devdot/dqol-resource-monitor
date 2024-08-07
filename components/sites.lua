@@ -545,7 +545,6 @@ function Sites.storage.getById(id)
 end
 
 ---Get site from cache, just by ID
----@param id integer
 ---@return table<integer, Site>
 function Sites.storage.getIdList()
     return global.sites.ids
