@@ -105,6 +105,8 @@ local function generate_resources()
         types = Resources.types,
         products = Resources.products,
     }
+
+    Sites.storage.clean()
 end
 
 ---@param resource ResourceIdentifier

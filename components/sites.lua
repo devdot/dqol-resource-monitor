@@ -563,6 +563,21 @@ function Sites.storage.remove(site)
     storage.sites.surfaces[site.surface][site.type][site.index] = nil
 end
 
+function Sites.storage.clean()
+    -- remove sites that make no sense
+    for _, surface in pairs(storage.surfaces) do
+        for type, sites in pairs(surface) do
+            if Resources.types[type] == nil then
+                -- this resource does not exist, now remove
+                for _, site in pairs(sites) do
+                    game.print('Removing invalid site (' .. type .. '): ' .. site.name)
+                    Sites.storage.remove(site)
+                end
+            end
+        end
+    end
+end
+
 ---@param siteId integer
 ---@param chunkKey SiteChunkKey
 function Sites.updater.updateSiteChunk(siteId, chunkKey)
