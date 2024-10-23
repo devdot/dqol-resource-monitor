@@ -70,7 +70,7 @@ function UiDashboard.update(player)
         
         local name = site.name
         if state.dashboard.prepend_surface_name == true then
-            name = game.surfaces[site.surface].name .. ' ' .. name
+            name = { '', Surfaces.surface.getNameById(site.surface), ' ',  name }
         end
 
         gui.add { type = 'label', caption = Resources.getIconString(site.type), tags = tags }

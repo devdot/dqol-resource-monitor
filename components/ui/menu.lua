@@ -135,7 +135,7 @@ function UiMenu.tabs.sites(tab)
             row.add {
                 type = 'label',
                 style = 'caption_label',
-                caption = game.surfaces[site.surface].name
+                caption = Surfaces.surface.getNameById(site.surface)
             }
         end
 
@@ -153,7 +153,7 @@ function UiMenu.tabs.sites(tab)
         local row = row_button.add{ type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
         local name = site.name
         if appendSurfaceName then
-            name = game.surfaces[site.surface].name .. ' ' .. name
+            name = { '', Surfaces.surface.getNameById(site.surface), ' ',  name }
         end
         row.add { type = 'label', caption = Resources.getIconString(site.type), style = 'dqol_resource_monitor_table_cell_resource' }
         row.add { type = 'label', caption = name, style = 'dqol_resource_monitor_table_cell_name' }

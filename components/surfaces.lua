@@ -128,12 +128,21 @@ function Surfaces.surface.delete(id)
 end
 
 ---@param surface Surface
----@return string
+---@return string|LocalisedString
 function Surfaces.surface.getName(surface)
     local luaSurface = game.surfaces[surface.id] or {}
-    local name = luaSurface.name or ''
-    if name == 'nauvis' then name = 'Nauvis' end
-    return name
+    if luaSurface.planet then
+        return luaSurface.planet.prototype.localised_name
+    end
+    return luaSurface.localised_name or luaSurface.name or ''
+end
+
+---@param id integer
+---@return string|LocalisedString
+function Surfaces.surface.getNameById(id)
+    local surface = Surfaces.storage.getById(id)
+    if surface == nil then return '' end
+    return Surfaces.surface.getName(surface)
 end
 
 ---@param surface Surface
