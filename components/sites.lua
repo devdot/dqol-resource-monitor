@@ -565,7 +565,9 @@ end
 
 function Sites.storage.clean()
     -- remove sites that make no sense
-    for _, surface in pairs(storage.surfaces) do
+    ---@type GlobalSites
+    local data = storage.sites
+    for _, surface in pairs(data.surfaces) do
         for type, sites in pairs(surface) do
             if Resources.types[type] == nil then
                 -- this resource does not exist, now remove
