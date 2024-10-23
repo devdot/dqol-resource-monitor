@@ -1,7 +1,3 @@
--- local Chunk = require('__stdlib__/stdlib/area/chunk')
-local Position = require('__stdlib__/stdlib/area/position')
-
-
 Scanner = {
     DEFAULT_FORCE = 1,
     cache = {},

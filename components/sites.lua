@@ -1,4 +1,11 @@
-local Table = require('__stdlib__/stdlib/utils/table')
+-- from stdlib (not updated to 2.0 for now)
+-- https://github.com/Afforess/Factorio-Stdlib/blob/master/stdlib/utils/table.lua
+local function dictionary_combine(...)
+    local tables = { ... }
+    local new = {}
+    for _, tab in pairs(tables) do for k, v in pairs(tab) do new[k] = v end end
+    return new
+end
 
 Sites = {
     storage = {},
@@ -183,7 +190,7 @@ end
 ---@return Site
 local function merge_sites(siteBase, siteAdd)
     siteBase.initial_amount = siteBase.initial_amount + siteAdd.initial_amount
-    siteBase.chunks = Table.dictionary_combine(siteBase.chunks, siteAdd.chunks)
+    siteBase.chunks = dictionary_combine(siteBase.chunks, siteAdd.chunks)
     siteBase.since = math.min(siteBase.since, siteAdd.since)
     siteBase.area = merge_site_areas(siteBase.area, siteAdd.area)
     Sites.site.updateCalculated(siteBase)
