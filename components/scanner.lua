@@ -78,22 +78,22 @@ end
 
 ---@return ScannerCache
 function Scanner.cache.get()
-    if global.scanner == nil then Scanner.cache.reset() end
-    return global.scanner
+    if storage.scanner == nil then Scanner.cache.reset() end
+    return storage.scanner
 end
 
 function Scanner.cache.reset()
-    global.scanner = {
+    storage.scanner = {
         chunks = {}
     }
 end
 
 ---@param surfaceId integer
 function Scanner.cache.resetSurface(surfaceId)
-    if global.scanner == nil then
+    if storage.scanner == nil then
         Scanner.cache.reset()
     else
-        global.scanner.chunks[surfaceId] = {}
+        storage.scanner.chunks[surfaceId] = {}
     end
 end
 

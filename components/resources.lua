@@ -13,7 +13,7 @@ Resources = {
 }
 
 local function generate_color(resource_name)
-    local proto = game.entity_prototypes[resource_name]
+    local proto = prototypes.entity[resource_name]
 
     if proto and proto.map_color then
         return proto.map_color
@@ -33,7 +33,7 @@ local function resource_postprocess(resource)
         resource.tracking_ignore = true
     end
 
-    if game.active_mods['FunkedOre'] or game.active_mods['DivOresity'] then
+    if script.active_mods['FunkedOre'] or script.active_mods['DivOresity'] then
         -- funked ore breaks usual conventions for all resources, therefore we need to break strict merges
         resource.loose_merge = true;
     end
@@ -62,7 +62,7 @@ local function generate_resources()
     Resources.types = {}
     Resources.products = {}
 
-    for key, resource in pairs(game.get_filtered_entity_prototypes({ { filter = 'type', type = 'resource' } }) or {}) do
+    for key, resource in pairs(prototypes.get_entity_filtered({ { filter = 'type', type = 'resource' } }) or {}) do
         -- expect resource to be LuaEntityPrototype
         log('Add resource ' .. resource.name .. ' of category ' .. resource.resource_category)
         Resources.types[resource.name] = {
@@ -101,7 +101,7 @@ local function generate_resources()
     end
 
     -- write to global cache
-    global.resources = {
+    storage.resources = {
         types = Resources.types,
         products = Resources.products,
     }
@@ -132,7 +132,7 @@ end
 ---@param resource ResourceIdentifier
 ---@returns string
 function Resources.getIconString(resource)
-    if game.is_valid_sprite_path('entity/' .. resource) then
+    if helpers.is_valid_sprite_path('entity/' .. resource) then
         return '[img=entity/' .. resource .. ']'
     end
 
@@ -148,7 +148,7 @@ end
 ---@param resource ResourceIdentifier
 ---@returns string
 function Resources.getSpriteString(resource)
-    if game.is_valid_sprite_path('entity/' .. resource) then
+    if helpers.is_valid_sprite_path('entity/' .. resource) then
         return 'entity/' .. resource
     end
 
@@ -183,9 +183,9 @@ function Resources.boot()
     end
     
     -- read from cache
-    if global.resources ~= nil and global.resources.types ~= nil then
-        Resources.types = global.resources.types
-        Resources.products = global.resources.products
+    if storage.resources ~= nil and storage.resources.types ~= nil then
+        Resources.types = storage.resources.types
+        Resources.products = storage.resources.products
     end
 end
 

@@ -149,7 +149,7 @@ function UiSite.onHighlight(site, player)
     Sites.site.highlight(site)
 
     -- show in game world
-    if game.active_mods["space-exploration"] ~= nil then
+    if script.active_mods["space-exploration"] ~= nil then
         local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = site.surface})
         if not zone then
             -- zone is not available?!
@@ -165,7 +165,19 @@ function UiSite.onHighlight(site, player)
                 freeze_history = true
             })
     else
-        player.zoom_to_world(site.area)
+        local entity = game.surfaces[site.surface].find_entities_filtered{
+            position = site.area,
+            limit = 1,
+        }[1] or game.surfaces[site.surface].find_entities_filtered {
+            area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
+            limit = 1,
+        }[1] or nil
+
+        if entity then
+            player.centered_on = entity
+        else
+            player.print('Could not find an entity to center on!')
+        end
     end
 end
 

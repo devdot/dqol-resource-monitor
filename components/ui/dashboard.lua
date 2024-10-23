@@ -46,7 +46,7 @@ function UiDashboard.update(player)
     local gui = root.add {
         type = 'table',
         name = 'sites',
-        style = 'statistics_element_table',
+        -- style = 'statistics_element_table', TODO
         column_count = 5,
         draw_horizontal_line_after_headers = state.dashboard.show_headers or false,
     }

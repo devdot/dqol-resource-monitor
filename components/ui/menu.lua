@@ -91,20 +91,20 @@ function UiMenu.tabs.sites(tab)
     UiMenu.filters.add(tab, state, 'sites_filters')
 
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
-    main.style.horizontally_stretchable = 'stretch_and_expand'
-    main.style.vertically_stretchable = 'stretch_and_expand'
+    main.style.horizontally_stretchable = true
+    main.style.vertically_stretchable = true
     
     -- left side
     local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
     sites_frame.style.width = 500
     sites_frame.style.natural_height = 600
     sites_frame.style.margin = 8
-    sites_frame.style.horizontally_stretchable = 'stretch_and_expand'
-    sites_frame.style.vertically_stretchable = 'stretch_and_expand'
+    sites_frame.style.horizontally_stretchable = true
+    sites_frame.style.vertically_stretchable = true
     local sites_scroll = sites_frame.add { type = 'scroll-pane' }
     sites_scroll.vertical_scroll_policy = 'always'
-    sites_scroll.style.horizontally_stretchable = "stretch_and_expand"
-    sites_scroll.style.vertically_stretchable = "stretch_and_expand"
+    sites_scroll.style.horizontally_stretchable = true
+    sites_scroll.style.vertically_stretchable = true
     local sites = sites_scroll.add { name = 'sites', type = 'flow', direction = 'vertical' }
 
     -- right side
@@ -114,10 +114,10 @@ function UiMenu.tabs.sites(tab)
     preview.style.margin = 8
     preview.style.left_margin = 0
     preview.style.padding = 4
-    preview.style.vertically_stretchable = 'stretch_and_expand'
-    preview.style.horizontally_stretchable = 'stretch_and_expand'
+    preview.style.vertically_stretchable = true
+    preview.style.horizontally_stretchable = true
     local preview_scroll = preview.add { type = 'scroll-pane', name = 'preview' }
-    preview_scroll.style.horizontally_stretchable = 'stretch_and_expand'
+    preview_scroll.style.horizontally_stretchable = true
 
     -- fill sites
     local filteredSites = UiMenu.filters.getSites(state, Ui.State.get(tab.player_index).menu.use_products)
@@ -176,8 +176,8 @@ end
 
 function UiMenu.tabs.surfaces(tab)
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
-    main.style.horizontally_stretchable = 'stretch_and_expand'
-    main.style.vertically_stretchable = 'stretch_and_expand'
+    main.style.horizontally_stretchable = true
+    main.style.vertically_stretchable = true
 
     -- left side
     local surfaces_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
@@ -186,8 +186,8 @@ function UiMenu.tabs.surfaces(tab)
     surfaces_frame.style.margin = 8
     local surfaces_scroll = surfaces_frame.add { type = 'scroll-pane' }
     surfaces_scroll.vertical_scroll_policy = 'always'
-    surfaces_scroll.style.horizontally_stretchable = 'stretch_and_expand'
-    surfaces_scroll.style.vertically_stretchable = 'stretch_and_expand'
+    surfaces_scroll.style.horizontally_stretchable = true
+    surfaces_scroll.style.vertically_stretchable = true
     local surfaces = surfaces_scroll.add { name = 'surfaces', type = 'flow', direction = 'vertical' }
 
     -- right side
@@ -197,10 +197,10 @@ function UiMenu.tabs.surfaces(tab)
     preview.style.margin = 8
     preview.style.left_margin = 0
     preview.style.padding = 4
-    preview.style.vertically_stretchable = 'stretch_and_expand'
+    preview.style.vertically_stretchable = true
     local preview_scroll = preview.add { type = 'scroll-pane', name = 'preview' }
-    preview_scroll.style.horizontally_stretchable = "stretch_and_expand"
-    preview_scroll.style.vertically_stretchable = "stretch_and_expand"
+    preview_scroll.style.horizontally_stretchable = true
+    preview_scroll.style.vertically_stretchable = true
 
     for index, surface in pairs(Surfaces.getVisibleSurfaces()) do
         local row_button = surfaces.add {
@@ -271,17 +271,17 @@ function UiMenu.tabs.other(tab)
     info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-info-headline'}, style = 'caption_label' }
     info.add { type = 'label', caption = '' }
     
-    if global.sites and global.sites.updater then
-        local queueLength = #global.sites.updater.queue
+    if storage.sites and storage.sites.updater then
+        local queueLength = #storage.sites.updater.queue
         local chunksPerUpdate = settings.global['dqol-resource-monitor-site-chunks-per-update'].value
         local ticksBetweenUpdates = settings.global['dqol-resource-monitor-site-ticks-between-updates'].value
         local ticksToFinishQueue = ticksBetweenUpdates * (queueLength + 1)
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-length' } }
         info.add { type = 'label', caption = queueLength }
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-position' } }
-        info.add { type = 'label', caption = global.sites.updater.pointer }
+        info.add { type = 'label', caption = storage.sites.updater.pointer }
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-queue-total-chunks' } }
-        info.add { type = 'label', caption = ((queueLength - 1) * chunksPerUpdate) + (#(global.sites.updater.queue[#global.sites.updater.queue] or {})) }
+        info.add { type = 'label', caption = ((queueLength - 1) * chunksPerUpdate) + (#(storage.sites.updater.queue[#storage.sites.updater.queue] or {})) }
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-chunks-per-update' } }
         info.add { type = 'label', caption = chunksPerUpdate }
         info.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-other-updater-ticks-between-updates' } }

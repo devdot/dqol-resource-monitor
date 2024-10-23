@@ -24,7 +24,6 @@ Sites = {
 
 ---@alias GlobalSitesUpdater {pointer: integer, queue: table<integer, table<1|2, integer|SiteChunkKey>>} -- queue sub-entries simply have 1: siteId and 2: chunkId
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
----@cast global {sites: GlobalSites?}
 
 ---@param border integer
 ---@param xBase integer
@@ -328,7 +327,7 @@ function Sites.deleteChunk(surface, chunk)
 end
 
 function Sites.resetGlobal()
-    global.sites = {
+    storage.sites = {
         surfaces = {},
         ids = {},
         updater = {
@@ -436,8 +435,8 @@ end
 ---Add a new site to the cache
 ---@param site Site
 function Sites.storage.insert(site)
-    if not global.sites.surfaces[site.surface] then global.sites.surfaces[site.surface] = {} end
-    if not global.sites.surfaces[site.surface][site.type] then global.sites.surfaces[site.surface][site.type] = {} end
+    if not storage.sites.surfaces[site.surface] then storage.sites.surfaces[site.surface] = {} end
+    if not storage.sites.surfaces[site.surface][site.type] then storage.sites.surfaces[site.surface][site.type] = {} end
 
     local chunks = {}
     local looseMerge = Resources.types[site.type].loose_merge or false
@@ -458,7 +457,7 @@ function Sites.storage.insert(site)
             local direction = d.direction
             local otherDirection = d.opposite
             local diagonal = d.diagonal
-            for siteKey, otherSite in pairs(global.sites.surfaces[site.surface][site.type]) do
+            for siteKey, otherSite in pairs(storage.sites.surfaces[site.surface][site.type]) do
                 local otherChunk = otherSite.chunks[neighborKey]
                 if otherChunk ~= nil then
                     if looseMerge then
@@ -516,14 +515,14 @@ function Sites.storage.insert(site)
         end
     else
         -- we did find any matches, so we simply add it now
-        local index = #global.sites.surfaces[site.surface][site.type] + 1
+        local index = #storage.sites.surfaces[site.surface][site.type] + 1
         site.index = index
-        global.sites.surfaces[site.surface][site.type][index] = site
+        storage.sites.surfaces[site.surface][site.type][index] = site
     
         -- add to ids
-        local nextId = #(global.sites.ids) + 1
+        local nextId = #(storage.sites.ids) + 1
         site.id = nextId
-        global.sites.ids[nextId] = site
+        storage.sites.ids[nextId] = site
 
         -- update map tag
         Sites.site.updateMapTag(site)
@@ -536,32 +535,32 @@ end
 
 ---@return table<integer, table<string, Site[]?>>
 function Sites.storage.getSurfaceList()
-    return global.sites.surfaces
+    return storage.sites.surfaces
 end
 
 ---@return table<string, Site[]?>
 function Sites.storage.getSurfaceSubList(index)
-    return global.sites.surfaces[index] or {}
+    return storage.sites.surfaces[index] or {}
 end
 
 ---Get site from cache using ID
 ---@param id integer
 ---@return Site?
 function Sites.storage.getById(id)
-    return global.sites.ids[id] or nil;
+    return storage.sites.ids[id] or nil;
 end
 
 ---Get site from cache, just by ID
 ---@return table<integer, Site>
 function Sites.storage.getIdList()
-    return global.sites.ids
+    return storage.sites.ids
 end
 
 ---@param site Site
 function Sites.storage.remove(site)
     if site.map_tag ~= nil then site.map_tag.destroy() end
-    global.sites.ids[site.id] = nil
-    global.sites.surfaces[site.surface][site.type][site.index] = nil
+    storage.sites.ids[site.id] = nil
+    storage.sites.surfaces[site.surface][site.type][site.index] = nil
 end
 
 ---@param siteId integer
@@ -610,9 +609,9 @@ end
 
 function Sites.updater.onIncremental()
     -- local profiler = game.create_profiler(false)
-    local set = global.sites.updater.queue[global.sites.updater.pointer]
+    local set = storage.sites.updater.queue[storage.sites.updater.pointer]
     if set == nil then
-        if #(global.sites.updater.queue) > 0 then
+        if #(storage.sites.updater.queue) > 0 then
             Sites.updater.finishQueue()
             -- profiler.stop()
             -- game.print(profiler)
@@ -631,7 +630,7 @@ function Sites.updater.onIncremental()
         Sites.updater.updateSiteChunk(tuple[1], tuple[2])
     end
 
-    global.sites.updater.pointer = global.sites.updater.pointer + 1
+    storage.sites.updater.pointer = storage.sites.updater.pointer + 1
 
     -- profiler.stop()
     -- game.print(profiler)
@@ -666,7 +665,7 @@ function Sites.updater.createQueue()
             end
         end
     end
-    global.sites.updater = {
+    storage.sites.updater = {
         queue = queue,
         pointer = 1,
     }
@@ -675,7 +674,7 @@ end
 function Sites.updater.finishQueue()
     -- go through all the sites and update their tags
     local sites = {}
-    for _, set in pairs(global.sites.updater.queue) do
+    for _, set in pairs(storage.sites.updater.queue) do
         for __, tuple in pairs(set) do
             local siteId = tuple[1]
             local site = Sites.storage.getById(siteId)
@@ -691,7 +690,7 @@ function Sites.updater.finishQueue()
     -- update the surfaces now
     Surfaces.updateAll();
 
-    global.sites.updater.queue = {}
+    storage.sites.updater.queue = {}
 end
 
 function Sites.boot()

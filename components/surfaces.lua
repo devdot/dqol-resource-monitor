@@ -17,7 +17,10 @@ local function finish_generate_from_game()
 
     -- find a way to work this queue more performatly?
     for _, surface in pairs(list) do
-        if script.active_mods['space-exploration'] then
+        if game.surfaces[surface.id].platform ~= nil then
+            surface.hidden = true
+            surface.tracking = false
+        elseif script.active_mods['space-exploration'] then
             local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = surface.id })
             local type = zone and zone.type
 
@@ -39,35 +42,35 @@ end
 
 ---@param surface Surface
 function Surfaces.storage.insert(surface)
-    global.surface_storage[surface.id] = surface
+    storage.surface_storage[surface.id] = surface
 end
 
 ---@param id integer
 function Surfaces.storage.remove(id)
-    global.surface_storage[id] = nil
+    storage.surface_storage[id] = nil
 end
 
 ---@param id integer
 ---@return Surface?
 function Surfaces.storage.getById(id)
     finish_generate_from_game()
-    return global.surface_storage[id] or nil
+    return storage.surface_storage[id] or nil
 end
 
 ---@return Surface[]
 function Surfaces.storage.all()
     finish_generate_from_game()
-    return global.surface_storage or {}
+    return storage.surface_storage or {}
 end
 
 function Surfaces.storage.softInitialize()
-    if global.surface_storage == nil then
+    if storage.surface_storage == nil then
         Surfaces.storage.reset()
     end    
 end
 
 function Surfaces.storage.reset()
-    global.surface_storage = {}
+    storage.surface_storage = {}
 end
 
 function Surfaces.getVisibleSurfaces()

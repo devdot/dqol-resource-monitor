@@ -7,7 +7,6 @@ UiState = {}
 
 ---@alias UiStatePlayer {menu: UiStateMenu, dashboard: UiStateDashboard}
 ---@alias GlobalUi {players: table<integer, UiStatePlayer>?}
----@cast global {ui: GlobalUi?}
 
 ---@param player LuaPlayer
 function UiState.bootPlayer(player)
@@ -17,17 +16,17 @@ end
 ---Reset the entire UI State for a player (or all if none provided)
 ---@param player_index integer?
 function UiState.reset(player_index)
-    if global.ui == nil or global.ui.players == nil then
-        global.ui = {
+    if storage.ui == nil or storage.ui.players == nil then
+        storage.ui = {
             players = {},
         }
     end
 
     if player_index ~= nil then
-        global.ui.players[player_index] = UiState.generateFreshPlayerState()
+        storage.ui.players[player_index] = UiState.generateFreshPlayerState()
     else
-        for key, state in pairs(global.ui.players) do
-            global.ui.players[key] = UiState.generateFreshPlayerState()
+        for key, state in pairs(storage.ui.players) do
+            storage.ui.players[key] = UiState.generateFreshPlayerState()
         end
     end
 end
@@ -36,15 +35,15 @@ end
 ---@param player_index integer
 ---@return UiStatePlayer
 function UiState.get(player_index)
-    if global.ui == nil or global.ui.players == nil then
+    if storage.ui == nil or storage.ui.players == nil then
         UiState.reset(player_index)
     end
 
-    if global.ui.players[player_index] == nil then
+    if storage.ui.players[player_index] == nil then
         UiState.reset(player_index)
     end
 
-    return global.ui.players[player_index]
+    return storage.ui.players[player_index]
 end
 
 ---Generate a new player state

@@ -66,7 +66,7 @@ function Window.fillTitlebar(gui, title)
         name = 'close',
         type = 'sprite-button',
         style = 'cancel_close_button',
-        sprite = 'utility/close_white',
+        sprite = 'utility/close',
         tags = {
             _module = 'window',
             _action = 'close',
