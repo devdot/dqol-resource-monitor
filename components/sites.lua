@@ -564,6 +564,8 @@ function Sites.storage.remove(site)
 end
 
 function Sites.storage.clean()
+    if storage.sites == nil then return end
+
     -- remove sites that make no sense
     ---@type GlobalSites
     local data = storage.sites
