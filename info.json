@@ -4,7 +4,7 @@
     "title": "Resource Monitor",
     "author": "devdot",
     "description": "Monitor mining sites and track resources across planets\/surfaces.",
-    "factorio_version": "2.0    ",
+    "factorio_version": "2.0",
     "dependencies": [
         "base >= 2.0"
     ]
