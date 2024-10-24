@@ -16,14 +16,14 @@ function Translation.request(string, callback, meta, player)
         player = _player or nil
     end
     if player == nil then
-        log('Failed requesting translation without player: ' .. string)
+        log('Failed requesting translation without player: ' .. serpent.line(string))
         return false
     end
 
     local id = player.request_translation(string)
 
     if id == nil then
-        log('Failed requesting translation: ' .. string)
+        log('Failed requesting translation: ' .. serpent.line(string))
         return false
     end
 
