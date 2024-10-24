@@ -50,6 +50,7 @@ Ui.routes = {
         toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
         set_max_percent = Ui.Menu.filters.onSetMaxPercent,
         set_max_estimated_depletion = Ui.Menu.filters.onSetMaxEstimatedDepletion,
+        set_min_amount = Ui.Menu.filters.onSetMinAmount,
         set_search = Ui.Menu.filters.onSetSearch,
         set_order_by = Ui.Menu.filters.onSetOrderBy,
     },

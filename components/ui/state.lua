@@ -1,6 +1,6 @@
 UiState = {}
 
----@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean, maxPercent: integer, maxEstimatedDepletion: integer?, search: string?, orderBy: nil|'resource'|'name'|'amount'|'percent'|'rate'|'depletion', orderByDesc: boolean?}
+---@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean, maxPercent: integer, maxEstimatedDepletion: integer?, minAmount: integer, search: string?, orderBy: nil|'resource'|'name'|'amount'|'percent'|'rate'|'depletion', orderByDesc: boolean?}
 ---@alias UiStateMenu {tab: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter, use_products: boolean}
 
 ---@alias UiStateDashboard {show_headers: boolean, prepend_surface_name: boolean}
@@ -60,6 +60,7 @@ function UiState.generateFreshPlayerState()
                 onlyEmpty = false,
                 maxPercent = 100,
                 maxEstimatedDepletion = nil,
+                minAmount = 0,
                 search = nil,
                 orderBy = nil,
                 orderByDesc = false,
@@ -70,7 +71,8 @@ function UiState.generateFreshPlayerState()
                 onlyTracked = true,
                 onlyEmpty = false,
                 maxPercent = 100,
-                maxEstimatedDepletion = 60 * 60 * 60, -- one hour
+                maxEstimatedDepletion = 4 * 60 * 60 * 60, -- four hours
+                minAmount = 0,
                 search = nil,
                 orderBy = 'percent',
                 orderByDesc = false,

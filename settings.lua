@@ -25,6 +25,15 @@ data:extend({
         order = 'site03',
     },
     {
+        name = 'dqol-resource-monitor-site-map-markers-threshold',
+        type = 'int-setting',
+        default_value = 0,
+        minimum_value = 0,
+        maximum_value = 1000000,
+        setting_type = 'runtime-global',
+        order = 'site03b',
+    },
+    {
         name = 'dqol-resource-monitor-site-auto-scan',
         type = 'bool-setting',
         default_value = true,

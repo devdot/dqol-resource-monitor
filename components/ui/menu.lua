@@ -375,6 +375,7 @@ end
 function UiMenu.filters.add(tab, state, filter_group)
     local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
     filterGroup.style.margin = 8
+    filterGroup.style.horizontally_stretchable = true
 
     local useProductsForFilter = Ui.State.get(tab.player_index).menu.use_products or false
     local showResourceFilterReset = table_size(state.resources) > 0
@@ -453,9 +454,12 @@ function UiMenu.filters.add(tab, state, filter_group)
         surfaceIndex = 1
     end
     
-    local textGroup = filterGroup.add { type = 'flow', direction = 'horizontal' }
+    local textGroup = filterGroup.add { type = 'table', column_count = 5, style = 'slot_table' }
+    textGroup.style.horizontal_spacing = 24
+    textGroup.style.vertical_align = 'center'
+    textGroup.style.horizontally_stretchable = true
+
     local surfaceFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    textGroup.add { type = 'label', caption = '' }.style.width = 30
     local surfaceSelect = surfaceFilter.add {
         name = 'surface',
         type = 'drop-down',
@@ -487,7 +491,7 @@ function UiMenu.filters.add(tab, state, filter_group)
     end
 
     local percentFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    textGroup.add { type = 'label', caption = '' }.style.width = 30
+    percentFilter.style.vertical_align = 'center'
     percentFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent-asc]' }
     percentFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-percent'}}
     percentFilter.add {
@@ -508,7 +512,7 @@ function UiMenu.filters.add(tab, state, filter_group)
     percentFilter.add { type = 'label', caption = '%' }
 
     local depletionFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    textGroup.add { type = 'label', caption = '' }.style.width = 30
+    depletionFilter.style.vertical_align = 'center'
     depletionFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion-asc]' }
     depletionFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-estimated-depletion'}}
     depletionFilter.add {
@@ -527,8 +531,30 @@ function UiMenu.filters.add(tab, state, filter_group)
         },
     }
     depletionFilter.add { type = 'label', caption = 'h' }
+
+    local amountFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    amountFilter.style.vertical_align = 'center'
+    amountFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-amount-desc]' }
+    amountFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-min-amount'}}
+    amountFilter.add {
+        type = 'textfield',
+        text = math.floor(state.minAmount / 1000) .. '', -- convert to k
+        numeric = true,
+        allow_decimal = true,
+        allow_negative = false,
+        lose_focus_on_confirm = true,
+        style = 'very_short_number_textfield',
+        tags = {
+            _module = 'menu_filters',
+            _action = 'set_min_amount',
+            _only = defines.events.on_gui_confirmed,
+            filter_group = filter_group,
+        },
+    }
+    amountFilter.add { type = 'label', caption = 'k' }
     
     local searchFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
+    searchFilter.style.vertical_align = 'center'
     searchFilter.add { type = 'label', caption = '[img=utility/search_icon]' }
     searchFilter.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-filter-search' } }
     searchFilter.add {
@@ -660,6 +686,8 @@ function UiMenu.filters.getSites(state, use_products)
                         elseif (site.calculated.percent) * 100 > (state.maxPercent or 100) then
                             insert = false
                         elseif state.maxEstimatedDepletion and (site.calculated.estimated_depletion == nil or site.calculated.estimated_depletion > state.maxEstimatedDepletion) then
+                            insert = false
+                        elseif state.minAmount > site.calculated.amount then
                             insert = false
                         elseif state.search ~= nil and string.find(string.lower(site.name), string.lower(state.search)) == nil then
                             insert = false
@@ -817,6 +845,14 @@ function UiMenu.filters.onSetMaxEstimatedDepletion(event, player, state)
         state.maxEstimatedDepletion = tonumber(event.element.text) * 60 * 60 * 60 -- store in ticks
         if state.maxEstimatedDepletion < 0 then state.maxEstimatedDepletion = 0 end
     end
+    UiMenu.show(player)
+end
+
+---@param player LuaPlayer
+---@param state UiStateMenuFilter
+function UiMenu.filters.onSetMinAmount(event, player, state)
+    state.minAmount = tonumber(event.element.text) or 0
+    state.minAmount = state.minAmount * 1000
     UiMenu.show(player)
 end
 
