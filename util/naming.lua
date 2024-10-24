@@ -4,7 +4,6 @@ local Naming = {}
 ---@param type string
 ---@return string
 function Naming.getSiteName(pos, type)
-    game.print(serpent.line(settings.global['dqol-resource-monitor-site-name-generator'].value))
     if settings.global['dqol-resource-monitor-site-name-generator'].value == 'Numeric' then
         return Naming.getNumericName(type)
     else
@@ -41,7 +40,7 @@ function Naming.getNumericName(type)
         count = count + #(surface[type] or {})
     end
 
-    return Resources.types[type].resource_name .. ' ' .. count
+    return Resources.types[type].translated_name .. ' ' .. count
 end
 
 ---@param pos IntPosition

@@ -4,6 +4,7 @@ if _DEBUG then require('commands/commands') end
 
 require('util/util')
 
+require('components/translation')
 require('components/resources')
 require('components/sites')
 require('components/surfaces')

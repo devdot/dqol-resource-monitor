@@ -1,6 +1,6 @@
 ---@alias ResourceIdentifier string
 --   the name of a prototype of ResourceEntityPrototype
----@alias ResourceType { resource_name: ResourceIdentifier, category: string, infinite: boolean, hidden: boolean, tracking_ignore: boolean, color: Color, products: ProductIdentifier[], loose_merge: boolean}
+---@alias ResourceType { resource_name: ResourceIdentifier, category: string, infinite: boolean, hidden: boolean, tracking_ignore: boolean, color: Color, products: ProductIdentifier[], loose_merge: boolean, translated_name: string}
 
 ---@alias ProductIdentifier string
 --    the name of a prototype, is unqiue across all entity types
@@ -58,6 +58,13 @@ local function resource_is_loose_merge(resource)
     return true
 end
 
+local function resource_translated(string, meta, event)
+    if Resources.types[meta.type] ~= nil then
+        Resources.types[meta.type].translated_name = string
+        log('Translated ' .. meta.type .. ' to ' .. string)
+    end
+end
+
 local function generate_resources()
     Resources.types = {}
     Resources.products = {}
@@ -74,6 +81,7 @@ local function generate_resources()
             loose_merge = resource_is_loose_merge(resource),
             color = generate_color(resource.name),
             products = {},
+            translated_name = resource.name,
         }
 
         for key, product in pairs(resource.mineable_properties.products or {}) do
@@ -101,6 +109,11 @@ local function generate_resources()
     -- process the resources again
     for _, resource in pairs(Resources.types) do
         resource_postprocess(resource)
+    end
+
+    -- request translations for all resources
+    for _, resource in pairs(Resources.types) do
+        Translation.request({'entity-name.' .. resource.resource_name}, resource_translated, {type = resource.resource_name})
     end
 
     -- write to global cache
