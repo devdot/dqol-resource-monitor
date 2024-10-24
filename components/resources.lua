@@ -58,10 +58,18 @@ local function resource_is_loose_merge(resource)
     return true
 end
 
+local function save_to_storage()
+    storage.resources = {
+        types = Resources.types,
+        products = Resources.products,
+    }
+end
+
 local function resource_translated(string, meta, event)
     if Resources.types[meta.type] ~= nil then
         Resources.types[meta.type].translated_name = string
         log('Translated ' .. meta.type .. ' to ' .. string)
+        save_to_storage()
     end
 end
 
@@ -117,10 +125,7 @@ local function generate_resources()
     end
 
     -- write to global cache
-    storage.resources = {
-        types = Resources.types,
-        products = Resources.products,
-    }
+    save_to_storage()
 
     Sites.storage.clean()
 end
