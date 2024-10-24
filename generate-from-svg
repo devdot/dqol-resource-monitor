@@ -1,0 +1,2 @@
+convert -resize 144x144 -background gray logo.svg thumbnail.png
+convert -resize 128x128 -background none logo.svg graphics/logo.png

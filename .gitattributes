@@ -1,3 +1,4 @@
 .vscode export-ignore
 bin export-ignore
-
+logo.svg export-ignore
+generate-from-svg export-ignore

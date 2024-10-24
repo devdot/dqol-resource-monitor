@@ -103,11 +103,11 @@ end
 data:extend {
     {
         type = 'sprite',
-        name = 'dqol-resource-monitor-thumbnail',
-        filename = '__dqol-resource-monitor__/thumbnail.png',
+        name = 'dqol-resource-monitor-logo',
+        filename = '__dqol-resource-monitor__/graphics/logo.png',
         priority = 'extra-high',
-        width = 144,
-        height = 144,
+        width = 128,
+        height = 128,
         flags = {'gui-icon'}
     },
     {

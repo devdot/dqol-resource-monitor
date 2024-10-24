@@ -24,7 +24,7 @@ function UiMenu.createButton(player)
         type = 'sprite-button',
         name = UiMenu.BUTTON_NAME,
         tooltip = { 'dqol-resource-monitor.ui-menu-button-tooltip' },
-        sprite = 'dqol-resource-monitor-thumbnail',
+        sprite = 'dqol-resource-monitor-logo',
         style = Ui.mod_gui.button_style,
         tags = {
             _module = 'menu',
@@ -736,6 +736,7 @@ function UiMenu.onSelectedTabChanged(event)
 end
 
 function UiMenu.onSiteShow(site, player)
+    --todo open the right tab in the menu
     local preview = UiMenu.getSitePreview(player)
     if preview ~= nil then
         preview.clear()
