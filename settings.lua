@@ -47,6 +47,14 @@ data:extend({
         setting_type = 'runtime-global',
         order = 'site06',
     },
+    {
+        name = 'dqol-resource-monitor-site-name-generator',
+        type = 'string-setting',
+        default_value = 'Default',
+        allowed_values = {'Default', 'Numeric'},
+        setting_type = 'runtime-global',
+        order = 'site07',
+    },
 
     -- per player
 })

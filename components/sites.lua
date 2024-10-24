@@ -222,7 +222,7 @@ function Sites.createFromChunkResources(resources, surface, chunk)
             types[resource.name] = {
                 id = 0,
                 type = resource.name,
-                name = Util.Naming.getRandomName(pos),
+                name = Util.Naming.getSiteName(pos, resource.name),
                 surface = surface.index,
                 chunks = {},
                 initial_amount = 0,

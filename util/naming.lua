@@ -1,6 +1,18 @@
 local Naming = {}
 
 ---@param pos IntPosition?
+---@param type string
+---@return string
+function Naming.getSiteName(pos, type)
+    game.print(serpent.line(settings.global['dqol-resource-monitor-site-name-generator'].value))
+    if settings.global['dqol-resource-monitor-site-name-generator'].value == 'Numeric' then
+        return Naming.getNumericName(type)
+    else
+        return Naming.getRandomName(pos)
+    end
+end
+
+---@param pos IntPosition?
 ---@return string
 function Naming.getRandomName(pos)
     local name = Naming.names[math.random(1, #Naming.names)]
@@ -19,6 +31,17 @@ function Naming.getRandomName(pos)
        name = Naming.posToCompassDirection(pos) .. ' ' .. name 
     end
     return name
+end
+
+---@param type string
+---@return string
+function Naming.getNumericName(type)
+    local count = 1
+    for _, surface in pairs(Sites.storage.getSurfaceList()) do
+        count = count + #(surface[type] or {})
+    end
+
+    return Resources.types[type].resource_name .. ' ' .. count
 end
 
 ---@param pos IntPosition
