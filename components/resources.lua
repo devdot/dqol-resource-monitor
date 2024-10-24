@@ -6,7 +6,7 @@
 --    the name of a prototype, is unqiue across all entity types
 ---@alias ProductType {type: 'item' | 'fluid', name: ProductIdentifier, produced_by: ResourceIdentifier[]}
 
----@type {types: table<ResourceIdentifier, ResourceType>, products: table<ProductIdentifier, ProductType>, boot: function, getProduct: function, getProducts: function, getIconString: function, getSpriteString: function, getSignalId: function, cleanResources: function, cleanProducts: function, on_configuration_changed: function}
+---@type {types: table<ResourceIdentifier, ResourceType>, products: table<ProductIdentifier, ProductType>, boot: function, bootPlayer: function, getProduct: function, getProducts: function, getIconString: function, getSpriteString: function, getSignalId: function, cleanResources: function, cleanProducts: function, on_configuration_changed: function}
 Resources = {
     types = {},
     products = {},
@@ -210,6 +210,20 @@ function Resources.boot()
         Resources.types = storage.resources.types
         Resources.products = storage.resources.products
     end
+end
+
+---@param player LuaPlayer
+function Resources.bootPlayer(player)
+    -- this is currently required, so that resources can be translated in new single player games
+    -- perhaps find a better way to figure out that a game has been started
+    for _, resource in pairs(Resources.types) do
+        if resource.translated_name ~= resource.resource_name and resource.translated_name ~= 'entity-name.' .. resource.resource_name then
+            return
+        end
+    end
+    
+    log('Re-run resource generation from player ' .. player.index)
+    generate_resources()
 end
 
 ---@return table<ResourceIdentifier, ResourceType>

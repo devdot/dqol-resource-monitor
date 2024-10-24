@@ -23,6 +23,7 @@ end
 ---Called on new players
 function boot_player(player)
     Ui.bootPlayer(player)
+    Resources.bootPlayer(player)
 end
 
 function reboot_players()
