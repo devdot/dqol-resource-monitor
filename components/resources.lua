@@ -77,21 +77,24 @@ local function generate_resources()
         }
 
         for key, product in pairs(resource.mineable_properties.products or {}) do
-            -- create the product if it does not exist
-            if Resources.products[product.name] == nil then
-                log('Add new product ' .. product.name .. ' for resource ' .. resource.name)
-                Resources.products[product.name] = {
-                    type = product.type,
-                    name = product.name,
-                    produced_by = { resource.name },
-                }
-            else
-                log('Add existing product ' .. product.name .. ' for resource ' .. resource.name)
-                table.insert(Resources.products[product.name].produced_by, resource.name)
+            -- filter unwanted types
+            if product.type ~= 'research-progress' then
+                -- create the product if it does not exist
+                if Resources.products[product.name] == nil then
+                    log('Add new product ' .. product.name .. ' for resource ' .. resource.name)
+                    Resources.products[product.name] = {
+                        type = product.type,
+                        name = product.name,
+                        produced_by = { resource.name },
+                    }
+                else
+                    log('Add existing product ' .. product.name .. ' for resource ' .. resource.name)
+                    table.insert(Resources.products[product.name].produced_by, resource.name)
+                end
+    
+                -- add to the resource
+                table.insert(Resources.types[resource.name].products, product.name)
             end
-
-            -- add to the resource
-            table.insert(Resources.types[resource.name].products, product.name)
         end
     end
 

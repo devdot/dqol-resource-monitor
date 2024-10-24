@@ -7,7 +7,7 @@ local Window = {
 ---Create a new window
 ---@param player LuaPlayer
 ---@param id string?
----@param title string?
+---@param title nil|string|LocalisedString
 ---@return WindowGui
 function Window.create(player, id, title)
     Window.close(player, id)
@@ -35,7 +35,7 @@ end
 ---Create an inner window
 ---@param parent LuaGuiElement
 ---@param id string?
----@param title string?
+---@param title nil|string|LocalisedString
 ---@return WindowGui
 function Window.createInner(parent, id, title)
     local window = parent.add {
@@ -53,7 +53,7 @@ end
 
 ---Fill any GUI Element with a titlebar
 ---@param gui LuaGuiElement
----@param title string?
+---@param title nil|string|LocalisedString
 ---@return LuaGuiElement
 function Window.fillTitlebar(gui, title)
     local titlebar = gui.add { type = 'flow', name = 'titlebar' }
@@ -77,7 +77,7 @@ end
 
 ---Fill any GUI Element with a titlebar, this is meant to be used with sub-windows
 ---@param gui LuaGuiElement
----@param title string?
+---@param title nil|string|LocalisedString
 ---@return LuaGuiElement
 function Window.fillInnerTitlebar(gui, title)
     local titlebar = gui.add { type = 'flow', name = 'titlebar' }

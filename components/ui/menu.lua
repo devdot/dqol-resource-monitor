@@ -492,7 +492,7 @@ function UiMenu.filters.add(tab, state, filter_group)
     percentFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-percent'}}
     percentFilter.add {
         type = 'textfield',
-        text = state.maxPercent or 100,
+        text = (state.maxPercent or 100) .. '',
         numeric = true,
         allow_decimal = false,
         allow_negative = false,
@@ -513,7 +513,7 @@ function UiMenu.filters.add(tab, state, filter_group)
     depletionFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-estimated-depletion'}}
     depletionFilter.add {
         type = 'textfield',
-        text = (state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '', -- convert from ticks to hours
+        text = ((state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '') .. '', -- convert from ticks to hours
         numeric = true,
         allow_decimal = true,
         allow_negative = false,
