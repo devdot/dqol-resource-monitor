@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.6
+Date: 24.10.2024
+  Bugfixes:
+    - Crash when starting new single player games on 1.2.5
+    - Numeric names would not use proper names after save was reloaded (translated resource names did not persist)
+---------------------------------------------------------------------------------------------------
 Version: 1.2.5
 Date: 23.10.2024
   Features:
