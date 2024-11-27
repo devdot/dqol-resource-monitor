@@ -207,6 +207,10 @@ end
 ---@param player LuaPlayer
 function UiSite.onToggleTracking(site, player, event)
     site.tracking = event.element.state or false
+
+    -- immediately update the site
+    Sites.updater.updateSite(site)
+
     local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
     UiSite.show(site, player, window)
 end
