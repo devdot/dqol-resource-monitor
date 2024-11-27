@@ -4,8 +4,11 @@ local Naming = {}
 ---@param type string
 ---@return string
 function Naming.getSiteName(pos, type)
-    if settings.global['dqol-resource-monitor-site-name-generator'].value == 'Numeric' then
+    local generator = settings.global['dqol-resource-monitor-site-name-generator'].value
+    if generator == 'Numeric' then
         return Naming.getNumericName(type)
+    elseif generator == 'Custom' then
+        return Naming.getCustomName(pos, type)
     else
         return Naming.getRandomName(pos)
     end
@@ -32,15 +35,62 @@ function Naming.getRandomName(pos)
     return name
 end
 
+local function get_next_index_for_type(type)
+    local index = 1
+    for _, surface in pairs(Sites.storage.getSurfaceList()) do
+        index = index + #(surface[type] or {})
+    end
+
+    return index
+end
+
+---@param site Site
+local function get_index_for_site(site)
+    local index = 0
+
+    for surfaceId, surface in pairs(Sites.storage.getSurfaceList()) do
+        if surfaceId < site.surface then
+            index = index + #(surface[type] or {})
+        elseif surfaceId == site.surface then
+            return index + site.index
+        else
+            return index
+        end
+    end
+
+    return index
+
+end
+
 ---@param type string
 ---@return string
 function Naming.getNumericName(type)
-    local count = 1
-    for _, surface in pairs(Sites.storage.getSurfaceList()) do
-        count = count + #(surface[type] or {})
+    return Resources.types[type].translated_name .. ' ' .. get_next_index_for_type(type)
+end
+
+---@param pos IntPosition?
+---@param type string
+---@param site ?Site
+---@return string
+function Naming.getCustomName(pos, type, site)
+    local name = settings.global['dqol-resource-monitor-site-name-generator-custom-pattern'].value or ''
+    
+    if string.match(name, '%%id%%') then
+        local nextId = (site and site.id) or (#(Sites.storage.getIdList()) + 1)
+        name = string.gsub(name, '%%id%%', nextId)
     end
 
-    return Resources.types[type].translated_name .. ' ' .. count
+    if string.match(name, '%%index%%') then
+        name = string.gsub(name, '%%index%%', (site and get_index_for_site(site)) or get_next_index_for_type(type))
+    end
+
+    if string.match(name, '%%compass%%') then
+        name = string.gsub(name, '%%compass%%', Naming.posToCompassDirection(pos))
+    end
+    -- simple replaces
+    name = string.gsub(name, '%%type%%', Resources.types[type].translated_name)
+    
+    return name
 end
 
 ---@param pos IntPosition
