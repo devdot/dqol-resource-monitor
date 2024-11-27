@@ -33,6 +33,10 @@ local function resource_postprocess(resource)
         resource.tracking_ignore = true
     end
 
+    if resource.resource_name == 'scrap' then
+        resource.loose_merge = true
+    end
+
     if script.active_mods['FunkedOre'] or script.active_mods['DivOresity'] then
         -- funked ore breaks usual conventions for all resources, therefore we need to break strict merges
         resource.loose_merge = true;
