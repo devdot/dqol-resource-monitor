@@ -40,6 +40,10 @@ function UiMenu.show(player, window)
     if window == nil then
         window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
     end
+    
+    -- immediately update dashboard
+    -- in the future, maybe only do this in the dashboard tab?
+    Ui.Dashboard.update(player)
 
     if window.titlebar ~= nil and window.titlebar.reload == nil then
         -- create the reload button
@@ -229,9 +233,6 @@ function UiMenu.tabs.surfaces(tab)
 end
 
 function UiMenu.tabs.dashboard(tab)
-    local note = tab.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-dashboard-note' } }
-    note.style.margin = 8
-
     -- add filter with state
     local state = Ui.State.get(tab.player_index)
     UiMenu.filters.add(tab, state.menu.dashboard_filters, 'dashboard_filters')
