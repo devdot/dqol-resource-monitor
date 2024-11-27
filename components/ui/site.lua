@@ -192,10 +192,10 @@ end
 function UiSite.onDelete(site, player, event)
     if site ~= nil then
         Sites.storage.remove(site)
+        
+        -- close the site window (if it exists)
+        Ui.Window.close(player, 'site' .. site.id)
     end
-
-    -- close the site window (if it exists)
-    Ui.Window.close(player, 'site' .. site.id)
 
     -- refresh the menu if open
     if Ui.Menu.isOpen(player) then
