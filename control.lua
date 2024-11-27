@@ -5,6 +5,7 @@ if _DEBUG then require('commands/commands') end
 require('util/util')
 
 require('components/translation')
+require('components/settings')
 require('components/resources')
 require('components/sites')
 require('components/surfaces')
@@ -15,6 +16,7 @@ require('components/ui/ui')
 ---Called on mod startup
 function boot(event)
     Resources.boot()
+    Settings.boot()
     Scanner.boot()
     Sites.boot()
     Ui.boot()
@@ -50,6 +52,7 @@ end
 ---@see https://lua-api.factorio.com/latest/auxiliary/data-lifecycle.html
 function on_configuration_changed(event)
     Resources.on_configuration_changed()
+    Settings.on_configuration_changed(event)
     Surfaces.on_configuration_changed()
     Ui.on_configuration_changed(event)
 end
