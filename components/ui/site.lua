@@ -19,6 +19,18 @@ function UiSite.show(site, player, window)
 
     local inner = window.inner
 
+    local subflow = inner.add { type = 'flow', direction = 'vertical' }
+    local bar = subflow.add {
+        type = 'progressbar',
+        value = site.calculated.percent,
+        caption = Util.Integer.toExponentString(site.calculated.amount),
+        style = 'dqol_resource_monitor_resource_bar',
+        tooltip = Util.Integer.toExponentString(site.calculated.amount, 2) .. ' / ' .. Util.Integer.toExponentString(site.initial_amount, 2),
+    }
+    bar.style.color = Resources.types[site.type].color
+    bar.style.bar_width = 16
+    bar.style.bottom_margin = -4
+
     local table = inner.add { type = 'table', column_count = 2 }
     local stats = {
         {'type', {(product and product.type .. '-name.' .. product.name) or ('entity-name.' .. site.type)}},
