@@ -392,7 +392,7 @@ end
 
 ---@param site Site
 function Sites.site.updateMapTag(site)
-    if settings.global['dqol-resource-monitor-site-map-markers'].value == true and settings.global['dqol-resource-monitor-site-map-markers-threshold'].value <= site.calculated.amount then
+    if settings.global['dqol-resource-monitor-site-map-markers'].value == true and settings.global['dqol-resource-monitor-site-map-markers-threshold'].value <= site.calculated.amount and (settings.global['dqol-resource-monitor-site-map-markers-untracked'].value or site.tracking) then
         local text = site.name .. ' ' .. Util.Integer.toExponentString(site.calculated.amount)
         if site.map_tag == nil or site.map_tag.valid ~= true then
             site.map_tag = game.forces[Scanner.DEFAULT_FORCE].add_chart_tag(site.surface, {

@@ -25,6 +25,13 @@ data:extend({
         order = 'site03',
     },
     {
+        name = 'dqol-resource-monitor-site-map-markers-untracked',
+        type = 'bool-setting',
+        default_value = false,
+        setting_type = 'runtime-global',
+        order = 'site03a',
+    },
+    {
         name = 'dqol-resource-monitor-site-map-markers-threshold',
         type = 'int-setting',
         default_value = 0,
