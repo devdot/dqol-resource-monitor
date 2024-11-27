@@ -54,9 +54,7 @@ function UiSurface.show(surface, window)
                 sites = table_size(sites),
                 sites_tracking = sites_tracking,
                 sum = sum,
-                sum_display = Util.Integer.toExponentString(sum),
                 sum_tracking = sum_tracking,
-                sum_tracking_display = Util.Integer.toExponentString(sum_tracking),
             }
             table.insert(resources, data)
         end
@@ -79,9 +77,9 @@ function UiSurface.show(surface, window)
         local bar = subflow.add {
             type = 'progressbar',
             value = data.sum / maxResourceValue,
-            caption = data.sum_display .. ' (' .. data.sites .. ')',
+            caption = Util.Integer.toExponentString(data.sum) .. ' (' .. data.sites .. ')',
             style = 'dqol_resource_monitor_resource_bar',
-            tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-total', data.sum_display, data.sites },
+            tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-total', Util.Integer.toExponentString(data.sum, 2), data.sites },
         }
         bar.style.color = data.type.color
         bar.style.bar_width = 14
@@ -89,9 +87,9 @@ function UiSurface.show(surface, window)
         local bar = subflow.add {
             type = 'progressbar',
             value = data.sum_tracking / maxResourceValue,
-            caption = data.sum_tracking_display .. ' (' .. data.sites_tracking .. ')',
+            caption = Util.Integer.toExponentString(data.sum_tracking) .. ' (' .. data.sites_tracking .. ')',
             style = 'dqol_resource_monitor_resource_bar',
-            tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-tracking', data.sum_tracking_display, data.sites_tracking },
+            tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-tracking', Util.Integer.toExponentString(data.sum_tracking, 2), data.sites_tracking },
         }
         bar.style.color = data.type.color
         bar.style.bar_width = 14

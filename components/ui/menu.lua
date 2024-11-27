@@ -162,7 +162,7 @@ function UiMenu.tabs.sites(tab)
         row.add { type = 'label', caption = Resources.getIconString(site.type), style = 'dqol_resource_monitor_table_cell_resource' }
         row.add { type = 'label', caption = name, style = 'dqol_resource_monitor_table_cell_name' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
-        row.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount), style = 'dqol_resource_monitor_table_cell_number' }
+        row.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount, 2), style = 'dqol_resource_monitor_table_cell_number' }
         local rateString = (site.calculated.rate and Util.Integer.toExponentString(site.calculated.rate) .. '/s') or '-'
         row.add { type = 'label', caption = rateString, style = 'dqol_resource_monitor_table_cell_number' }
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }

@@ -22,10 +22,10 @@ function UiSite.show(site, player, window)
     local table = inner.add { type = 'table', column_count = 2 }
     local stats = {
         {'type', {(product and product.type .. '-name.' .. product.name) or ('entity-name.' .. site.type)}},
-        {'amount', Util.Integer.toExponentString(site.calculated.amount)},
-        {'initial-amount', Util.Integer.toExponentString(site.initial_amount)},
+        {'amount', Util.Integer.toExponentString(site.calculated.amount, 2)},
+        {'initial-amount', Util.Integer.toExponentString(site.initial_amount, 2)},
         {'percent', Util.Integer.toPercent(site.calculated.percent)},
-        {'rate', Util.Integer.toExponentString(site.calculated.rate) .. '/s'},
+        {'rate', Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s'},
         {'estimated-depletion', Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')},
         {'id', '#' .. site.id},
         {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},

@@ -21,14 +21,24 @@ end
 local SI_STRINGS = {'', 'k', 'M', 'G', 'T', 'P', 'E', 'Z'}
 
 ---@param integer integer
+---@param decimals integer? if nil, will make them dynamically
 ---@return string
-function integer.toExponentString(integer)
+function integer.toExponentString(integer, decimals)
     local i = 1
     while integer >= 1000 do
         integer = integer / 1000
         i = i + 1
     end
-    return string.format((i > 1 and '%.2f') or '%d', integer) .. SI_STRINGS[i]
+
+    if decimals == nil then
+        if integer >= 100 then decimals = 0
+        elseif integer >= 10 then decimals = 1
+        else decimals = 2
+        end
+    end
+    local f = '%.' .. decimals .. 'f'
+
+    return string.format((i > 1 and f) or '%d', integer) .. SI_STRINGS[i]
 end
 
 ---@param integer integer
