@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.3.2
+Date: 13.01.2025
+  Translation:
+    - German locale translation, thanks to ST-DDT (https://github.com/devdot/dqol-resource-monitor/pull/10)
+  Minor Features:
+    - Add %random% placeholder to custom naming patterns (https://github.com/devdot/dqol-resource-monitor/issues/7)
+---------------------------------------------------------------------------------------------------
 Version: 1.3.1
 Date: 13.01.2025
   Minor Features:
