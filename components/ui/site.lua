@@ -3,6 +3,20 @@ local UiSite = {
 }
 
 ---@param site Site
+---@return double
+local function calculate_zoom(site)
+    local width = site.area.right - site.area.left
+    local height = site.area.top - site.area.bottom
+    local extend = width
+    if height > width then extend = height end
+
+    local zoom = 10 / extend
+    if zoom > 0.75 then zoom = 0.75 end
+    if zoom < 0.125 then zoom = 0.125 end
+    return zoom
+end
+
+---@param site Site
 ---@param player LuaPlayer
 ---@param window LuaGuiElement?
 function UiSite.show(site, player, window)
@@ -97,7 +111,17 @@ function UiSite.show(site, player, window)
 
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
-    local camera = inner.add { type = 'camera', position = {x = site.area.x, y = site.area.y}, surface_index = site.surface, zoom = 0.5 }
+    local camera = inner.add {
+        type = 'camera',
+        position = { x = site.area.x, y = site.area.y },
+        surface_index = site.surface,
+        zoom = calculate_zoom(site),
+        tags = {
+            _module = 'site',
+            _action = 'highlight',
+            site_id = site.id,
+        },
+    }
     camera.style.size = 300
 
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
