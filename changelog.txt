@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.3.1
+Date: 13.01.2025
+  Minor Features:
+    - Add %icon% placeholder for custom naming patterns (https://github.com/devdot/dqol-resource-monitor/issues/11)
+    - Improve preview camera to automatically zoom based on site size (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6747a0635bc83f10673c610d)
+  Bugfixes:
+    - Fix focus of "show site on map"
+    - Changed mod setting "Depletion estimation threshold" to correct "Depletion estimation interval" (https://github.com/devdot/dqol-resource-monitor/issues/9)
+    - Improve some tooltips
+---------------------------------------------------------------------------------------------------
 Version: 1.3.0
 Date: 27.11.2024
   Minor Features:
