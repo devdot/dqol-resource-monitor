@@ -92,6 +92,10 @@ function Naming.getCustomName(pos, type, site)
         name = string.gsub(name, '%%icon%%', Resources.getIconString(type))
     end
 
+    if string.match(name, '%%random%%') then
+        name = string.gsub(name, '%%random%%', Naming.getRandomName())
+    end
+
     -- simple replaces
     name = string.gsub(name, '%%type%%', Resources.types[type].translated_name)
     
