@@ -202,7 +202,7 @@ function UiSite.onHighlight(site, player)
             })
     else
         local entity = game.surfaces[site.surface].find_entities_filtered{
-            position = site.area,
+            area = {left_top = {x = site.area.x - 1, y = site.area.y - 1}, right_bottom = {x = site.area.x + 1, y = site.area.y + 1}},
             limit = 1,
         }[1] or game.surfaces[site.surface].find_entities_filtered {
             area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
