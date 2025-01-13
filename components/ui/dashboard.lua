@@ -62,7 +62,7 @@ function UiDashboard.update(player)
 
     for siteKey, site in pairs(sites) do
         local tags = {
-            _module = 'site',
+            _module = 'menu_site',
             _action = 'show',
             site_id = site.id,
         }

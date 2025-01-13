@@ -18,19 +18,13 @@ end
 
 ---@param site Site
 ---@param player LuaPlayer
----@param window LuaGuiElement?
+---@param window LuaGuiElement
 function UiSite.show(site, player, window)
     local title = Resources.getIconString(site.type) .. ' ' .. site.name
     local product = Resources.getProduct(site.type)
 
-    -- create a new window if needed
-    if window == nil then
-        window = Ui.Window.create(player, 'site' .. site.id, title)
-    else
-        Ui.Window.refreshTitle(window, title)
-        Ui.Window.clearInner(window)
-    end
-
+    Ui.Window.refreshTitle(window, title)
+    Ui.Window.clearInner(window)
     local inner = window.inner
 
     local subflow = inner.add { type = 'flow', direction = 'vertical' }
@@ -161,12 +155,6 @@ function UiSite.show(site, player, window)
             site_id = site.id,
         },
     }
-end
-
----@param site Site
----@param player LuaPlayer
-function UiSite.onShow(site, player, event)
-    UiSite.show(site, player) -- todo: find out from the event if we should pass a window or not    
 end
 
 ---@param site Site

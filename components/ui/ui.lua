@@ -17,7 +17,6 @@ Ui.routes = {
     },
     site = {
         highlight = Ui.Site.onHighlight,
-        show = Ui.Site.onShow,
         rename = Ui.Site.onRename,
         update = Ui.Site.onUpdate,
         delete = Ui.Site.onDelete,
