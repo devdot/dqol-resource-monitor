@@ -87,6 +87,11 @@ function Naming.getCustomName(pos, type, site)
     if string.match(name, '%%compass%%') then
         name = string.gsub(name, '%%compass%%', Naming.posToCompassDirection(pos))
     end
+
+    if string.match(name, '%%icon%%') then
+        name = string.gsub(name, '%%icon%%', Resources.getIconString(type))
+    end
+
     -- simple replaces
     name = string.gsub(name, '%%type%%', Resources.types[type].translated_name)
     
