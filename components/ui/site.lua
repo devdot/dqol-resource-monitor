@@ -123,6 +123,7 @@ function UiSite.show(site, player, window)
         },
     }
     camera.style.size = 300
+    camera.style.width = 372
 
     inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
