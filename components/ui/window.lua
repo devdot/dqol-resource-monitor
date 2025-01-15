@@ -32,25 +32,6 @@ function Window.create(player, id, title)
     return window
 end
 
----Create an inner window
----@param parent LuaGuiElement
----@param id string?
----@param title nil|string|LocalisedString
----@return WindowGui
-function Window.createInner(parent, id, title)
-    local window = parent.add {
-        name = Window.ROOT_FRAME .. (id or ''),
-        type = 'flow',
-        direction = 'vertical',
-        tags = {
-            dqol_resource_monitor_window = true,
-        },
-    }
-    window = Window.fillInnerTitlebar(window, title)
-    window = Window.fillInner(window)
-    return window
-end
-
 ---Fill any GUI Element with a titlebar
 ---@param gui LuaGuiElement
 ---@param title nil|string|LocalisedString
@@ -72,16 +53,6 @@ function Window.fillTitlebar(gui, title)
             _action = 'close',
         }
      }
-    return gui
-end
-
----Fill any GUI Element with a titlebar, this is meant to be used with sub-windows
----@param gui LuaGuiElement
----@param title nil|string|LocalisedString
----@return LuaGuiElement
-function Window.fillInnerTitlebar(gui, title)
-    local titlebar = gui.add { type = 'flow', name = 'titlebar' }
-    titlebar.add { type = 'label', name = 'title', style = 'heading_2_label', caption = title or 'Title' }
     return gui
 end
 

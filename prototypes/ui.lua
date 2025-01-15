@@ -86,7 +86,7 @@ style.dqol_resource_monitor_resource_bar = {
 -- sprites
 local filter_names = {'default', 'resource', 'name', 'amount', 'percent', 'rate', 'depletion'}
 local filter_sprites = {}
-for _, direction in pairs({'asc', 'desc'}) do
+for _, direction in pairs({ 'asc', 'desc' }) do
     for __, name in pairs(filter_names) do
         table.insert(filter_sprites, {
             type = 'sprite',
@@ -95,9 +95,22 @@ for _, direction in pairs({'asc', 'desc'}) do
             priority = 'extra-high',
             width = 64,
             height = 64,
-            flags = {'gui-icon'}
+            flags = { 'gui-icon' }
         })
     end
+end
+filter_names[1] = nil
+filter_names[2] = nil
+for _, name in pairs(filter_names) do
+    table.insert(filter_sprites, {
+        type = 'sprite',
+        name = 'dqol-resource-monitor-filter-' .. name,
+        filename = '__dqol-resource-monitor__/graphics/filter-' .. name .. '.png',
+        priority = 'extra-high',
+        width = 64,
+        height = 64,
+        flags = { 'gui-icon' }
+    })
 end
 
 data:extend {
@@ -117,6 +130,24 @@ data:extend {
         priority = 'extra-high',
         width = 37,
         height = 49,
+        flags = {'gui-icon'}
+    },
+    {
+        type = 'sprite',
+        name = 'dqol-resource-monitor-site-merge',
+        filename = '__dqol-resource-monitor__/graphics/site-merge.png',
+        priority = 'extra-high',
+        width = 64,
+        height = 64,
+        flags = {'gui-icon'}
+    },
+    {
+        type = 'sprite',
+        name = 'dqol-resource-monitor-site-track',
+        filename = '__dqol-resource-monitor__/graphics/site-track.png',
+        priority = 'extra-high',
+        width = 64,
+        height = 64,
         flags = {'gui-icon'}
     },
     table.unpack(filter_sprites)

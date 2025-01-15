@@ -1,7 +1,7 @@
 UiState = {}
 
 ---@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean, maxPercent: integer, maxEstimatedDepletion: integer?, minAmount: integer, search: string?, orderBy: nil|'resource'|'name'|'amount'|'percent'|'rate'|'depletion', orderByDesc: boolean?}
----@alias UiStateMenu {tab: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter, use_products: boolean}
+---@alias UiStateMenu {tab: integer?, open_site_id: integer?, open_surface_id: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter, use_products: boolean}
 
 ---@alias UiStateDashboard {show_headers: boolean, prepend_surface_name: boolean}
 
@@ -52,6 +52,8 @@ function UiState.generateFreshPlayerState()
     return {
         menu = {
             tab = nil,
+            open_site_id = nil,
+            open_surface_id = nil,
             use_products = table_size(Resources.cleanResources()) > table_size(Resources.cleanProducts()),
             sites_filters = {
                 resources = {},

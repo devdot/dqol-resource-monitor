@@ -16,9 +16,12 @@ Ui.routes = {
         close = Ui.Window.onClose,
     },
     site = {
+        show = Ui.Menu.onSiteShow,
         highlight = Ui.Site.onHighlight,
+        rename_open = Ui.Site.onRenameOpen,
         rename = Ui.Site.onRename,
         update = Ui.Site.onUpdate,
+        delete_open = Ui.Site.onDeleteOpen,
         delete = Ui.Site.onDelete,
         toggle_tracking = Ui.Site.onToggleTracking,
     },
@@ -38,9 +41,6 @@ Ui.routes = {
         toggle = Ui.Menu.onToggle,
         tab_select = Ui.Menu.onSelectedTabChanged,
         use_products_toggle = Ui.Menu.onUseProductsToggle,
-    },
-    menu_site = {   
-        show = Ui.Menu.onSiteShow,
     },
     menu_filters = {
         toggle_resource = Ui.Menu.filters.onToggleResource,
@@ -87,15 +87,13 @@ local function route_event(event)
     end
 end
 
-local function prepare_site(event)
+Ui.routes.site.__prepare = function(event)
     return {
         Sites.storage.getById(event.element.tags.site_id or 0),
         game.players[event.player_index],
         event,
     }
 end
-Ui.routes.site.__prepare = prepare_site
-Ui.routes.menu_site.__prepare = prepare_site
 
 Ui.onClick = route_event
 Ui.onConfirmed = route_event
@@ -156,6 +154,7 @@ end
 function Ui.bootPlayer(player)
     Ui.State.bootPlayer(player)
     Ui.Menu.bootPlayer(player)
+    Ui.Menu.close(player)
 end
 
 function Ui.on_configuration_changed(event)

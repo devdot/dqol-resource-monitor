@@ -2,7 +2,12 @@ local UiMenu = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-menu',
     BUTTON_NAME = Ui.ROOT_FRAME .. '-menu-show',
     WINDOW_ID = 'menu',
-    tabs = {},
+    tabs = {
+        sites = {},
+        surfaces = {},
+        dashboard = {},
+        other = {},
+    },
     filters = {},
     surfaces = {},
     dashboard = {},
@@ -33,17 +38,34 @@ function UiMenu.createButton(player)
     }
 end
 
----Display the main window
 ---@param player LuaPlayer
----@param window LuaGuiElement?
-function UiMenu.show(player, window)
+---@return WindowGui
+function UiMenu.get(player)
+    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
     if window == nil then
-        window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
+        window = UiMenu.create(player)
     end
-    
-    -- immediately update dashboard
-    -- in the future, maybe only do this in the dashboard tab?
-    Ui.Dashboard.update(player)
+    return window
+end
+
+function UiMenu.isOpen(player)
+    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
+    return window ~= nil
+end
+
+---@param player LuaPlayer
+function UiMenu.close(player)
+    Ui.Window.close(player, UiMenu.WINDOW_ID)
+end
+
+---@param player LuaPlayer
+---@return WindowGui
+function UiMenu.create(player)
+    UiMenu.close(player)
+
+    local window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
+    window.style.natural_width = 960
+    window.style.natural_height = 880
 
     if window.titlebar ~= nil and window.titlebar.reload == nil then
         -- create the reload button
@@ -72,56 +94,128 @@ function UiMenu.show(player, window)
             _only = defines.events.on_gui_selected_tab_changed,
         },
     }
+    tabs.style.vertically_stretchable = true
     
     -- add all tabs here
-    for name, func in pairs(UiMenu.tabs) do
+    for name, object in pairs(UiMenu.tabs) do
         local caption = tabs.add { type = 'tab', caption = { 'dqol-resource-monitor.ui-menu-tab-' .. name } }
         local tab = tabs.add { name = name, type = 'flow', direction = 'vertical' }
-        func(tab)
         tabs.add_tab(caption, tab)
     end
 
-    tabs.selected_tab_index = Ui.State.get(player.index).menu.tab or 1
+    local state = Ui.State.get(player.index)
+
+    state.menu.tab = state.menu.tab or 1
+    tabs.selected_tab_index = state.menu.tab
+
+    return window
 end
 
-function UiMenu.isOpen(player)
-    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
-    return window ~= nil
+---Display the main window
+---@param player LuaPlayer
+function UiMenu.show(player)
+    UiMenu.fillCurrentTab(player)
 end
 
-function UiMenu.tabs.sites(tab)
-    -- add filter with state
-    local state = Ui.State.get(tab.player_index).menu.sites_filters
-    UiMenu.filters.add(tab, state, 'sites_filters')
+---@param player LuaPlayer
+function UiMenu.fillCurrentTab(player)
+    local window = UiMenu.get(player)
+    local tabs = window.inner.tabbed
+    local index = tabs.selected_tab_index or 1
+    local tab = tabs.tabs[index].content
+
+    if table_size(tab.children) == 0 then
+        -- empty tab, create first
+        UiMenu.tabs[tab.name].create(tab)
+    end
+
+    UiMenu.tabs[tab.name].fill(tab)
+end
+
+---@param player LuaPlayer
+---@param tabIndex integer
+function UiMenu.switchToTab(player, tabIndex)
+    local window = UiMenu.get(player)
+    local tabs = window.inner.tabbed
+    local tab = tabs.tabs[tabIndex] or nil
+
+    if tab == nil then return end
+
+    Ui.State.get(player.index).menu.tab = tabIndex
+    tabs.selected_tab_index = tabIndex
+end
+
+---@param tab LuaGuiElement
+function UiMenu.tabs.sites.create(tab)
+    UiMenu.filters.create(tab, 'sites_filters')
 
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
-    main.style.horizontally_stretchable = true
     main.style.vertically_stretchable = true
-    
+
     -- left side
-    local sites_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
-    sites_frame.style.width = 500
-    sites_frame.style.natural_height = 600
-    sites_frame.style.margin = 8
-    sites_frame.style.horizontally_stretchable = true
-    sites_frame.style.vertically_stretchable = true
-    local sites_scroll = sites_frame.add { type = 'scroll-pane' }
-    sites_scroll.vertical_scroll_policy = 'always'
-    sites_scroll.style.horizontally_stretchable = true
-    sites_scroll.style.vertically_stretchable = true
-    local sites = sites_scroll.add { name = 'sites', type = 'flow', direction = 'vertical' }
+    local sites_outer = main.add { name = 'sites_outer', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
+    sites_outer.style.width = 500
+    sites_outer.style.natural_height = 600
+    sites_outer.style.margin = 8
+    sites_outer.style.vertically_stretchable = true
+    local sites_header = sites_outer.add { type = 'flow', style = 'dqol_resource_monitor_table_row_flow' }
+    sites_header.style.height = 28
+    sites_header.style.width = 480
+    sites_header.style.left_margin = 8
+    sites_header.style.top_margin = 4
+    sites_header.add { type = 'label', caption = '[img=utility/resource_editor_icon]', tooltip = {'dqol-resource-monitor.ui-site-type'}, style = 'dqol_resource_monitor_table_cell_resource' }
+    sites_header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-name]', tooltip = {'dqol-resource-monitor.ui-site-name'}, style = 'dqol_resource_monitor_table_cell_name' }
+    sites_header.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
+    sites_header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-amount]', tooltip = {'dqol-resource-monitor.ui-site-amount'}, style = 'dqol_resource_monitor_table_cell_number' }
+    sites_header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-rate]', tooltip = {'dqol-resource-monitor.ui-site-rate'}, style = 'dqol_resource_monitor_table_cell_number' }
+    sites_header.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
+    sites_header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent]', tooltip = {'dqol-resource-monitor.ui-site-percent'}, } 
+    local sites = sites_outer.add { name = 'sites', type = 'scroll-pane' }
+    sites.vertical_scroll_policy = 'always'
+    sites.style.horizontally_stretchable = true
+    sites.style.vertically_stretchable = true
 
     -- right side
-    local preview = main.add { name = 'preview_outer', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
-    preview.style.natural_width = 400
-    preview.style.natural_height = 600
-    preview.style.margin = 8
-    preview.style.left_margin = 0
-    preview.style.padding = 4
-    preview.style.vertically_stretchable = true
-    preview.style.horizontally_stretchable = true
-    local preview_scroll = preview.add { type = 'scroll-pane', name = 'preview' }
-    preview_scroll.style.horizontally_stretchable = true
+    local site_outer = main.add {
+        name = 'site_outer',
+        type = 'frame',
+        style = 'deep_frame_in_shallow_frame',
+        direction = 'vertical',
+    }
+    site_outer.style.natural_width = 400
+    site_outer.style.natural_height = 600
+    site_outer.style.margin = 8
+    site_outer.style.left_margin = 0
+    site_outer.style.padding = 4
+    site_outer.style.vertically_stretchable = true
+    local site_title = site_outer.add { name = 'title', type = 'flow', direction = 'horizontal' }
+    site_title.style.height = 26
+    site_title.style.width = 392
+    site_title.style.horizontally_stretchable = true
+    site_title.style.vertical_align = 'center'
+    local site_rename = site_outer.add { name = 'rename', type = 'flow', direction = 'horizontal', visible = false }
+    site_rename.style.height = 26
+    site_rename.style.width = 392
+    site_rename.style.horizontally_stretchable = true
+    site_rename.style.vertical_align = 'center'
+    local site_inner = site_outer.add {name = 'site', type = 'flow', direction = 'vertical'}
+    local site_details = site_outer.add { type = 'scroll-pane', name = 'details' }
+    site_details.style.horizontally_stretchable = true
+    site_details.style.vertically_stretchable = true
+    site_details.vertical_scroll_policy = 'always'
+    site_details.style.padding = 4
+    site_details.style.left_margin = -4
+    site_details.style.right_margin = -4
+end
+
+---@param tab LuaGuiElement
+function UiMenu.tabs.sites.fill(tab)
+    -- add filter with state
+    local state = Ui.State.get(tab.player_index).menu.sites_filters
+    UiMenu.filters.fill(tab, state, 'sites_filters')
+
+    local sites = tab.main.sites_outer.sites
+    sites.clear()
 
     -- fill sites
     local filteredSites = UiMenu.filters.getSites(state, Ui.State.get(tab.player_index).menu.use_products)
@@ -148,16 +242,16 @@ function UiMenu.tabs.sites(tab)
             type = 'button',
             style = 'dqol_resource_monitor_table_row_button',
             tags = {
-                _module = 'menu_site',
+                _module = 'site',
                 _action = 'show',
                 site_id = site.id,
             },
         }
-        
-        local row = row_button.add{ type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
+
+        local row = row_button.add { type = 'flow', style = 'dqol_resource_monitor_table_row_flow', ignored_by_interaction = true }
         local name = site.name
         if appendSurfaceName then
-            name = { '', Surfaces.surface.getNameById(site.surface), ' ',  name }
+            name = { '', Surfaces.surface.getNameById(site.surface), ' ', name }
         end
         row.add { type = 'label', caption = Resources.getIconString(site.type), style = 'dqol_resource_monitor_table_cell_resource' }
         row.add { type = 'label', caption = name, style = 'dqol_resource_monitor_table_cell_name' }
@@ -169,43 +263,59 @@ function UiMenu.tabs.sites(tab)
         local percentLabel = row.add { type = 'label', caption = Util.Integer.toPercent(site.calculated.percent) }
         percentLabel.style.font_color = Util.Integer.toColor(site.calculated.percent)
     end
-    
+
     if #filteredSites == 0 then
-        sites_scroll.add {
+        sites.add {
             type = 'label',
-            caption = {'dqol-resource-monitor.ui-menu-sites-empty'}
+            caption = { 'dqol-resource-monitor.ui-menu-sites-empty' }
         }
+    end
+
+
+    -- fill site if set
+    local state = Ui.State.get(tab.player_index)
+    if state.menu.open_site_id then
+        Ui.Site.showInMenu(state.menu.open_site_id, tab.main.site_outer)
     end
 end
 
-function UiMenu.tabs.surfaces(tab)
+---@param tab LuaGuiElement
+function UiMenu.tabs.surfaces.create(tab)
     local main = tab.add { name = 'main', type = 'flow', direction = 'horizontal' }
     main.style.horizontally_stretchable = true
     main.style.vertically_stretchable = true
 
     -- left side
-    local surfaces_frame = main.add { name = 'sites', type = 'frame', style = 'deep_frame_in_shallow_frame' }
-    surfaces_frame.style.width = 500
-    surfaces_frame.style.natural_height = 600
-    surfaces_frame.style.margin = 8
-    local surfaces_scroll = surfaces_frame.add { type = 'scroll-pane' }
-    surfaces_scroll.vertical_scroll_policy = 'always'
-    surfaces_scroll.style.horizontally_stretchable = true
-    surfaces_scroll.style.vertically_stretchable = true
-    local surfaces = surfaces_scroll.add { name = 'surfaces', type = 'flow', direction = 'vertical' }
+    local surfaces_outer = main.add { name = 'surfaces_outer', type = 'frame', style = 'deep_frame_in_shallow_frame' }
+    surfaces_outer.style.width = 500
+    surfaces_outer.style.natural_height = 600
+    surfaces_outer.style.margin = 8
+    local surfaces = surfaces_outer.add { type = 'scroll-pane', name = 'surfaces' }
+    surfaces.vertical_scroll_policy = 'always'
+    surfaces.style.horizontally_stretchable = true
+    surfaces.style.vertically_stretchable = true
 
     -- right side
-    local preview = main.add { name = 'preview_outer', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
-    preview.style.minimal_width = 400
-    preview.style.natural_height = 600
-    preview.style.margin = 8
-    preview.style.left_margin = 0
-    preview.style.padding = 4
-    preview.style.vertically_stretchable = true
-    local preview_scroll = preview.add { type = 'scroll-pane', name = 'preview' }
-    preview_scroll.style.horizontally_stretchable = true
-    preview_scroll.style.vertically_stretchable = true
+    local surface_outer = main.add { name = 'surface_outer', type = 'frame', style = 'deep_frame_in_shallow_frame', direction = 'vertical' }
+    surface_outer.style.minimal_width = 400
+    surface_outer.style.natural_height = 600
+    surface_outer.style.margin = 8
+    surface_outer.style.left_margin = 0
+    surface_outer.style.padding = 4
+    surface_outer.style.vertically_stretchable = true
+    local surface_title = surface_outer.add { type = 'flow', direction = 'horizontal', name = 'title' }
+    surface_title.add { type = 'label', name = 'title', style = 'heading_2_label', caption = '' }
+    surface_title.style.bottom_margin = 4
+    local surface = surface_outer.add { type = 'scroll-pane', name = 'surface' }
+    surface.style.horizontally_stretchable = true
+    surface.style.vertically_stretchable = true
+    -- surface.vertical_scroll_policy = 'always'
+end
 
+---@param tab LuaGuiElement
+function UiMenu.tabs.surfaces.fill(tab)
+    local surfaces = tab.main.surfaces_outer.surfaces
+    surfaces.clear()
     for index, surface in pairs(Surfaces.getVisibleSurfaces()) do
         local row_button = surfaces.add {
             type = 'button',
@@ -230,15 +340,34 @@ function UiMenu.tabs.surfaces(tab)
         local resources_label = row.add { type = 'label', caption = resources_string, style = 'dqol_resource_monitor_table_cell' }
         resources_label.style.width = 200
     end
+
+    -- fill surface if set
+    local state = Ui.State.get(tab.player_index)
+    if state.menu.open_surface_id then
+        Ui.Surface.showInMenu(state.menu.open_surface_id, tab.main.surface_outer)
+    end
 end
 
-function UiMenu.tabs.dashboard(tab)
+---@param tab LuaGuiElement
+function UiMenu.tabs.dashboard.create(tab)
+    UiMenu.filters.create(tab, 'dashboard_filters')
+
+    tab.add { name = 'main', type = 'flow', direction = 'vertical'}
+end
+
+---@param tab LuaGuiElement
+function UiMenu.tabs.dashboard.fill(tab)
+    -- immediately update dashboard
+    Ui.Dashboard.update(game.players[tab.player_index])
+
     -- add filter with state
     local state = Ui.State.get(tab.player_index)
-    UiMenu.filters.add(tab, state.menu.dashboard_filters, 'dashboard_filters')
+    UiMenu.filters.fill(tab, state.menu.dashboard_filters, 'dashboard_filters')
 
-    tab.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
-    local settings = tab.add { type = 'flow', direction = 'vertical' }
+    -- add dashboard data
+    tab.main.clear()
+    tab.main.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
+    local settings = tab.main.add { type = 'flow', direction = 'vertical' }
     settings.style.margin = 8
 
     settings.add {
@@ -267,7 +396,14 @@ function UiMenu.tabs.dashboard(tab)
     }
 end
 
-function UiMenu.tabs.other(tab)
+---@param tab LuaGuiElement
+function UiMenu.tabs.other.create(tab)
+end
+
+---@param tab LuaGuiElement
+function UiMenu.tabs.other.fill(tab)
+    tab.clear()
+
     local info = tab.add { type = 'table', column_count = 2 }
     info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-info-headline'}, style = 'caption_label' }
     info.add { type = 'label', caption = '' }
@@ -339,53 +475,30 @@ end
 function UiMenu.onUseProductsToggle(event)
     local toggle = event.element.switch_state == 'right'
     Ui.State.get(event.player_index).menu.use_products = toggle
+    UiMenu.create(game.players[event.player_index])
     UiMenu.show(game.players[event.player_index])
 end
 
----@param player LuaPlayer
----@return LuaGuiElement?
-function UiMenu.getSitePreview(player)
-    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
-    if window == nil then
-        UiMenu.show(player)
-        window = Ui.Window.get(player, UiMenu.WINDOW_ID)
-    end
-
-    if window == nil then return nil end
-    if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
-    return window['inner']['tabbed']['sites']['main']['preview_outer']['preview'] or nil
-end
-
----@param player LuaPlayer
----@return LuaGuiElement?
-function UiMenu.getSurfacePreview(player)
-    local window = Ui.Window.get(player, UiMenu.WINDOW_ID)
-    if window == nil then
-        UiMenu.show(player)
-        window = Ui.Window.get(player, UiMenu.WINDOW_ID)
-    end
-
-    if window == nil then return nil end
-    if window['inner'] == nil or window['inner']['tabbed'] == nil then return nil end -- todo change this
-    return window['inner']['tabbed']['surfaces']['main']['preview_outer']['preview'] or nil
-end
-
 ---@param tab LuaGuiElement
----@param state UiStateMenuFilter
 ---@param filter_group 'sites_filters'|'dashboard_filters'
-function UiMenu.filters.add(tab, state, filter_group)
-    local filterGroup = tab.add { type = 'flow', direction = 'vertical', }
-    filterGroup.style.margin = 8
-    filterGroup.style.horizontally_stretchable = true
+function UiMenu.filters.create(tab, filter_group)
+    local filters = tab.add { name = 'filters', type = 'flow', direction = 'vertical' }
+    filters.style.margin = 8
+    filters.style.vertical_spacing = 2
 
-    local useProductsForFilter = Ui.State.get(tab.player_index).menu.use_products or false
-    local showResourceFilterReset = table_size(state.resources) > 0
+    local state = Ui.State.get(tab.player_index)
+
+    -- make resource filter
+    local useProductsForFilter = state.menu.use_products or false
     local items = (useProductsForFilter and Resources.cleanProducts()) or Resources.cleanResources()
-    local resourceFilter = filterGroup.add {
-        name = 'filters',
+    local resourcesFilter = filters.add {
+        name = 'resources',
         type = 'table',
         style = 'compact_slot_table',
-        column_count = math.min(24, table_size(items)) + ((showResourceFilterReset and 1) or 0),
+        column_count = math.min(24, table_size(items)) + 1,
+        tags = {
+            use_products = useProductsForFilter
+        },
     }
 
     ---@type {toggled: boolean, sprite: string, tooltip: string, filter_name: string}[]
@@ -393,14 +506,12 @@ function UiMenu.filters.add(tab, state, filter_group)
     for _, item in pairs(items) do
         if useProductsForFilter then
             table.insert(data, {
-                toggled = state.resources[item.name] ~= nil,
                 sprite = item.type .. '/' .. item.name,
                 tooltip = item.type .. '-name.' .. item.name,
                 filter_name = item.name,
             })
         else
             table.insert(data, {
-                toggled = state.resources[item.resource_name] ~= nil,
                 sprite = Resources.getSpriteString(item.resource_name),
                 tooltip = 'entity-name.' .. item.resource_name,
                 filter_name = item.resource_name,
@@ -409,12 +520,12 @@ function UiMenu.filters.add(tab, state, filter_group)
     end
 
     for key, item in pairs(data) do
-        resourceFilter.add {
+        resourcesFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
-            toggled = item.toggled,
+            toggled = false,
             sprite = item.sprite,
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', {item.tooltip} },
+            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-tooltip', { item.tooltip } },
             tags = {
                 _module = 'menu_filters',
                 _action = 'toggle_resource',
@@ -423,49 +534,115 @@ function UiMenu.filters.add(tab, state, filter_group)
             }
         }
     end
-    -- add reset button if needed
-    if showResourceFilterReset then
-        local reset = resourceFilter.add {
-            type = 'sprite-button',
-            style = 'red_button',
-            sprite = 'utility/reset',
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-reset-tooltip' },
-            tags = {
-                _module = 'menu_filters',
-                _action = 'toggle_resource',
-                filter_group = filter_group,
-                reset = true,
-            },
-        }
-        reset.style.size = 36
-    end
+    
+    local resourcesReset = resourcesFilter.add {
+        name = 'reset',
+        type = 'sprite-button',
+        style = 'red_button',
+        sprite = 'utility/reset',
+        tooltip = { 'dqol-resource-monitor.ui-menu-filter-resource-reset-tooltip' },
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_resource',
+            filter_group = filter_group,
+            reset = true,
+        },
+    }
+    resourcesReset.style.size = 36
 
-    -- generate surfaces
-    local surfaces = {}
-    local surfaceIndex = nil
-    local selectToSurfaceId = {}
-    for index, surface in pairs(Surfaces.getVisibleSurfaces()) do
-        table.insert(surfaces, Surfaces.surface.getName(surface))
-        table.insert(selectToSurfaceId, index, surface.id)
-        if surface.id == state.surface then surfaceIndex = index end
-    end
-    
-    -- select default surface if there is only one
-    if #surfaces == 1 then
-        surfaceIndex = 1
-    end
-    
-    local textGroup = filterGroup.add { type = 'table', column_count = 5, style = 'slot_table' }
-    textGroup.style.horizontal_spacing = 24
+    -- row 2
+    local textGroup = filters.add { name = 'textGroup', type = 'table', column_count = 5, style = 'slot_table' }
+    textGroup.style.horizontal_spacing = 40
     textGroup.style.vertical_align = 'center'
     textGroup.style.horizontally_stretchable = true
 
-    local surfaceFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    local surfaceSelect = surfaceFilter.add {
+    local textFilters = {
+        {
+            name = 'maxPercent',
+            sprite = 'dqol-resource-monitor-filter-percent',
+            filter = 'max-percent',
+            action = 'set_max_percent',
+            numeric = true,
+        },
+        {
+            name = 'maxEstimatedDepletion',
+            sprite = 'dqol-resource-monitor-filter-depletion',
+            filter = 'max-estimated-depletion',
+            action = 'set_max_estimated_depletion',
+            numeric = true,
+        },
+        {
+            name = 'minAmount',
+            sprite = 'dqol-resource-monitor-filter-amount',
+            filter = 'min-amount',
+            action = 'set_min_amount',
+            numeric = true,
+            width = 74,
+        },
+        {
+            name = 'search',
+            sprite = 'utility/search',
+            filter = 'search',
+            action = 'set_search',
+            numeric = false,
+            allow_decimal = true,
+            allow_negative = true,
+            width = 150,
+        },
+    }
+
+    for _, item in pairs(textFilters) do
+        local group = textGroup.add {
+            name = item.name,
+            type = 'flow',
+            direction = 'horizontal',
+        }
+        group.style.vertical_align = 'center'
+        group.style.horizontal_spacing = 2
+
+        group.add {
+            type = 'sprite-button',
+            enabled = false,
+            sprite = item.sprite,
+            style = 'compact_slot_sized_button',
+            tooltip = {'dqol-resource-monitor.ui-menu-filter-' .. item.filter ..'-tooltip'},
+        }
+        local field = group.add {
+            type = 'textfield',
+            name = item.name,
+            text = '',
+            numeric = item.numeric or false,
+            allow_decimal = item.allow_decimal or false,
+            allow_negative = item.allow_negative or false,
+            lose_focus_on_confirm = true,
+            style = 'very_short_number_textfield',
+            tooltip = {'dqol-resource-monitor.ui-menu-filter-' .. item.filter ..'-tooltip'},
+            tags = {
+                _module = 'menu_filters',
+                _action = item.action,
+                _only = defines.events.on_gui_confirmed,
+                filter_group = filter_group,
+            },
+        }
+        field.style.height = 34
+        field.style.width = item.width or 36
+    end
+
+    -- generate surfaces
+    local surfaces = {{'dqol-resource-monitor.ui-menu-filter-surface-all'}}
+    local selectToSurfaceId = {nil}
+    local surfaceIdToSelect = {}
+    for _, surface in pairs(Surfaces.getVisibleSurfaces()) do
+        table.insert(surfaces, Surfaces.surface.getName(surface))
+        table.insert(selectToSurfaceId, #surfaces, surface.id)
+        table.insert(surfaceIdToSelect, surface.id, #surfaces)
+    end
+
+    local surfaceSelect = textGroup.add {
         name = 'surface',
+        visible = #surfaces > 2,
         type = 'drop-down',
         items = surfaces,
-        selected_index = surfaceIndex,
         tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-tooltip'},
         tags = {
             _module = 'menu_filters',
@@ -473,130 +650,16 @@ function UiMenu.filters.add(tab, state, filter_group)
             _only = defines.events.on_gui_selection_state_changed,
             filter_group = filter_group,
             selectToSurfaceId = selectToSurfaceId,
+            surfaceIdToSelect = surfaceIdToSelect,
         },
     }
-    -- show reset button if needed
-    if state.surface ~= nil then
-        surfaceFilter.add {
-            type = 'sprite-button',
-            style = 'tool_button_red',
-            sprite = 'utility/reset',
-            tooltip = {'dqol-resource-monitor.ui-menu-filter-surface-reset-tooltip'},
-            tags = {
-                _module = 'menu_filters',
-                _action = 'select_surface',
-                filter_group = filter_group,
-                reset = true,
-            },
-        }
-    end
+    surfaceSelect.style.height = 36
+    surfaceSelect.style.width = 150
 
-    local percentFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    percentFilter.style.vertical_align = 'center'
-    percentFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent-asc]' }
-    percentFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-percent'}}
-    percentFilter.add {
-        type = 'textfield',
-        text = (state.maxPercent or 100) .. '',
-        numeric = true,
-        allow_decimal = false,
-        allow_negative = false,
-        lose_focus_on_confirm = true,
-        style = 'very_short_number_textfield',
-        tags = {
-            _module = 'menu_filters',
-            _action = 'set_max_percent',
-            _only = defines.events.on_gui_confirmed,
-            filter_group = filter_group,
-        },
-    }
-    percentFilter.add { type = 'label', caption = '%' }
+    local orderAndStateFilter = filters.add { name = 'orderAndState', type = 'flow', direction = 'horizontal' }
+    orderAndStateFilter.style.horizontally_squashable = true
+    orderAndStateFilter.style.horizontal_spacing = 2
 
-    local depletionFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    depletionFilter.style.vertical_align = 'center'
-    depletionFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion-asc]' }
-    depletionFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-max-estimated-depletion'}}
-    depletionFilter.add {
-        type = 'textfield',
-        text = ((state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '') .. '', -- convert from ticks to hours
-        numeric = true,
-        allow_decimal = true,
-        allow_negative = false,
-        lose_focus_on_confirm = true,
-        style = 'very_short_number_textfield',
-        tags = {
-            _module = 'menu_filters',
-            _action = 'set_max_estimated_depletion',
-            _only = defines.events.on_gui_confirmed,
-            filter_group = filter_group,
-        },
-    }
-    depletionFilter.add { type = 'label', caption = 'h' }
-
-    local amountFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    amountFilter.style.vertical_align = 'center'
-    amountFilter.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-amount-desc]' }
-    amountFilter.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-filter-min-amount'}}
-    amountFilter.add {
-        type = 'textfield',
-        text = math.floor(state.minAmount / 1000) .. '', -- convert to k
-        numeric = true,
-        allow_decimal = true,
-        allow_negative = false,
-        lose_focus_on_confirm = true,
-        style = 'very_short_number_textfield',
-        tags = {
-            _module = 'menu_filters',
-            _action = 'set_min_amount',
-            _only = defines.events.on_gui_confirmed,
-            filter_group = filter_group,
-        },
-    }
-    amountFilter.add { type = 'label', caption = 'k' }
-    
-    local searchFilter = textGroup.add { type = 'flow', direction = 'horizontal' }
-    searchFilter.style.vertical_align = 'center'
-    searchFilter.add { type = 'label', caption = '[img=utility/search_icon]' }
-    searchFilter.add { type = 'label', caption = { 'dqol-resource-monitor.ui-menu-filter-search' } }
-    searchFilter.add {
-        type = 'textfield',
-        text = state.search or '',
-        lose_focus_on_confirm = true,
-        tags = {
-            _module = 'menu_filters',
-            _action = 'set_search',
-            _only = defines.events.on_gui_confirmed,
-            filter_group = filter_group,
-        },
-    }
-
-    local stateFilter = filterGroup.add { type = 'flow', direction = 'horizontal' }
-    stateFilter.add {
-        type = 'checkbox',
-        state = state.onlyTracked or false,
-        caption = {'dqol-resource-monitor.ui-menu-filter-only-tracked'},
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-tracked-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'toggle_only_tracked',
-            _only = defines.events.on_gui_checked_state_changed,
-            filter_group = filter_group,
-        },
-    }
-    stateFilter.add { type = 'label', caption = '' }.style.width = 30
-    stateFilter.add {
-        type = 'checkbox',
-        state = state.onlyEmpty or false,
-        caption = {'dqol-resource-monitor.ui-menu-filter-only-empty'},
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-empty-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'toggle_only_empty',
-            _only = defines.events.on_gui_checked_state_changed,
-            filter_group = filter_group,
-        }
-    }
-    
     local orderBy = {
         { value = nil },
         { value = 'resource' },
@@ -606,44 +669,116 @@ function UiMenu.filters.add(tab, state, filter_group)
         { value = 'rate' },
         { value = 'depletion' },
     }
-    local orderByFilter = filterGroup.add {
+    local orderByFilter = orderAndStateFilter.add {
         type = 'table',
+        name = 'orderBy',
         style = 'compact_slot_table',
         column_count = #orderBy,
     }
 
     for _, item in pairs(orderBy) do
-        local toggled = state.orderBy == item.value
-        local direction = 'asc'
-        local name = item.value or 'default'
-        if toggled then
-            -- check for the state to find direction
-            if state.orderByDesc ~= true then
-                direction = 'desc'
-            end
-        end
-        local hoverDirection = direction
-        if toggled then
-            hoverDirection = (state.orderByDesc and 'desc') or 'asc'
-        end
-        
         orderByFilter.add {
             type = 'sprite-button',
             style = 'compact_slot_sized_button',
-            toggled = toggled,
-            sprite = 'dqol-resource-monitor-filter-' .. name .. '-' .. direction,
-            hovered_sprite = 'dqol-resource-monitor-filter-' .. name .. '-' .. hoverDirection,
-            tooltip = { 'dqol-resource-monitor.ui-menu-filter-order-by', {'dqol-resource-monitor.ui-menu-filter-order-' .. name}, {'dqol-resource-monitor.ui-menu-filter-order-by-' .. hoverDirection} },
+            toggled = false,
             tags = {
                 _module = 'menu_filters',
                 _action = 'set_order_by',
                 filter_group = filter_group,
                 order_by = item.value,
-                order_by_direction = direction,
+                order_by_direction = 'asc',
             }
         }
     end
 
+    local stateFiller = orderAndStateFilter.add { type = 'flow', direction = 'horizontal' }
+    -- stateFiller.style.horizontally_stretchable = true
+    -- stateFiller.style.horizontally_squashable = true;
+    stateFiller.style.width = 112
+
+    local stateFilter = orderAndStateFilter.add { name = 'states', type = 'table', column_count = 2, style = 'compact_slot_table' }
+    stateFilter.add {
+        type = 'sprite-button',
+        name = 'onlyTracked',
+        toggled = false,
+        style = 'slot_sized_button_blue',
+        sprite = 'dqol-resource-monitor-site-track',
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-tracked-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_only_tracked',
+            filter_group = filter_group,
+        },
+    }.style.size = 36
+    stateFilter.add {
+        type = 'sprite-button',
+        name = 'onlyEmpty',
+        toggled = false,
+        style = 'compact_slot_sized_button',
+        sprite = 'utility/resources_depleted_icon',
+        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-empty-tooltip'},
+        tags = {
+            _module = 'menu_filters',
+            _action = 'toggle_only_empty',
+            filter_group = filter_group,
+        }
+    }
+end
+
+---@param tab LuaGuiElement
+---@param state UiStateMenuFilter
+---@param filter_group 'sites_filters'|'dashboard_filters'
+function UiMenu.filters.fill(tab, state, filter_group)
+    local filters = tab.filters
+
+    -- resources
+    local resourcesFilter = filters.resources
+    for _, item in pairs(resourcesFilter.children) do
+        item.toggled = state.resources[item.tags.resource_name] ~= nil
+    end
+    resourcesFilter.reset.visible = table_size(state.resources) > 0
+
+    -- surface select
+    local surfaceFilter = filters.textGroup.surface
+    if surfaceFilter.visible then
+        local surfaceIndex = surfaceFilter.tags.surfaceIdToSelect['' .. (state.surface or '')] or 1
+        surfaceFilter.selected_index = surfaceIndex
+    end
+
+    -- text fields
+    filters.textGroup.maxPercent.maxPercent.text = (state.maxPercent or 100) .. ''
+    filters.textGroup.maxEstimatedDepletion.maxEstimatedDepletion.text = ((state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '') .. '' -- convert from ticks to hours
+    filters.textGroup.minAmount.minAmount.text = math.floor(state.minAmount / 1000) .. '' -- convert to k
+    filters.textGroup.search.search.text = state.search or ''
+    
+    -- state
+    filters.orderAndState.states.onlyTracked.toggled = state.onlyTracked or false
+    filters.orderAndState.states.onlyEmpty.toggled = state.onlyEmpty or false
+
+    -- order by
+    for _, item in pairs(filters.orderAndState.orderBy.children) do
+        local name = item.tags.order_by or 'default'
+        local toggled = (state.orderBy or 'default') == name
+        local direction = 'asc'
+        local hoverDirection = 'asc'
+        if toggled then
+            -- check for the state to find direction
+            if state.orderByDesc == true then
+                direction = 'desc'
+            end
+
+            hoverDirection = (state.orderByDesc and 'asc') or 'desc'
+        end
+
+        item.toggled = toggled
+        item.sprite = 'dqol-resource-monitor-filter-' .. name .. '-' .. direction
+        -- item.hovered_sprite = 'dqol-resource-monitor-filter-' .. name .. '-' .. hoverDirection
+        item.tooltip = { 'dqol-resource-monitor.ui-menu-filter-order-by', {'dqol-resource-monitor.ui-menu-filter-order-' .. name}, {'dqol-resource-monitor.ui-menu-filter-order-by-' .. hoverDirection} }
+        
+        local tags = item.tags
+        tags.order_by_direction = hoverDirection
+        item.tags = tags
+    end
 end
 
 ---@param state UiStateMenuFilter
@@ -753,37 +888,30 @@ end
 function UiMenu.onToggle(event)
     local player = game.players[event.player_index]
     if UiMenu.isOpen(player) then
-        Ui.Window.close(player, UiMenu.WINDOW_ID)
+        UiMenu.close(player)
     else
         UiMenu.show(player)
     end
 end
 
 function UiMenu.onSelectedTabChanged(event)
-    local state = Ui.State.get(event.player_index)
-    state.menu.tab = event.element.selected_tab_index or nil
+    UiMenu.switchToTab(game.players[event.player_index], event.element.selected_tab_index or 1)
+    UiMenu.show(game.players[event.player_index])
 end
 
 function UiMenu.onSiteShow(site, player)
-    --todo open the right tab in the menu
-    local preview = UiMenu.getSitePreview(player)
-    if preview ~= nil then
-        preview.clear()
-        Ui.Window.createInner(preview, 'previewsite' .. site.id, site.name)
-    end
-    Ui.Site.show(site, player, preview and preview[Ui.Window.ROOT_FRAME .. 'previewsite' .. site.id])
+    Ui.State.get(player.index).menu.open_site_id = site.id
+    UiMenu.switchToTab(player, 1)
+    UiMenu.show(player)
 end
 
 
 ---@param surface Surface
 ---@param player LuaPlayer
 function UiMenu.onSurfaceShow(surface, player)
-    local window = Ui.Menu.getSurfacePreview(player)
-    if window then
-        window.clear()
-        Ui.Window.createInner(window, 'previewsurface' .. surface.id, Surfaces.surface.getName(surface))
-        Ui.Surface.show(surface, window)
-    end    
+    Ui.State.get(player.index).menu.open_surface_id = surface.id
+    UiMenu.switchToTab(player, 2)
+    UiMenu.show(player)
 end
 
 ---@param player LuaPlayer
@@ -807,7 +935,7 @@ end
 ---@param state UiStateMenuFilter
 function UiMenu.filters.onSelectSurface(event, player, state)
     if event.element.tags.reset == nil then
-        state.surface = (event.element.tags.selectToSurfaceId and event.element.tags.selectToSurfaceId[event.element.selected_index]) or nil
+        state.surface = (event.element.tags.selectToSurfaceId and event.element.tags.selectToSurfaceId[event.element.selected_index .. '']) or nil
     else
         state.surface = nil
     end
@@ -818,14 +946,14 @@ end
 ---@param player LuaPlayer
 ---@param state UiStateMenuFilter
 function UiMenu.filters.onToggleOnlyTracked(event, player, state)
-    state.onlyTracked = event.element.state or false
+    state.onlyTracked = state.onlyTracked == false
     UiMenu.show(player)
 end
 
 ---@param player LuaPlayer
 ---@param state UiStateMenuFilter
 function UiMenu.filters.onToggleOnlyEmpty(event, player, state)
-    state.onlyEmpty = event.element.state or false
+    state.onlyEmpty = state.onlyEmpty == false
     UiMenu.show(player)
 end
 

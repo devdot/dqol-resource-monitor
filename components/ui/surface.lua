@@ -1,32 +1,20 @@
 local UiSurface = {}
 
----@param surface Surface
----@param window LuaGuiElement
-function UiSurface.show(surface, window)
-    Ui.Window.clearInner(window)
-    local inner = window.inner
+---@param surface_id integer
+---@param outer LuaGuiElement
+function UiSurface.showInMenu(surface_id, outer)
+    local inner = outer.surface
+    inner.clear()
+    
+    local surface = Surfaces.storage.getById(surface_id)
+    if surface == nil then return end
+    
+    -- set title
+    outer.title.title.caption = Surfaces.surface.getName(surface)
 
     -- gather data
     local chunks = Scanner.cache.get().chunks[surface.id] or {}
     local sitesByType = Sites.storage.getSurfaceSubList(surface.id)
-
-    -- some info
-    local info = inner.add { type = 'table', column_count = 2 }
-    if script.active_mods['space-exploration'] then
-        local zone = remote.call("space-exploration", "get_zone_from_surface_index", {surface_index = surface.id})
-        if zone ~= nil then
-            local icon = remote.call("space-exploration", "get_zone_icon", {zone_index = zone.index})
-            info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-zonetype' } } }
-            info.add { type = 'label', caption = '[img=' .. icon .. ']' }
-        end
-    end
-    info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-id' } } }
-    info.add { type = 'label', caption = '#' .. surface.id }
-    info.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-chunks' } } }
-    info.add { type = 'label', caption = table_size(chunks) }
-    
-
-    inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
     -- resources
     -- build data
@@ -94,8 +82,6 @@ function UiSurface.show(surface, window)
         bar.style.color = data.type.color
         bar.style.bar_width = 14
     end
-
-    inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
 
     -- buttons at the bottom
     local buttons = inner.add { type = 'table', style = 'compact_slot_table', column_count = 7 }
@@ -176,6 +162,21 @@ function UiSurface.show(surface, window)
             surface_id = surface.id,
         },
     }
+
+    -- some info
+    local info = inner.add { type = 'table', column_count = 2 }
+    if script.active_mods['space-exploration'] then
+        local zone = remote.call("space-exploration", "get_zone_from_surface_index", {surface_index = surface.id})
+        if zone ~= nil then
+            local icon = remote.call("space-exploration", "get_zone_icon", {zone_index = zone.index})
+            info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-zonetype' } } }
+            info.add { type = 'label', caption = '[img=' .. icon .. ']' }
+        end
+    end
+    info.add { type = 'label', caption =  {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-id' } } }
+    info.add { type = 'label', caption = '#' .. surface.id }
+    info.add { type = 'label', caption = {'dqol-resource-monitor.ui-colon', { 'dqol-resource-monitor.ui-surface-chunks' } } }
+    info.add { type = 'label', caption = table_size(chunks) }
 end
 
 ---@param surface Surface

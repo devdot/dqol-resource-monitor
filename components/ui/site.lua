@@ -16,72 +16,56 @@ local function calculate_zoom(site)
     return zoom
 end
 
----@param site Site
----@param player LuaPlayer
----@param window LuaGuiElement
-function UiSite.show(site, player, window)
-    local title = Resources.getIconString(site.type) .. ' ' .. site.name
-    local product = Resources.getProduct(site.type)
+---@param site_id integer
+---@param outer LuaGuiElement
+function UiSite.showInMenu(site_id, outer)
+    local inner = outer.site
+    inner.clear()
+    outer.title.clear()
+    outer.rename.clear()
+    outer.details.clear()
 
-    Ui.Window.refreshTitle(window, title)
-    Ui.Window.clearInner(window)
-    local inner = window.inner
-
-    local subflow = inner.add { type = 'flow', direction = 'vertical' }
-    local bar = subflow.add {
-        type = 'progressbar',
-        value = site.calculated.percent,
-        caption = Util.Integer.toExponentString(site.calculated.amount),
-        style = 'dqol_resource_monitor_resource_bar',
-        tooltip = Util.Integer.toExponentString(site.calculated.amount, 2) .. ' / ' .. Util.Integer.toExponentString(site.initial_amount, 2),
-    }
-    bar.style.color = Resources.types[site.type].color
-    bar.style.bar_width = 16
-    bar.style.bottom_margin = -4
-
-    local table = inner.add { type = 'table', column_count = 2 }
-    local stats = {
-        {'type', {(product and product.type .. '-name.' .. product.name) or ('entity-name.' .. site.type)}},
-        {'amount', Util.Integer.toExponentString(site.calculated.amount, 2)},
-        {'initial-amount', Util.Integer.toExponentString(site.initial_amount, 2)},
-        {'percent', Util.Integer.toPercent(site.calculated.percent)},
-        {'rate', Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s'},
-        {'estimated-depletion', Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')},
-        {'id', '#' .. site.id},
-        {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
-        {'tiles', Sites.site.getTiles(site)},
-        {'chunks', table_size(site.chunks)},
-        {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
-        {'updated', Util.Integer.toTimeString(site.calculated.updated_at) .. ' (' .. Util.Integer.toTimeString(game.tick - site.calculated.updated_at) ..' ago)'},
-    }
-    for key, row in pairs(stats) do
-        table.add {
-            type = 'label',
-            -- style = 'caption_label',
-            caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-' .. row[1]}},
-        }
-        table.add { type = 'label', caption = row[2]}
+    local site = Sites.storage.getById(site_id)
+    if site == nil then
+        return
     end
-    
-    inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
-    
-    inner.add {
-        type = 'checkbox',
-        state = site.tracking,
-        caption = {'dqol-resource-monitor.ui-site-tracking-tooltip'},
-        tags = {
-            _only = defines.events.on_gui_checked_state_changed,
-            _module = 'site',
-            _action = 'toggle_tracking',
-            site_id = site.id,
-        },
-    }
 
+    local product = Resources.getProduct(site.type)
+    local typeLocale = {(product and product.type .. '-name.' .. product.name) or ('entity-name.' .. site.type)}
+
+    -- title
+    outer.title.visible = true
+    local renameOpenTags = {
+        _module = 'site',
+        _action = 'rename_open',
+        site_id = site_id,
+    }
+    local icon = outer.title.add {
+        type = 'sprite',
+        name = 'icon',
+        sprite = Resources.getSpriteString(site.type),
+        tooltip = typeLocale,
+    }
+    icon.style.size = 24
+    icon.style.stretch_image_to_widget_size = true
+    icon.style.right_margin = 8
+    local title = outer.title.add {
+        type = 'label',
+        name = 'title',
+        style = 'heading_2_label',
+        caption = site.name,
+        tooltip = {'dqol-resource-monitor.ui-site-rename', site.name},
+        tags = renameOpenTags,
+    }
+    title.style.horizontally_stretchable = true
+    title.style.horizontally_squashable = true
+    title.style.width = 356 -- 392 - 24 - 4 - 8
     
-    local rename = inner.add { type = 'flow', name = 'rename' }
-    rename.add {
+    -- rename field
+    outer.rename.visible = false
+    titleTextbox = outer.rename.add {
+        name = 'textfield',
         type = 'textfield',
-        name = 'rename',
         text = site.name,
         lose_focus_on_confirm = true,
         clear_and_focus_on_right_click = true,
@@ -92,7 +76,11 @@ function UiSite.show(site, player, window)
             site_id = site.id,
         },
     }
-    rename.add {
+    titleTextbox.style.width = 360 -- 392 - 28 - 4
+    titleTextbox.style.vertically_stretchable = true
+    titleTextbox.style.height = 22
+    outer.rename.add {
+        name = 'confirm',
         type = 'button',
         caption = { 'dqol-resource-monitor.ui-ok' },
         style = 'item_and_count_select_confirm',
@@ -100,33 +88,40 @@ function UiSite.show(site, player, window)
             _module = 'site',
             _action = 'rename',
             site_id = site.id,
-        },
+        }
+    }.style.height = 22
+
+    -- fill bar
+    local bar = inner.add {
+        type = 'progressbar',
+        value = site.calculated.percent,
+        caption = Util.Integer.toExponentString(site.calculated.amount),
+        style = 'dqol_resource_monitor_resource_bar',
+        tooltip = {'dqol-resource-monitor.ui-site-remaining-bar', Util.Integer.toExponentString(site.calculated.amount, 2), Util.Integer.toExponentString(site.initial_amount, 2), typeLocale },
     }
+    local barColor = Resources.types[site.type].color
+    local barColorIsBright = (barColor.r + barColor.g + barColor.b) > 1
+    bar.style.color = (barColorIsBright and barColor) or {barColor.r + 0.3, barColor.g + 0.3, barColor.b + 0.3}
+    bar.style.bar_width = 16
 
-    inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
-
-    local camera = inner.add {
-        type = 'camera',
-        position = { x = site.area.x, y = site.area.y },
-        surface_index = site.surface,
-        zoom = calculate_zoom(site),
-        tags = {
-            _module = 'site',
-            _action = 'highlight',
-            site_id = site.id,
-        },
-    }
-    camera.style.size = 300
-    camera.style.width = 372
-
-    inner.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
-
-    local buttons = inner.add { type = 'flow' }
+    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 6, style = 'compact_slot_table' }
     buttons.add {
         type = 'sprite-button',
-        style = 'slot_sized_button',
+        style = 'slot_sized_button_blue',
+        tooltip = { 'dqol-resource-monitor.ui-site-tracking-tooltip' },
+        sprite = 'dqol-resource-monitor-site-track',
+        toggled = site.tracking,
+        tags = {
+            _module = 'site',
+            _action = 'toggle_tracking',
+            site_id = site.id,
+        },
+    }.style.size = 36
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
-        sprite = 'utility/go_to_arrow',
+        sprite = 'utility/center', -- maybe utility/map ?
         tags = {
             _module = 'site',
             _action = 'highlight',
@@ -135,7 +130,21 @@ function UiSite.show(site, player, window)
     }
     buttons.add {
         type = 'sprite-button',
-        style = 'slot_sized_button',
+        style = 'compact_slot_sized_button',
+        tooltip = {'dqol-resource-monitor.ui-site-rename', site.name},
+        sprite = 'utility/rename_icon',
+        tags = renameOpenTags,
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
+        tooltip = {'dqol-resource-monitor.ui-site-merge-tooltip', site.name},
+        sprite = 'dqol-resource-monitor-site-merge',
+        tags = {} -- todo
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-update-tooltip' },
         sprite = 'utility/refresh',
         tags = {
@@ -146,26 +155,107 @@ function UiSite.show(site, player, window)
     }
     buttons.add {
         type = 'sprite-button',
-        style = 'slot_sized_button',
+        name = 'delete_open',
+        style = 'compact_slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-delete-tooltip' },
         sprite = 'utility/trash',
+        tags = {
+            _module = 'site',
+            _action = 'delete_open',
+            site_id = site.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        name = 'delete_confirm',
+        visible = false,
+        style = 'slot_sized_button_red',
+        tooltip = { 'dqol-resource-monitor.ui-site-delete-tooltip' },
+        sprite = 'utility/check_mark',
         tags = {
             _module = 'site',
             _action = 'delete',
             site_id = site.id,
         },
+    }.style.size = 36
+
+    local camera = inner.add {
+        type = 'camera',
+        position = { x = site.area.x, y = site.area.y },
+        surface_index = site.surface,
+        zoom = calculate_zoom(site),
+        tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
+        tags = {
+            _module = 'site',
+            _action = 'highlight',
+            site_id = site.id,
+        },
     }
+    camera.style.size = 300
+    camera.style.width = 392
+
+    local table = outer.details.add { type = 'table', column_count = 2 }
+    local stats = {
+        {'amount', Util.Integer.toExponentString(site.calculated.amount, 2)},
+        {'initial-amount', Util.Integer.toExponentString(site.initial_amount, 2)},
+        {'percent', Util.Integer.toPercent(site.calculated.percent)},
+        {'rate', Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s'},
+        {'estimated-depletion', Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')},
+        {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
+        {'updated', Util.Integer.toTimeString(site.calculated.updated_at) .. ' (' .. Util.Integer.toTimeString(game.tick - site.calculated.updated_at) ..' ago)'},
+        {'id', '#' .. site.id},
+        {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
+        {'tiles', Sites.site.getTiles(site)},
+        {'chunks', table_size(site.chunks)},
+    }
+    for key, row in pairs(stats) do
+        table.add {
+            type = 'label',
+            -- style = 'caption_label',
+            caption = {'dqol-resource-monitor.ui-colon', {'dqol-resource-monitor.ui-site-' .. row[1]}},
+        }
+        table.add { type = 'label', caption = row[2]}
+    end
+end
+
+---@returns LuaGuiElement
+local function get_tab_from_event(event)
+    ---@type LuaGuiElement
+    local child = event.element
+    local parent = child.parent
+
+    while parent.type ~= 'tabbed-pane' do
+        child = parent
+        parent = child.parent
+    end
+
+    return child
 end
 
 ---@param site Site
 ---@param player LuaPlayer
 function UiSite.onRename(site, player, event)
-    local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
-    local textfield = window['inner']['rename']['rename']
+    local tab = get_tab_from_event(event)
+    local textfield = tab.main.site_outer.rename.textfield
+
+    if textfield == nil then return end
 
     site.name = textfield.text
 
-    Ui.Site.show(site, player, window)
+    Ui.Menu.show(player)
+end
+
+---@param site Site
+---@param player LuaPlayer
+function UiSite.onRenameOpen(site, player, event)
+    local tab = get_tab_from_event(event)
+    local outer = tab.main.site_outer
+    outer.title.visible = false
+    outer.rename.visible = true
+
+    local textfield = outer.rename.textfield
+    if textfield == nil then return end
+    textfield.focus()
 end
 
 ---@param site Site
@@ -210,34 +300,37 @@ end
 ---@param player LuaPlayer
 function UiSite.onUpdate(site, player, event)
     Sites.updater.updateSite(site)
-    local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
-    UiSite.show(site, player, window)
+    Ui.Menu.show(player)
+end
+
+function UiSite.onDeleteOpen(site, player, event)
+    local tab = get_tab_from_event(event)
+    local buttons = tab.main.site_outer.site.buttons
+
+    if buttons == nil then return end
+
+    if buttons.delete_open then buttons.delete_open.visible = false end
+    if buttons.delete_confirm then buttons.delete_confirm.visible = true end
+
 end
 
 function UiSite.onDelete(site, player, event)
     if site ~= nil then
         Sites.storage.remove(site)
-        
-        -- close the site window (if it exists)
-        Ui.Window.close(player, 'site' .. site.id)
     end
 
-    -- refresh the menu if open
-    if Ui.Menu.isOpen(player) then
-        Ui.Menu.show(player)
-    end
+    Ui.Menu.show(player)
 end
 
 ---@param site Site
 ---@param player LuaPlayer
 function UiSite.onToggleTracking(site, player, event)
-    site.tracking = event.element.state or false
+    site.tracking = (site.tracking == false) or false
 
     -- immediately update the site
     Sites.updater.updateSite(site)
 
-    local window = Ui.Window.getWindowFromEvent(event) or Ui.Window.get(player, 'site' .. site.id)
-    UiSite.show(site, player, window)
+    Ui.Menu.show(player)
 end
 
 return UiSite
