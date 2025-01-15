@@ -62,6 +62,11 @@ function UiSurface.showInMenu(surface_id, outer)
         local flow = resource_flow.add { type = 'flow', direction = 'horizontal' }
         flow.add { type = 'sprite', sprite = Resources.getSpriteString(data.type.resource_name) }
         local subflow = flow.add { type = 'flow', direction = 'vertical' }
+
+        local barColor = data.type.color
+        local barColorIsBright = (barColor.r + barColor.g + barColor.b) > 1
+        barColor = (barColorIsBright and barColor) or {barColor.r + 0.3, barColor.g + 0.3, barColor.b + 0.3}
+    
         local bar = subflow.add {
             type = 'progressbar',
             value = data.sum / maxResourceValue,
@@ -69,7 +74,7 @@ function UiSurface.showInMenu(surface_id, outer)
             style = 'dqol_resource_monitor_resource_bar',
             tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-total', Util.Integer.toExponentString(data.sum, 2), data.sites },
         }
-        bar.style.color = data.type.color
+        bar.style.color = barColor
         bar.style.bar_width = 14
         bar.style.bottom_margin = -4
         local bar = subflow.add {
@@ -79,7 +84,7 @@ function UiSurface.showInMenu(surface_id, outer)
             style = 'dqol_resource_monitor_resource_bar',
             tooltip = { 'dqol-resource-monitor.ui-surface-resource-sum-tracking', Util.Integer.toExponentString(data.sum_tracking, 2), data.sites_tracking },
         }
-        bar.style.color = data.type.color
+        bar.style.color = barColor
         bar.style.bar_width = 14
     end
 
