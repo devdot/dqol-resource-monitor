@@ -187,7 +187,7 @@ end
 ---@param siteBase Site
 ---@param siteAdd Site
 ---@return Site
-local function merge_sites(siteBase, siteAdd)
+function Sites.merge(siteBase, siteAdd)
     siteBase.initial_amount = siteBase.initial_amount + siteAdd.initial_amount
     siteBase.chunks = dictionary_combine(siteBase.chunks, siteAdd.chunks)
     siteBase.since = math.min(siteBase.since, siteAdd.since)
@@ -491,7 +491,7 @@ function Sites.storage.insert(site)
     if table_size(matches) > 0 then
         for _, otherSite in pairs(matches) do
             -- merge into here
-            otherSite = merge_sites(otherSite, site)
+            otherSite = Sites.merge(otherSite, site)
 
             -- update map tag
             Sites.site.updateMapTag(otherSite)

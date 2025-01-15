@@ -140,7 +140,11 @@ function UiSite.showInMenu(site_id, outer)
         style = 'compact_slot_sized_button',
         tooltip = {'dqol-resource-monitor.ui-site-merge-tooltip', site.name},
         sprite = 'dqol-resource-monitor-site-merge',
-        tags = {} -- todo
+        tags = {
+            _module = 'site',
+            _action = 'merge_open',
+            site_id = site.id,
+        },
     }
     buttons.add {
         type = 'sprite-button',
@@ -178,6 +182,23 @@ function UiSite.showInMenu(site_id, outer)
             site_id = site.id,
         },
     }.style.size = 36
+
+    local mergeGroup = inner.add { name = 'merge', type = 'flow', direction = 'horizontal', visible = false }
+    mergeGroup.add {
+        type = 'drop-down',
+        name = 'sites',
+    }
+    mergeGroup.add {
+        name = 'confirm',
+        type = 'button',
+        caption = { 'dqol-resource-monitor.ui-ok' },
+        style = 'item_and_count_select_confirm',
+        tags = {
+            _module = 'site',
+            _action = 'merge_confirm',
+            site_id = site.id,
+        }
+    }
 
     local camera = inner.add {
         type = 'camera',
@@ -329,6 +350,72 @@ function UiSite.onToggleTracking(site, player, event)
 
     -- immediately update the site
     Sites.updater.updateSite(site)
+
+    Ui.Menu.show(player)
+end
+
+---@param site Site
+---@return {site: Site, distance: double}[]
+local function get_mergable_sites(site)
+    -- all available of same type
+    local types = Sites.storage.getSurfaceList()[site.surface] or {}
+    local sites = {}
+
+    for _, item in pairs(types[site.type] or {}) do
+        if item.id ~= site.id then
+            local distance = math.sqrt(math.pow(site.area.x - item.area.x, 2) + math.pow(site.area.y - item.area.y, 2))
+            table.insert(sites, {site = item, distance = math.floor(distance)})
+        end
+    end
+
+    -- sort by distance
+    local function compare(siteA, siteB)
+        return siteA.distance < siteB.distance
+    end
+    table.sort(sites, compare)
+    
+    return sites
+end
+
+---@param site Site
+---@param player LuaPlayer
+function UiSite.onMergeOpen(site, player, event)
+    local tab = get_tab_from_event(event)
+    local merge = tab.main.site_outer.site.merge
+    if merge == nil then return end
+
+    merge.visible = true
+    local sites = get_mergable_sites(site)
+    local items = {}
+    local index = {}
+    for _, item in pairs(sites) do
+        table.insert(items, {'dqol-resource-monitor.ui-site-merge-select-item', item.site.id, item.site.name, item.distance})
+        table.insert(index, item.site.id)
+    end
+    merge.sites.items = items
+    local tags = merge.sites.tags
+    tags.index = index
+    merge.sites.tags = tags
+end
+
+---@param site Site
+---@param player LuaPlayer
+function UiSite.onMergeConfirm(site, player, event)
+    local tab = get_tab_from_event(event)
+    local merge = tab.main.site_outer.site.merge
+    if merge == nil then return end
+
+    local otherId = merge.sites.tags.index[merge.sites.selected_index] or nil
+    local otherSite = otherId and Sites.storage.getById(otherId)
+
+    if otherSite == nil then
+        game.print('Failed to merge site #' .. (otherId or '') .. ' into #' .. site.id)
+        return
+    end
+
+    -- do the merge
+    Sites.merge(site, otherSite)
+    Sites.storage.remove(otherSite)
 
     Ui.Menu.show(player)
 end
