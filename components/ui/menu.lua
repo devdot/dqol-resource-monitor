@@ -753,33 +753,42 @@ function UiMenu.filters.create(tab, filter_group)
     -- stateFiller.style.horizontally_squashable = true;
     stateFiller.style.width = 112
 
-    local stateFilter = orderAndStateFilter.add { name = 'states', type = 'table', column_count = 2, style = 'compact_slot_table' }
-    stateFilter.add {
-        type = 'sprite-button',
-        name = 'onlyTracked',
-        toggled = false,
-        style = 'slot_sized_button_blue',
-        sprite = 'dqol-resource-monitor-site-track',
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-tracked-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'toggle_only_tracked',
-            filter_group = filter_group,
+    local states = {
+        {
+            name = 'onlyTracked',
+            sprite = 'dqol-resource-monitor-site-track',
+            style = 'slot_sized_button_blue',
+            localized = 'only-tracked',
         },
-    }.style.size = 36
-    stateFilter.add {
-        type = 'sprite-button',
-        name = 'onlyEmpty',
-        toggled = false,
-        style = 'compact_slot_sized_button',
-        sprite = 'utility/resources_depleted_icon',
-        tooltip = {'dqol-resource-monitor.ui-menu-filter-only-empty-tooltip'},
-        tags = {
-            _module = 'menu_filters',
-            _action = 'toggle_only_empty',
-            filter_group = filter_group,
-        }
+        {
+            name = 'onlyEmpty',
+            localized = 'only-empty',
+            sprite = 'utility/resources_depleted_icon',
+        },
+        {
+            name = 'onlyPinned',
+            localized = 'only-pinned',
+            sprite = 'utility/track_button',
+        },
     }
+
+    local stateFilter = orderAndStateFilter.add { name = 'states', type = 'table', column_count = #states, style = 'compact_slot_table' }
+    for _, item in pairs(states) do
+        stateFilter.add {
+            type = 'sprite-button',
+            name = item.name,
+            toggled = false,
+            style = item.style or 'compact_slot_sized_button',
+            sprite = item.sprite,
+            tooltip = {'dqol-resource-monitor.ui-menu-filter-' ..item.localized .. '-tooltip'},
+            tags = {
+                _module = 'menu_filters',
+                _action = 'toggle_filter',
+                filter_group = filter_group,
+                filter = item.name,
+            },
+        }.style.size = 36
+    end
 end
 
 ---@param tab LuaGuiElement
@@ -811,6 +820,7 @@ function UiMenu.filters.fill(tab, state, filter_group)
     -- state
     filters.orderAndState.states.onlyTracked.toggled = state.onlyTracked or false
     filters.orderAndState.states.onlyEmpty.toggled = state.onlyEmpty or false
+    filters.orderAndState.states.onlyPinned.toggled = state.onlyPinned or false
 
     -- order by
     for _, item in pairs(filters.orderAndState.orderBy.children) do
@@ -875,6 +885,8 @@ function UiMenu.filters.getSites(state, use_products)
                         if state.onlyTracked == true and site.tracking == false then
                             insert = false
                         elseif state.onlyEmpty == true and site.calculated.amount > 0 then
+                            insert = false
+                        elseif state.onlyPinned == true and site.pinned ~= true then
                             insert = false
                         elseif (site.calculated.percent) * 100 > (state.maxPercent or 100) then
                             insert = false
@@ -1012,15 +1024,9 @@ end
 
 ---@param player LuaPlayer
 ---@param state UiStateMenuFilter
-function UiMenu.filters.onToggleOnlyTracked(event, player, state)
-    state.onlyTracked = state.onlyTracked == false
-    UiMenu.show(player)
-end
-
----@param player LuaPlayer
----@param state UiStateMenuFilter
-function UiMenu.filters.onToggleOnlyEmpty(event, player, state)
-    state.onlyEmpty = state.onlyEmpty == false
+function UiMenu.filters.onToggleFilter(event, player, state)
+    local filter = event.element.tags.filter
+    state[filter] = state[filter] ~= true
     UiMenu.show(player)
 end
 

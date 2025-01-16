@@ -20,7 +20,7 @@ Sites = {
 ---@alias SiteChunk {x: integer, y: integer, tiles: integer, amount: integer, updated: integer, borders: SiteChunkBorders}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
 ---@alias SiteCalculated {updated_at: integer, amount: integer, percent: number, rate: number, estimated_depletion: integer?, last_amount: integer, last_amount_tick: integer}
----@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?}
+---@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?, pinned: boolean?}
 
 ---@alias GlobalSitesUpdater {pointer: integer, queue: table<integer, table<1|2, integer|SiteChunkKey>>} -- queue sub-entries simply have 1: siteId and 2: chunkId
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
@@ -230,6 +230,7 @@ function Sites.createFromChunkResources(resources, surface, chunk)
                 index = 0,
                 area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
                 tracking = settings.global['dqol-resource-monitor-site-track-new'].value,
+                pinned = false,
             }
 
             types[resource.name].chunks[chunk_key] = {

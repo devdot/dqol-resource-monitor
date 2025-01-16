@@ -113,7 +113,7 @@ function UiSite.showInMenu(site_id, outer)
     info.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), tooltip = Surfaces.surface.getNameById(site.surface) }.style.width = 20
     info.add { type = 'label', caption = Surfaces.surface.getNameById(site.surface) }.style.width = 86
 
-    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 6, style = 'compact_slot_table' }
+    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 7, style = 'compact_slot_table' }
     buttons.add {
         type = 'sprite-button',
         style = 'slot_sized_button_blue',
@@ -134,6 +134,18 @@ function UiSite.showInMenu(site_id, outer)
         tags = {
             _module = 'site',
             _action = 'highlight',
+            site_id = site.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
+        tooltip = { 'dqol-resource-monitor.ui-site-pin-tooltip' },
+        sprite = 'utility/track_button',
+        toggled = site.pinned or false,
+        tags = {
+            _module = 'site',
+            _action = 'toggle_pin',
             site_id = site.id,
         },
     }
@@ -327,6 +339,7 @@ function UiSite.onHighlight(site, player)
     end
 end
 
+
 ---@param site Site
 ---@param player LuaPlayer
 function UiSite.onUpdate(site, player, event)
@@ -357,6 +370,17 @@ end
 ---@param player LuaPlayer
 function UiSite.onToggleTracking(site, player, event)
     site.tracking = (site.tracking == false) or false
+
+    -- immediately update the site
+    Sites.updater.updateSite(site)
+
+    Ui.Menu.show(player)
+end
+
+---@param site Site
+---@param player LuaPlayer
+function UiSite.onTogglePin(site, player, event)
+    site.pinned = (site.pinned ~= true) or false
 
     -- immediately update the site
     Sites.updater.updateSite(site)

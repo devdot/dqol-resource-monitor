@@ -24,6 +24,7 @@ Ui.routes = {
         delete_open = Ui.Site.onDeleteOpen,
         delete = Ui.Site.onDelete,
         toggle_tracking = Ui.Site.onToggleTracking,
+        toggle_pin = Ui.Site.onTogglePin,
         merge_open = Ui.Site.onMergeOpen,
         merge_confirm = Ui.Site.onMergeConfirm,
     },
@@ -48,8 +49,7 @@ Ui.routes = {
     menu_filters = {
         toggle_resource = Ui.Menu.filters.onToggleResource,
         select_surface = Ui.Menu.filters.onSelectSurface,
-        toggle_only_tracked = Ui.Menu.filters.onToggleOnlyTracked,
-        toggle_only_empty = Ui.Menu.filters.onToggleOnlyEmpty,
+        toggle_filter = Ui.Menu.filters.onToggleFilter,
         set_max_percent = Ui.Menu.filters.onSetMaxPercent,
         set_max_estimated_depletion = Ui.Menu.filters.onSetMaxEstimatedDepletion,
         set_min_amount = Ui.Menu.filters.onSetMinAmount,
