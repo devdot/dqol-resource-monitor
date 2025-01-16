@@ -172,6 +172,6 @@ function Ui.on_configuration_changed(event)
     end
 
     for _, player in pairs(game.players) do
-        Ui.bootPlayer(player)
+        Ui.Menu.close(player)
     end
 end
