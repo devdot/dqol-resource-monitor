@@ -67,6 +67,7 @@ function UiMenu.create(player)
 
     local window = Ui.Window.create(player, UiMenu.WINDOW_ID, { 'dqol-resource-monitor.ui-menu-title' })
     window.style.natural_width = 960
+    window.style.maximal_width = 960
     window.style.natural_height = 880
 
     if window.titlebar ~= nil and window.titlebar.reload == nil then
@@ -490,7 +491,7 @@ function UiMenu.tabs.other.fill(tab)
     }
     
     tab.add { type = 'line' }
-    tab.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-types-label'}}
+    tab.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-types-label'}, style = 'info_label' }
     local scroll = tab.add { type = 'scroll-pane' }
     local table = scroll.add { type = 'table', column_count = 7 }
     table.add { type = 'label', caption = 'resource name' }
