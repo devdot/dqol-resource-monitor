@@ -116,7 +116,7 @@ function UiSurface.showInMenu(surface_id, outer)
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-surface-track-all-tooltip' },
-        sprite = 'utility/check_mark',
+        sprite = 'dqol-resource-monitor-site-track',
         tags = {
             _module = 'surface',
             _action = 'track_all',
