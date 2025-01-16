@@ -192,6 +192,7 @@ function Sites.merge(siteBase, siteAdd)
     siteBase.chunks = dictionary_combine(siteBase.chunks, siteAdd.chunks)
     siteBase.since = math.min(siteBase.since, siteAdd.since)
     siteBase.area = merge_site_areas(siteBase.area, siteAdd.area)
+    siteBase.calculated = nil
     Sites.site.updateCalculated(siteBase)
     return siteBase
 end
@@ -257,7 +258,6 @@ function Sites.createFromChunkResources(resources, surface, chunk)
 
         -- update site
         site.initial_amount = site.initial_amount + (resource.initial_amount or resource.amount)
-        Sites.site.updateCalculated(site)
 
         -- check for borders
         local modX = pos.x % 32
@@ -289,6 +289,7 @@ function Sites.createFromChunkResources(resources, surface, chunk)
     end
 
     for _, site in pairs(types) do
+        Sites.site.updateCalculated(site)
         update_site_area_center(site.area)
         Sites.storage.insert(site)
     end
@@ -347,7 +348,7 @@ function Sites.site.updateCalculated(site, amount)
         for _, chunk in pairs(site.chunks) do amount = amount + chunk.amount end
     end
 
-    local lastAmount = 0
+    local lastAmount = amount
     local lastAmountTick = 0
     local rate = 0
     local estimatedDepletion = nil
