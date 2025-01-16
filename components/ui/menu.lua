@@ -552,7 +552,7 @@ function UiMenu.filters.create(tab, filter_group)
         name = 'resources',
         type = 'table',
         style = 'compact_slot_table',
-        column_count = math.min(24, table_size(items)) + 1,
+        column_count = math.min(24, table_size(items) + 1),
         tags = {
             use_products = useProductsForFilter
         },
