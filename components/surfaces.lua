@@ -145,6 +145,12 @@ function Surfaces.surface.getNameById(id)
     return Surfaces.surface.getName(surface)
 end
 
+---@param surface_id integer
+---@return string
+function Surfaces.surface.getIconString(surface_id)
+    return '[planet=' .. (game.surfaces[surface_id].name or '') .. ']'
+end
+
 ---@param surface Surface
 function Surfaces.surface.updateResources(surface)
     local newTypes = {}

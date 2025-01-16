@@ -11,6 +11,8 @@ function UiSurface.showInMenu(surface_id, outer)
     
     -- set title
     outer.title.title.caption = Surfaces.surface.getName(surface)
+    local sprite = 'space-location/' .. game.surfaces[surface.id].name
+    outer.title.icon.sprite = (helpers.is_valid_sprite_path(sprite) and sprite) or ''
 
     -- gather data
     local chunks = Scanner.cache.get().chunks[surface.id] or {}
@@ -60,7 +62,7 @@ function UiSurface.showInMenu(surface_id, outer)
     local resource_flow = inner.add { type = 'flow', direction = 'vertical' }
     for _, data in pairs(resources) do
         local flow = resource_flow.add { type = 'flow', direction = 'horizontal' }
-        flow.add { type = 'sprite', sprite = Resources.getSpriteString(data.type.resource_name) }
+        flow.add { type = 'sprite', sprite = Resources.getSpriteString(data.type.resource_name), tooltip = {'entity-name.' .. data.type.resource_name} }
         local subflow = flow.add { type = 'flow', direction = 'vertical' }
 
         local barColor = data.type.color

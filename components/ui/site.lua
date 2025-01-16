@@ -104,6 +104,15 @@ function UiSite.showInMenu(site_id, outer)
     bar.style.color = (barColorIsBright and barColor) or {barColor.r + 0.3, barColor.g + 0.3, barColor.b + 0.3}
     bar.style.bar_width = 16
 
+    local info = inner.add { type = 'flow', direction = 'horizontal' }
+    info.style.horizontal_spacing = 4
+    info.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-rate]', tooltip = {'dqol-resource-monitor.ui-site-rate'}}.style.width = 20
+    info.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s' }.style.width = 86
+    info.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion]', tooltip = {'dqol-resource-monitor.ui-site-estimated-depletion'}}.style.width = 20
+    info.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')}.style.width = 86
+    info.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), tooltip = Surfaces.surface.getNameById(site.surface) }.style.width = 20
+    info.add { type = 'label', caption = Surfaces.surface.getNameById(site.surface) }.style.width = 86
+
     local buttons = inner.add { name = 'buttons', type = 'table', column_count = 6, style = 'compact_slot_table' }
     buttons.add {
         type = 'sprite-button',
@@ -225,7 +234,8 @@ function UiSite.showInMenu(site_id, outer)
         {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
         {'updated', Util.Integer.toTimeString(site.calculated.updated_at) .. ' (' .. Util.Integer.toTimeString(game.tick - site.calculated.updated_at) ..' ago)'},
         {'id', '#' .. site.id},
-        {'surface', game.surfaces[site.surface].name .. ' [' .. site.surface .. ']'},
+        {'surface', Surfaces.surface.getNameById(site.surface)},
+        {'surface', site.surface},
         {'tiles', Sites.site.getTiles(site)},
         {'chunks', table_size(site.chunks)},
     }

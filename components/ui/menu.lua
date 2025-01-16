@@ -230,6 +230,7 @@ function UiMenu.tabs.sites.fill(tab)
             local row = sites.add { type = 'flow', style = 'dqol_resource_monitor_table_row_subheading' }
 
             lastSurface = site.surface
+            -- row.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), style = 'dqol_resource_monitor_table_cell_resource'}
             row.add {
                 type = 'label',
                 style = 'caption_label',
@@ -304,8 +305,11 @@ function UiMenu.tabs.surfaces.create(tab)
     surface_outer.style.padding = 4
     surface_outer.style.vertically_stretchable = true
     local surface_title = surface_outer.add { type = 'flow', direction = 'horizontal', name = 'title' }
+    surface_title.style.vertical_align = 'center'
+    surface_title.add { type = 'sprite', name = 'icon', stretch_image_to_widget_size = true }.style.width = 32
     surface_title.add { type = 'label', name = 'title', style = 'heading_2_label', caption = '' }
     surface_title.style.bottom_margin = 4
+    surface_outer.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }.style.bottom_margin = 4
     local surface = surface_outer.add { type = 'scroll-pane', name = 'surface' }
     surface.style.horizontally_stretchable = true
     surface.style.vertically_stretchable = true
