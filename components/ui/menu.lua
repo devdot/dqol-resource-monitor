@@ -434,7 +434,7 @@ function UiMenu.tabs.other.fill(tab)
     tab.add {
         type = 'switch',
         switch_state = (Ui.State.get(tab.player_index).menu.use_products and 'right') or 'left',
-        allow_none_state = 'false',
+        allow_none_state = false,
         right_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products'},
         right_label_tooltip = {'dqol-resource-monitor.ui-menu-other-use-products-switch-products-tooltip'},
         left_label_caption = {'dqol-resource-monitor.ui-menu-other-use-products-switch-resources'},
@@ -445,30 +445,42 @@ function UiMenu.tabs.other.fill(tab)
         }
     }
     
-    if _DEBUG then
-        tab.add { type = 'line' }
-        local scroll = tab.add { type = 'scroll-pane' }
-        local table = scroll.add { type = 'table', column_count = 7 }
-        table.add { type = 'label', caption = 'resource name' }
-        table.add { type = 'label', caption = 'category' }
-        table.add { type = 'label', caption = 'infinite' }
-        table.add { type = 'label', caption = 'hidden' }
-        table.add { type = 'label', caption = 'ignore tracking' }
-        table.add { type = 'label', caption = 'loose merge' }
-        table.add { type = 'label', caption = 'products' }
-        for _, type in pairs(Resources.types) do
-            table.add { type = 'label', caption = type.resource_name }
-            table.add { type = 'label', caption = type.category }
-            table.add { type = 'label', caption = (type.infinite and 'true') or 'false' }
-            table.add { type = 'label', caption = (type.hidden and 'true') or 'false' }
-            table.add { type = 'label', caption = (type.tracking_ignore and 'true') or 'false' }
-            table.add { type = 'label', caption = (type.loose_merge and 'true') or 'false' }
-            local products = ''
-            for __, product in pairs(Resources.getProducts(type.resource_name)) do
-                products = products .. ' ' .. product.name
-            end
-            table.add { type = 'label', caption = products }
+    tab.add { type = 'line' }
+    tab.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-types-label'}}
+    local scroll = tab.add { type = 'scroll-pane' }
+    local table = scroll.add { type = 'table', column_count = 7 }
+    table.add { type = 'label', caption = 'resource name' }
+    table.add { type = 'label', caption = 'category' }
+    table.add { type = 'label', caption = 'infinite' }
+    table.add { type = 'label', caption = 'hidden' }
+    table.add { type = 'label', caption = 'ignore tracking' }
+    table.add { type = 'label', caption = 'loose merge' }
+    table.add { type = 'label', caption = 'products' }
+
+    local toggles = {'infinite', 'hidden', 'tracking_ignore', 'loose_merge'}
+
+    for _, type in pairs(Resources.types) do
+        table.add { type = 'label', caption = type.resource_name }
+        table.add { type = 'label', caption = type.category }
+        
+        for _, toggle in pairs(toggles) do
+            table.add {
+                type = 'checkbox',
+                state = type[toggle],
+                tags = {
+                    _module = 'menu',
+                    _action = 'toggle_resource_type_setting',
+                    resource_name = type.resource_name,
+                    setting = toggle,
+                }
+            }
         end
+
+        local products = ''
+        for __, product in pairs(Resources.getProducts(type.resource_name)) do
+            products = products .. ' ' .. product.name
+        end
+        table.add { type = 'label', caption = products }
     end
 end
 
@@ -1005,6 +1017,19 @@ end
 function UiMenu.dashboard.onToggleValue(event, state)
     state[event.element.tags.state_key] = event.element.state
     UiMenu.show(game.players[event.player_index])
+end
+
+function UiMenu.onToggleResourceTypeSetting(event)
+    local player = game.players[event.player_index]
+    local tags = event.element.tags
+    
+    -- change that setting
+    local type = Resources.types[tags.resource_name] or nil
+    if type == nil or type[tags.setting] == nil then return end
+    type[tags.setting] = event.element.state or false
+
+    UiMenu.create(player)
+    UiMenu.show(player)
 end
 
 return UiMenu

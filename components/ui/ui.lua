@@ -43,6 +43,7 @@ Ui.routes = {
         toggle = Ui.Menu.onToggle,
         tab_select = Ui.Menu.onSelectedTabChanged,
         use_products_toggle = Ui.Menu.onUseProductsToggle,
+        toggle_resource_type_setting = Ui.Menu.onToggleResourceTypeSetting,
     },
     menu_filters = {
         toggle_resource = Ui.Menu.filters.onToggleResource,
