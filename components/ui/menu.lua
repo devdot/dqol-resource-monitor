@@ -16,6 +16,7 @@ local UiMenu = {
 ---@param player LuaPlayer
 function UiMenu.bootPlayer(player)
     UiMenu.createButton(player)
+    UiMenu.close(player)
 end
 
 ---@param player LuaPlayer
@@ -31,6 +32,7 @@ function UiMenu.createButton(player)
         tooltip = { 'dqol-resource-monitor.ui-menu-button-tooltip' },
         sprite = 'dqol-resource-monitor-logo',
         style = Ui.mod_gui.button_style,
+        raise_hover_events = true,
         tags = {
             _module = 'menu',
             _action = 'toggle',
@@ -374,30 +376,68 @@ function UiMenu.tabs.dashboard.fill(tab)
     local settings = tab.main.add { type = 'flow', direction = 'vertical' }
     settings.style.margin = 8
 
-    settings.add {
-        type = 'checkbox',
-        state = state.dashboard.show_headers or false,
-        caption = {'dqol-resource-monitor.ui-menu-dashboard-show-headers'},
-        tooltip = {'dqol-resource-monitor.ui-menu-dashboard-show-headers-tooltip'},
-        tags = {
-            _module = 'menu_dashbaord',
-            _action = 'toggle_value',
-            _only = defines.events.on_gui_checked_state_changed,
-            state_key = 'show_headers',
-        }
+
+    local toggles = {
+        'show_headers',
+        'transparent_background',
     }
-    settings.add {
-        type = 'checkbox',
-        state = state.dashboard.prepend_surface_name or false,
-        caption = {'dqol-resource-monitor.ui-menu-dashboard-prepend-surface-name'},
-        tooltip = {'dqol-resource-monitor.ui-menu-dashboard-prepend-surface-name-tooltip'},
-        tags = {
-            _module = 'menu_dashbaord',
-            _action = 'toggle_value',
-            _only = defines.events.on_gui_checked_state_changed,
-            state_key = 'prepend_surface_name',
+
+    for _, setting in pairs(toggles) do
+        local localized = 'dqol-resource-monitor.ui-menu-dashboard-' .. string.gsub(setting, '_', '-')
+
+        settings.add {
+            type = 'checkbox',
+            state = state.dashboard[setting] or false,
+            caption = {localized},
+            tooltip = {localized .. '-tooltip'},
+            tags = {
+                _module = 'menu_dashboard',
+                _action = 'toggle_setting',
+                _only = defines.events.on_gui_checked_state_changed,
+                setting = setting,
+            }
         }
+    end
+
+    local selects = {
+        mode = {
+            'always',
+            'hover',
+            'never',
+        },
+        prepend_surface = {
+            'name',
+            'icon',
+            'none',
+        },
     }
+
+    for setting, options in pairs(selects) do
+        local localized = 'dqol-resource-monitor.ui-menu-dashboard-' .. string.gsub(setting, '_', '-')
+        
+        local items = {}
+        local reversed = {}
+        for _, item in pairs(options) do 
+            table.insert(items, {localized .. '-option-' .. item})
+            reversed[item] = #items
+        end
+        
+        settings.add { type = 'label', caption = { localized }, tooltip = { localized .. '-tooltip'} }
+        settings.add {
+            type = 'drop-down',
+            name = setting,
+            tooltip = { localized .. '-tooltip'},
+            items = items,
+            selected_index = reversed[state.dashboard[setting]] or nil,
+            tags = {
+                _module = 'menu_dashboard',
+                _action = 'select_setting',
+                _only = defines.events.on_gui_selection_state_changed,
+                index = options,
+                setting = setting,
+            },
+        }
+    end
 end
 
 ---@param tab LuaGuiElement
@@ -903,12 +943,22 @@ end
 
 function UiMenu.onToggle(event)
     local player = game.players[event.player_index]
-    if UiMenu.isOpen(player) then
-        UiMenu.close(player)
+
+    if event.name == defines.events.on_gui_click then
+        if UiMenu.isOpen(player) then
+            UiMenu.close(player)
+        else
+            UiMenu.show(player)
+        end
     else
-        UiMenu.show(player)
+        local state = Ui.State.get(event.player_index)
+        if state.dashboard.mode == 'hover' then
+            state.dashboard.is_hovering = event.name == defines.events.on_gui_hover
+            Ui.Dashboard.fill(player)
+        end
     end
 end
+
 
 function UiMenu.onSelectedTabChanged(event)
     UiMenu.switchToTab(game.players[event.player_index], event.element.selected_tab_index or 1)
@@ -1018,8 +1068,15 @@ function UiMenu.filters.onSetOrderBy(event, player, state)
 end
 
 ---@param state UiStateDashboard
-function UiMenu.dashboard.onToggleValue(event, state)
-    state[event.element.tags.state_key] = event.element.state
+function UiMenu.dashboard.onToggleSetting(event, state)
+    state[event.element.tags.setting] = event.element.state
+    UiMenu.show(game.players[event.player_index])
+end
+
+---@param state UiStateDashboard
+function UiMenu.dashboard.onSelectSetting(event, state)
+    local select = event.element
+    state[select.tags.setting] = select.tags.index[select.selected_index]
     UiMenu.show(game.players[event.player_index])
 end
 

@@ -64,11 +64,23 @@ style.dqol_resource_monitor_table_cell_name = {
     width = 250,
 }
 
+style.dqol_resource_monitor_table_cell_name_sm = {
+    type = 'label_style',
+    parent = 'dqol_resource_monitor_table_cell_name',
+    width = 200,
+}
+
 style.dqol_resource_monitor_table_cell_number = {
     type = 'label_style',
     parent = 'dqol_resource_monitor_table_cell',
     horizontal_align = 'right',
     width = 60,
+}
+
+style.dqol_resource_monitor_table_cell_number_sm = {
+    type = 'label_style',
+    parent = 'dqol_resource_monitor_table_cell_number',
+    width = 40,
 }
 
 style.dqol_resource_monitor_resource_bar = {
@@ -81,6 +93,21 @@ style.dqol_resource_monitor_resource_bar = {
     font_color = {r=230/255, g=227/255, b=230/255},
     filled_font_color = {r=0/255, g=0/255, b=0/255},
     bar_background = table.deepcopy(style['progressbar'].bar_background),
+}
+
+style.dqol_resource_monitor_dashboard_frame = {
+    type = 'frame_style',
+    padding = 0,
+    vertical_flow_style = {
+        type = 'vertical_flow_style',
+        vertical_spacing = 0,
+    },
+}
+
+style.dqol_resource_monitor_dashboard_noframe = {
+    type = 'vertical_flow_style',
+    padding = 0,
+    vertical_spacing = 0,
 }
 
 -- sprites

@@ -56,8 +56,9 @@ Ui.routes = {
         set_search = Ui.Menu.filters.onSetSearch,
         set_order_by = Ui.Menu.filters.onSetOrderBy,
     },
-    menu_dashbaord = {
-        toggle_value = Ui.Menu.dashboard.onToggleValue,
+    menu_dashboard = {
+        toggle_setting = Ui.Menu.dashboard.onToggleSetting,
+        select_setting = Ui.Menu.dashboard.onSelectSetting,
     },
 }
 
@@ -105,6 +106,8 @@ Ui.onCheckedChanged = route_event
 Ui.onValueChanged = route_event
 Ui.onSelectedTabChanged = route_event
 Ui.onSwitchStateChanged = route_event
+Ui.onHoverIn = route_event
+Ui.onHoverOut = route_event
 
 function Ui.routes.surface.__prepare(event)
     return {
@@ -122,7 +125,7 @@ function Ui.routes.menu_filters.__prepare(event)
     }
 end
 
-function Ui.routes.menu_dashbaord.__prepare(event)
+function Ui.routes.menu_dashboard.__prepare(event)
     return {
         event,
         Ui.State.get(event.player_index).dashboard,
@@ -147,6 +150,8 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_selected_tab_changed }, Ui.onSelectedTabChanged)
     script.on_event({ defines.events.on_gui_switch_state_changed }, Ui.onSwitchStateChanged)
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
+    script.on_event({ defines.events.on_gui_hover }, Ui.onHoverIn)
+    script.on_event({ defines.events.on_gui_leave }, Ui.onHoverOut)
 
     -- subcomponents
     Ui.Dashboard.boot()
@@ -157,7 +162,7 @@ end
 function Ui.bootPlayer(player)
     Ui.State.bootPlayer(player)
     Ui.Menu.bootPlayer(player)
-    Ui.Menu.close(player)
+    Ui.Dashboard.bootPlayer(player)
 end
 
 function Ui.on_configuration_changed(event)
