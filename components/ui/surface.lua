@@ -9,6 +9,9 @@ function UiSurface.showInMenu(surface_id, outer)
     local surface = Surfaces.storage.getById(surface_id)
     if surface == nil then return end
     
+    -- update
+    Surfaces.surface.updateResources(surface)
+
     -- set title
     outer.title.title.caption = Surfaces.surface.getName(surface)
     local sprite = 'space-location/' .. game.surfaces[surface.id].name
