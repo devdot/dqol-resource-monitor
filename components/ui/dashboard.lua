@@ -111,7 +111,7 @@ function UiDashboard.fill(player)
         row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
         local amountLabel = row.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount), tags = tags, style = 'dqol_resource_monitor_table_cell_number_sm' }
         local percentLabel = row.add { type = 'label', caption = Util.Integer.toPercent(site.calculated.percent), tags = tags, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        local depletionLabel = row.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never'), tags = tags, style = 'dqol_resource_monitor_table_cell_number' }
+        local depletionLabel = row.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'}), tags = tags, style = 'dqol_resource_monitor_table_cell_number' }
         nameLabel.style.font_color = color
         amountLabel.style.font_color = color
         percentLabel.style.font_color = color

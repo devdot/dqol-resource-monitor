@@ -109,7 +109,7 @@ function UiSite.showInMenu(site_id, outer)
     info.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-rate]', tooltip = {'dqol-resource-monitor.ui-site-rate'}}.style.width = 20
     info.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s' }.style.width = 86
     info.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion]', tooltip = {'dqol-resource-monitor.ui-site-estimated-depletion'}}.style.width = 20
-    info.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')}.style.width = 86
+    info.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'})}.style.width = 86
     info.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), tooltip = Surfaces.surface.getNameById(site.surface) }.style.width = 20
     info.add { type = 'label', caption = Surfaces.surface.getNameById(site.surface) }.style.width = 86
 
@@ -242,7 +242,7 @@ function UiSite.showInMenu(site_id, outer)
         {'initial-amount', Util.Integer.toExponentString(site.initial_amount, 2)},
         {'percent', Util.Integer.toPercent(site.calculated.percent)},
         {'rate', Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s'},
-        {'estimated-depletion', Util.Integer.toTimeString(site.calculated.estimated_depletion, 'never')},
+        {'estimated-depletion', Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'})},
         {'created', Util.Integer.toTimeString(site.since) .. ' (' .. Util.Integer.toTimeString(game.tick - site.since) ..' ago)'},
         {'updated', Util.Integer.toTimeString(site.calculated.updated_at) .. ' (' .. Util.Integer.toTimeString(game.tick - site.calculated.updated_at) ..' ago)'},
         {'id', '#' .. site.id},
@@ -334,7 +334,7 @@ function UiSite.onHighlight(site, player)
         if entity then
             player.centered_on = entity
         else
-            player.print('Could not find an entity to center on!')
+            player.print({'dqol-resource-monitor.ui-print-no-entity-to-center'})
         end
     end
 end
@@ -443,7 +443,7 @@ function UiSite.onMergeConfirm(site, player, event)
     local otherSite = otherId and Sites.storage.getById(otherId)
 
     if otherSite == nil then
-        game.print('Failed to merge site #' .. (otherId or '') .. ' into #' .. site.id)
+        player.print({'dqol-resource-monitor.ui-print-merged-sites-failed', (otherId or ''), site.id})
         return
     end
 
@@ -452,6 +452,8 @@ function UiSite.onMergeConfirm(site, player, event)
     Sites.storage.remove(otherSite)
 
     Ui.Menu.show(player)
+
+    player.print({'dqol-resource-monitor.ui-print-merged-sites', otherSite.id, site.id})
 end
 
 return UiSite

@@ -1,8 +1,8 @@
 local integer = {}
 
 ---@param ticks integer
----@param default string?
----@return string
+---@param default string|nil|LocalisedString
+---@return string|LocalisedString
 function integer.toTimeString(ticks, default)
     if ticks == nil then
         return default or '0:00:00'

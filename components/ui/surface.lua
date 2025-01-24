@@ -214,12 +214,12 @@ function UiSurface.onAutoTrack(surface, player)
                     site.tracking = true
                     found = true
                     Sites.site.updateCalculated(site)
-                    player.print('Now tracking ' .. Resources.getIconString(site.type) .. site.name)
+                    player.print({'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) .. site.name})
                 end
             end
         end
     end
-    if found == false then player.print('Could not find any untracked sites with miners') end
+    if found == false then player.print({'dqol-resource-monitor.ui-print-no-untracked-sites-found'}) end
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
