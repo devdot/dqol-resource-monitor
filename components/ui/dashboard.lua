@@ -22,8 +22,8 @@ local function create_dashboard(player)
         header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-name]', tooltip = {'dqol-resource-monitor.ui-site-name'}, style = 'dqol_resource_monitor_table_cell_name_sm' }
         header.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
         header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-amount]', tooltip = {'dqol-resource-monitor.ui-site-amount'}, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion]', tooltip = {'dqol-resource-monitor.ui-site-rate'}, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent]', tooltip = {'dqol-resource-monitor.ui-site-percent'}, style = 'dqol_resource_monitor_table_cell_number' } 
+        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent]', tooltip = {'dqol-resource-monitor.ui-site-percent'}, style = 'dqol_resource_monitor_table_cell_number_sm' }
+        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion]', tooltip = {'dqol-resource-monitor.ui-site-estimated-depletion'}, style = 'dqol_resource_monitor_table_cell_number' } 
     
         root.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
     end
