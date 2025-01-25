@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.4.2
+Date: 25.01.2025
+  Translation:
+    - Add localization for mod name (thanks ST-DDT, https://github.com/devdot/dqol-resource-monitor/issues/14).
+  Bugfixes:
+    - Fix dashboard table headers to show correct icons and tooltips.
+---------------------------------------------------------------------------------------------------
 Version: 1.4.1
 Date: 24.01.2025
   Translation:
