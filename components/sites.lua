@@ -230,7 +230,7 @@ function Sites.createFromChunkResources(resources, surface, chunk)
                 since = game.tick,
                 index = 0,
                 area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
-                tracking = settings.global['dqol-resource-monitor-site-track-new'].value,
+                tracking = settings.global['dqol-resource-monitor-site-track-new-default'].value,
                 pinned = false,
             }
 

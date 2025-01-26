@@ -149,9 +149,58 @@ function on_surface_created(event)
     Surfaces.generateFromGame(game.surfaces[event.surface_index])
 end
 
+function on_built_entity(event)
+    if event.entity.valid == nil then return end
+
+    local profiler
+    if _DEBUG then
+        profiler = game.create_profiler()
+    end
+
+    -- using entity position might lead to miners not matching to the site when they are placed partially outside the site bounding box
+    -- however, most people place some miner on the site so this is "good enough"
+    local pos = event.entity.position
+    local surface = event.entity.surface_index
+    local player = game.players[event.player_index]
+
+    -- match this position with any site that could work
+    local types = Sites.storage.getSurfaceList()[surface] or {}
+    for _, sites in pairs(types) do
+        for __, site in pairs(sites) do
+            -- simply check if the position is within the area of this site
+            local match = site.area.left <= pos.x and site.area.right >= pos.x and site.area.top <= pos.y and site.area.bottom >= pos.y
+            if match then
+                if site.tracking == false then
+                    site.tracking = true
+                    Sites.site.updateCalculated(site)
+                    player.print({ 'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) ..
+                    site.name })
+                end
+
+                -- don't look for this type anymore ... we assume there is at most one match per type
+                break 
+            end
+        end
+    end
+
+    if _DEBUG then
+        profiler.stop()
+        game.print(profiler)
+    end
+end
+
 function Scanner.boot()
     if settings.global['dqol-resource-monitor-site-auto-scan'].value then
         script.on_event(defines.events.on_chunk_charted, on_chunk_charted)
+    end
+
+    if settings.global['dqol-resource-monitor-site-track-miner-placed'].value then
+        local filter = {{
+            filter = 'type',
+            type = 'mining-drill',
+        }}
+        script.on_event(defines.events.on_built_entity, on_built_entity, filter)
+        script.on_event(defines.events.on_robot_built_entity, on_built_entity, filter)
     end
 
     script.on_event(defines.events.on_chunk_deleted, on_chunk_deleted)
