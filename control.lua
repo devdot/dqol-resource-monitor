@@ -12,6 +12,10 @@ require('components/surfaces')
 require('components/scanner')
 require('components/ui/ui')
 
+-- enable gvv
+if script.active_mods['gvv'] then
+    require('__gvv__.gvv')()
+end
 
 ---Called on mod startup
 function boot(event)
