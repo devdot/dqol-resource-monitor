@@ -45,8 +45,9 @@ local function chunk_to_area(chunk)
 end
 
 ---@param surface LuaSurface
----@param chunk ChunkPositionAndArea
-function Scanner.scan_chunk(surface, chunk)
+---@param chunk ChunkPosition
+---@param site_list table<string, Site>|nil
+function Scanner.scan_chunk(surface, chunk, site_list)
     if Scanner.cache.getChunk(surface.index, chunk) then
         return false
     end
@@ -67,7 +68,7 @@ function Scanner.scan_chunk(surface, chunk)
         return false
     end
 
-    Sites.createFromChunkResources(resources, surface, chunk)
+    Sites.createFromChunkResources(resources, surface, chunk, site_list)
 
     return true
 end
@@ -98,7 +99,7 @@ function Scanner.cache.resetSurface(surfaceId)
 end
 
 ---@param surfaceId integer
----@param chunk ChunkPositionAndArea
+---@param chunk ChunkPosition
 ---@return boolean
 function Scanner.cache.getChunk(surfaceId, chunk)
     local cache = Scanner.cache.get()
@@ -109,7 +110,7 @@ function Scanner.cache.getChunk(surfaceId, chunk)
 end
 
 ---@param surfaceId integer
----@param chunk ChunkPositionAndArea
+---@param chunk ChunkPosition
 ---@param bool boolean
 function Scanner.cache.setChunk(surfaceId, chunk, bool)
     local cache = Scanner.cache.get()

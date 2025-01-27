@@ -12,6 +12,10 @@ Ui.Surface = require('components/ui/surface')
 Ui.Dashboard = require('components/ui/dashboard')
 Ui.State = require('components/ui/state')
 
+if script.active_mods['YARM'] then
+    Ui.YARM = require('components/ui/yarm')
+end
+
 Ui.routes = {
     window = {
         close = Ui.Window.onClose,

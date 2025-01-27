@@ -199,10 +199,11 @@ end
 
 ---@param resources LuaEntity[]
 ---@param surface LuaSurface
----@param chunk ChunkPositionAndArea
-function Sites.createFromChunkResources(resources, surface, chunk)
+---@param chunk ChunkPosition|ChunkPositionAndArea
+---@param input table<string, Site>|nil
+function Sites.createFromChunkResources(resources, surface, chunk, input)
     ---@type Site[]
-    local types = {}
+    local types = input or {}
     local chunk_key = chunk.x .. ',' .. chunk.y
 
     -- prefilter the resources
@@ -291,7 +292,11 @@ function Sites.createFromChunkResources(resources, surface, chunk)
     for _, site in pairs(types) do
         Sites.site.updateCalculated(site)
         update_site_area_center(site.area)
-        Sites.storage.insert(site)
+
+        -- do not insert if a custom container is provided
+        if input == nil then
+            Sites.storage.insert(site)
+        end
     end
 end
 
