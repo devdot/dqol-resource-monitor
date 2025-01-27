@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.5.1
+Date: 27.01.2025
+  Bugfixes:
+    - Fix crash when miners are placed by robots (https://github.com/devdot/dqol-resource-monitor/issues/16).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.0
 Date: 27.01.2025
   Major Features:

@@ -3,6 +3,6 @@ _MOD = 'dqol-resource-monitor'
 _VERSION = {
     major = 1,
     minor = 5,
-    patch = 0,
-    string = '1.5.0',
+    patch = 1,
+    string = '1.5.1',
 }
