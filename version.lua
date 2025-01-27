@@ -4,5 +4,5 @@ _VERSION = {
     major = 1,
     minor = 5,
     patch = 0,
-    string = '1.4.2',
+    string = '1.5.0',
 }
