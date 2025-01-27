@@ -125,7 +125,9 @@ function UiMenu.fillCurrentTab(player)
     local window = UiMenu.get(player)
     local tabs = window.inner.tabbed
     local index = tabs.selected_tab_index or 1
+    if tabs.tabs[index] == nil then return end -- relevant because tabs might be removed or added
     local tab = tabs.tabs[index].content
+    if tab == nil or UiMenu.tabs[tab.name] == nil then return end
 
     if table_size(tab.children) == 0 then
         -- empty tab, create first
