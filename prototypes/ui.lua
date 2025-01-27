@@ -68,6 +68,7 @@ style.dqol_resource_monitor_table_cell_name_sm = {
     type = 'label_style',
     parent = 'dqol_resource_monitor_table_cell_name',
     width = 200,
+    left_margin = 6,
 }
 
 style.dqol_resource_monitor_table_cell_number = {

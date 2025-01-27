@@ -441,6 +441,24 @@ function UiMenu.tabs.dashboard.fill(tab)
             },
         }
     end
+
+    -- add custom column setting
+    settings.add {
+        type = 'label',
+        caption = {'dqol-resource-monitor.ui-menu-dashboard-columns'},
+        tooltip = {'dqol-resource-monitor.ui-menu-dashboard-columns-tooltip'},
+    }
+    settings.add {
+        type = 'textfield',
+        tooltip = {'dqol-resource-monitor.ui-menu-dashboard-columns-tooltip'},
+        text = table.concat(state.dashboard.columns or {}, ','),
+        lose_focus_on_confirm = true,
+        tags = {
+            _module = 'menu_dashboard',
+            _action = 'update_columns',
+            _only = defines.events.on_gui_confirmed,
+        }
+    }.style.width = 400
 end
 
 ---@param tab LuaGuiElement
@@ -1086,6 +1104,20 @@ end
 function UiMenu.dashboard.onSelectSetting(event, state)
     local select = event.element
     state[select.tags.setting] = select.tags.index[select.selected_index]
+    UiMenu.show(game.players[event.player_index])
+end
+
+---@param state UiStateDashboard
+function UiMenu.dashboard.onUpdateColumns(event, state)
+    local text = event.element.text or ''
+    state.columns = {}
+    for column in string.gmatch(text, "[a-z]+") do
+        -- make sure this is one of the allowed columns
+        if Ui.Dashboard.columns[column] ~= nil then
+            table.insert(state.columns, column)
+        end
+    end
+
     UiMenu.show(game.players[event.player_index])
 end
 

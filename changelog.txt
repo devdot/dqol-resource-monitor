@@ -4,6 +4,7 @@ Date: 26.01.2025
   Major Features:
     - Track all sites when a miner is placed on them. A new setting "Track sites with miners" (enabled by default) will allow Resource Monitor to check for sites whenever a miner is placed and start tracking that site if it is untracked so far. (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6783d4646c0d84b671eb6124)
     - YARM import, allowing to migrate sites from YARM to this mod (more information on mod page).
+    - Customizable column order on dashboard (https://github.com/devdot/dqol-resource-monitor/issues/15).
   Changes:
     - Disable "Track all new sites" by default now (this will change the old default setting).
 ---------------------------------------------------------------------------------------------------

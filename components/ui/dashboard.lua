@@ -1,6 +1,53 @@
 local UiDashboard = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-sites',
     UPDATE_INTERVAL = 60,
+    columns = {
+        name = {
+            img = 'dqol-resource-monitor-filter-name',
+            tooltip = { 'dqol-resource-monitor.ui-site-name' },
+            style = 'dqol_resource_monitor_table_cell_name_sm',
+            value = function (site, state)
+                local name_mode = state.prepend_surface or 'none'
+                if name_mode == 'name' then
+                    return { '', Surfaces.surface.getNameById(site.surface), ' ', site.name }
+                elseif name_mode == 'icon' then
+                    return { '', Surfaces.surface.getIconString(site.surface), ' ', site.name }
+                else
+                    return site.name
+                end
+            end,
+        },
+        type = {
+            img = 'utility/resource_editor_icon',
+            tooltip = { 'dqol-resource-monitor.ui-site-type' },
+            style = 'dqol_resource_monitor_table_cell_resource',
+            value = function (site) return Resources.getIconString(site.type) end
+        },
+        amount = {
+            img = 'dqol-resource-monitor-filter-amount',
+            tooltip = { 'dqol-resource-monitor.ui-site-amount' },
+            style = 'dqol_resource_monitor_table_cell_number_sm',
+            value = function (site) return Util.Integer.toExponentString(site.calculated.amount) end,
+        },
+        percent = {
+            img = 'dqol-resource-monitor-filter-percent',
+            tooltip = { 'dqol-resource-monitor.ui-site-percent' },
+            style = 'dqol_resource_monitor_table_cell_number_sm',
+            value = function (site) return Util.Integer.toPercent(site.calculated.percent) end,
+        },
+        depletion = {
+            img = 'dqol-resource-monitor-filter-depletion',
+            tooltip = { 'dqol-resource-monitor.ui-site-estimated-depletion' },
+            style = 'dqol_resource_monitor_table_cell_number',
+            value = function (site) return Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'}) end,
+        },
+        rate = {
+            img = 'dqol-resource-monitor-filter-rate',
+            tooltip = { 'dqol-resource-monitor.ui-site-rate' },
+            style = 'dqol_resource_monitor_table_cell_number_sm',
+            value = function (site) return Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s' end,
+        },
+    },
 }
 
 ---@param player LuaPlayer
@@ -18,13 +65,15 @@ local function create_dashboard(player)
 
     if state.dashboard.show_headers then
         local header = root.add { type = 'flow', name = 'header', style = 'dqol_resource_monitor_table_row_flow' }
-        header.add { type = 'label', caption = '[img=utility/resource_editor_icon]', tooltip = {'dqol-resource-monitor.ui-site-type'}, style = 'dqol_resource_monitor_table_cell_resource' }
-        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-name]', tooltip = {'dqol-resource-monitor.ui-site-name'}, style = 'dqol_resource_monitor_table_cell_name_sm' }
-        header.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
-        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-amount]', tooltip = {'dqol-resource-monitor.ui-site-amount'}, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-percent]', tooltip = {'dqol-resource-monitor.ui-site-percent'}, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        header.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion]', tooltip = {'dqol-resource-monitor.ui-site-estimated-depletion'}, style = 'dqol_resource_monitor_table_cell_number' } 
-    
+        for _, column in pairs(state.dashboard.columns) do
+            local data = UiDashboard.columns[column]
+            header.add {
+                type = 'label',
+                caption = '[img=' .. data.img .. ']',
+                tooltip = data.tooltip,
+                style = data.style,
+            }
+        end
         root.add { type = 'line', style = 'inside_shallow_frame_with_padding_line' }
     end
     
@@ -87,8 +136,6 @@ function UiDashboard.fill(player)
     local table = root.sites
     table.clear()
 
-    local name_mode = state.dashboard.prepend_surface or 'none'
-
     for siteKey, site in pairs(sites) do
         local row = table.add { type = 'flow',  style = 'dqol_resource_monitor_table_row_flow' }
 
@@ -99,23 +146,15 @@ function UiDashboard.fill(player)
         }
         local color = Util.Integer.toColor(site.calculated.percent)
         
-        local name = site.name
-        if name_mode == 'name' then
-            name = { '', Surfaces.surface.getNameById(site.surface), ' ', name }
-        elseif name_mode == 'icon' then
-            name = { '', Surfaces.surface.getIconString(site.surface), ' ', name }
+        for _, column in pairs(state.dashboard.columns) do
+            local data = UiDashboard.columns[column]
+            row.add {
+                type = 'label',
+                style = data.style,
+                caption = data.value(site, state.dashboard),
+                tags = tags,
+            }.style.font_color = color
         end
-
-        row.add { type = 'label', caption = Resources.getIconString(site.type), tags = tags, style = 'dqol_resource_monitor_table_cell_resource' }
-        local nameLabel = row.add { type = 'label', caption = name, tooltip = name, tags = tags, style = 'dqol_resource_monitor_table_cell_name_sm' }
-        row.add { type = 'label', style = 'dqol_resource_monitor_table_cell_padding' }
-        local amountLabel = row.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.amount), tags = tags, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        local percentLabel = row.add { type = 'label', caption = Util.Integer.toPercent(site.calculated.percent), tags = tags, style = 'dqol_resource_monitor_table_cell_number_sm' }
-        local depletionLabel = row.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'}), tags = tags, style = 'dqol_resource_monitor_table_cell_number' }
-        nameLabel.style.font_color = color
-        amountLabel.style.font_color = color
-        percentLabel.style.font_color = color
-        depletionLabel.style.font_color = color
     end
 
 end

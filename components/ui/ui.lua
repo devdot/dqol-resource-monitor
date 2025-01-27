@@ -64,6 +64,7 @@ Ui.routes = {
     menu_dashboard = {
         toggle_setting = Ui.Menu.dashboard.onToggleSetting,
         select_setting = Ui.Menu.dashboard.onSelectSetting,
+        update_columns = Ui.Menu.dashboard.onUpdateColumns,
     },
 }
 

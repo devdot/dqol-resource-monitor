@@ -3,7 +3,7 @@ UiState = {}
 ---@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyEmpty: boolean, onlyPinned: boolean, maxPercent: integer, maxEstimatedDepletion: integer?, minAmount: integer, search: string?, orderBy: nil|'resource'|'name'|'amount'|'percent'|'rate'|'depletion', orderByDesc: boolean?}
 ---@alias UiStateMenu {tab: integer?, open_site_id: integer?, open_surface_id: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter, use_products: boolean}
 
----@alias UiStateDashboard {mode: 'always'|'hover'|'never', show_headers: boolean, prepend_surface: 'name'|'icon'|'none', transparent_background: boolean, is_hovering: boolean}
+---@alias UiStateDashboard {mode: 'always'|'hover'|'never', show_headers: boolean, prepend_surface: 'name'|'icon'|'none', transparent_background: boolean, is_hovering: boolean, columns: string[]}
 
 ---@alias UiStatePlayer {menu: UiStateMenu, dashboard: UiStateDashboard}
 ---@alias GlobalUi {players: table<integer, UiStatePlayer>?}
@@ -84,10 +84,11 @@ function UiState.generateFreshPlayerState()
         },
         dashboard = {
             mode = 'always',
-            show_headers = false,
+            show_headers = true,
             prepend_surface = 'none',
             is_hovering = false,
             transparent_background = false,
+            columns = {'type', 'name', 'amount', 'percent', 'depletion'},
         },
     }
 end
