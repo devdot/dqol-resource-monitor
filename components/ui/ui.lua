@@ -1,7 +1,8 @@
 Ui = {
     mod_gui = require("mod-gui"),
     ROOT_FRAME = 'dqol-resource-monitor-ui',
-    BUTTON_ROUTER = {}
+    BUTTON_ROUTER = {},
+    callbacks = {},
 }
 
 Ui.Window = require('components/ui/window')
@@ -86,6 +87,11 @@ local function route_event(event)
                 local args = (Ui.routes[module].__prepare or function(e) return { e } end)(event)
                 -- call the action method
                 Ui.routes[module][action](table.unpack(args))
+            end
+        else
+            local callback = event.element.tags._callback
+            if callback ~= nil and Ui.callbacks[callback] ~= nil then
+                Ui.callbacks[callback](event)
             end
         end
     end
