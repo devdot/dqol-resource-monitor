@@ -162,7 +162,7 @@ function on_built_entity(event)
     -- however, most people place some miner on the site so this is "good enough"
     local pos = event.entity.position
     local surface = event.entity.surface_index
-    local player = game.players[event.player_index]
+    local player = (event.player_index and game.players[event.player_index]) or event.entity.last_user
 
     -- match this position with any site that could work
     local types = Sites.storage.getSurfaceList()[surface] or {}
