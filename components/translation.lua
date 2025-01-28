@@ -3,6 +3,7 @@
 Translation = {
     -- for now translations are not stored but only directed back
     callback = {},
+    -- maybe we need to store callbacks in storage?
 }
 
 ---@param string LocalisedString
@@ -34,10 +35,8 @@ end
 local function translation_callback(event)
     local data = Translation.callback[event.id] or nil
 
-    if data == nil then
-        log('Did not find translation callback for event ' .. serpent.line(event))
-        return
-    end
+    -- many mods might ask for translations, we only care about those that we requested
+    if data == nil then return end
 
     data.callback(event.result, data.meta, event)
 
