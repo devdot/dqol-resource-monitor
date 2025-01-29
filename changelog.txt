@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.5.2
+Date: 29.01.2025
+  Bugfixes:
+    - Fixed log spamming from translation requests (i.e. https://github.com/devdot/dqol-resource-monitor/issues/16).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.1
 Date: 27.01.2025
   Bugfixes:
