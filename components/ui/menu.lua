@@ -1007,10 +1007,10 @@ function UiMenu.onSiteShow(site, player)
 end
 
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiMenu.onSurfaceShow(surface, player)
-    Ui.State.get(player.index).menu.open_surface_id = surface.id
+    Ui.State.get(player.index).menu.open_surface_id = (surface and surface.id) or 0
     UiMenu.switchToTab(player, 2)
     UiMenu.show(player)
 end

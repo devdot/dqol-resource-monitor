@@ -189,16 +189,21 @@ function UiSurface.showInMenu(surface_id, outer)
     info.add { type = 'label', caption = table_size(chunks) }
 end
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiSurface.onScan(surface, player)
-    Scanner.scan_surface(game.surfaces[surface.id])
+    if surface ~= nil then
+        Scanner.scan_surface(game.surfaces[surface.id])
+    end
+ 
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiSurface.onAutoTrack(surface, player)
+    if surface == nil then return Ui.Menu.onSurfaceShow(surface, player) end
+
     local types = Sites.storage.getSurfaceSubList(surface.id)
     local luaSurface = game.surfaces[surface.id]
     local found = false
@@ -223,9 +228,11 @@ function UiSurface.onAutoTrack(surface, player)
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiSurface.onReset(surface, player)
+    if surface == nil then return Ui.Menu.onSurfaceShow(surface, player) end
+
     Scanner.cache.resetSurface(surface.id)
     local sites = Sites.storage.getSurfaceSubList(surface.id)
     for _, inner in pairs(sites) do
@@ -246,17 +253,23 @@ local function surface_tracking_helper(surfaceId, tracking)
     end
 end
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiSurface.onTrackAll(surface, player)
-    surface_tracking_helper(surface.id, true)
+    if surface ~= nil then
+        surface_tracking_helper(surface.id, true)
+    end
+
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiSurface.onUntrackAll(surface, player)
-    surface_tracking_helper(surface.id, false)
+    if surface ~= nil then
+        surface_tracking_helper(surface.id, false)
+    end
+        
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
@@ -271,9 +284,11 @@ function UiSurface.onAddMapTags(surface, player)
     Ui.Menu.onSurfaceShow(surface, player)
 end
 
----@param surface Surface
+---@param surface ?Surface
 ---@param player LuaPlayer
 function UiSurface.onRemoveMapTags(surface, player)
+    if surface == nil then return Ui.Menu.onSurfaceShow(surface, player) end
+
     for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
         for __, site in pairs(inner) do
             if site.tracking == false and site.map_tag and site.map_tag.valid then
