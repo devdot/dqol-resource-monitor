@@ -998,8 +998,10 @@ function UiMenu.onSelectedTabChanged(event)
     UiMenu.show(game.players[event.player_index])
 end
 
+---@param site ?Site
+---@param player LuaPlayer
 function UiMenu.onSiteShow(site, player)
-    Ui.State.get(player.index).menu.open_site_id = site.id
+    Ui.State.get(player.index).menu.open_site_id = (site and site.id) or 0
     UiMenu.switchToTab(player, 1)
     UiMenu.show(player)
 end

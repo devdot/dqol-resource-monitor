@@ -275,9 +275,11 @@ local function get_tab_from_event(event)
     return child
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onRename(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
     local tab = get_tab_from_event(event)
     local textfield = tab.main.site_outer.rename.textfield
 
@@ -288,7 +290,7 @@ function UiSite.onRename(site, player, event)
     Ui.Menu.show(player)
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onRenameOpen(site, player, event)
     local tab = get_tab_from_event(event)
@@ -301,9 +303,11 @@ function UiSite.onRenameOpen(site, player, event)
     textfield.focus()
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onHighlight(site, player)
+    if site == nil then return end
+
     Sites.site.highlight(site)
 
     -- show in game world
@@ -340,13 +344,18 @@ function UiSite.onHighlight(site, player)
 end
 
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onUpdate(site, player, event)
-    Sites.updater.updateSite(site)
+    if site ~= nil then
+        Sites.updater.updateSite(site)
+    end
+    
     Ui.Menu.show(player)
 end
 
+---@param site ?Site
+---@param player LuaPlayer
 function UiSite.onDeleteOpen(site, player, event)
     local tab = get_tab_from_event(event)
     local buttons = tab.main.site_outer.site.buttons
@@ -358,6 +367,8 @@ function UiSite.onDeleteOpen(site, player, event)
 
 end
 
+---@param site ?Site
+---@param player LuaPlayer
 function UiSite.onDelete(site, player, event)
     if site ~= nil then
         Sites.storage.remove(site)
@@ -366,9 +377,11 @@ function UiSite.onDelete(site, player, event)
     Ui.Menu.show(player)
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onToggleTracking(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
     site.tracking = (site.tracking == false) or false
 
     -- immediately update the site
@@ -377,9 +390,11 @@ function UiSite.onToggleTracking(site, player, event)
     Ui.Menu.show(player)
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onTogglePin(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
     site.pinned = (site.pinned ~= true) or false
 
     -- immediately update the site
@@ -411,9 +426,11 @@ local function get_mergable_sites(site)
     return sites
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onMergeOpen(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
     local tab = get_tab_from_event(event)
     local merge = tab.main.site_outer.site.merge
     if merge == nil then return end
@@ -432,9 +449,11 @@ function UiSite.onMergeOpen(site, player, event)
     merge.sites.tags = tags
 end
 
----@param site Site
+---@param site ?Site
 ---@param player LuaPlayer
 function UiSite.onMergeConfirm(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
     local tab = get_tab_from_event(event)
     local merge = tab.main.site_outer.site.merge
     if merge == nil then return end
