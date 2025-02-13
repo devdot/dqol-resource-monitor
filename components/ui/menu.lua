@@ -526,7 +526,7 @@ function UiMenu.tabs.other.fill(tab)
 
     for _, type in pairs(Resources.types) do
         table.add { type = 'label', caption = type.resource_name }
-        table.add { type = 'label', caption = type.category }
+        table.add { type = 'label', caption = type.category }.style.horizontally_squashable = true
         
         for _, toggle in pairs(toggles) do
             table.add {
@@ -545,7 +545,7 @@ function UiMenu.tabs.other.fill(tab)
         for __, product in pairs(Resources.getProducts(type.resource_name)) do
             products = products .. ' ' .. product.name
         end
-        table.add { type = 'label', caption = products }
+        table.add { type = 'label', caption = products }.style.horizontally_squashable = true
     end
 end
 
