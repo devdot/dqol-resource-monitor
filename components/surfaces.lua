@@ -15,12 +15,36 @@ local function finish_generate_from_game()
     local list = {}
     for _, surface in pairs(finish_generate_surface_list) do if game.get_surface(surface.id) then table.insert(list, surface) end end
 
+    local hide = {
+        ['aai-signals'] = 'aai-signal-transmission',
+        ['thruster-control-behavior'] = 'thruster-control-behavior',
+    }
+
     -- find a way to work this queue more performatly?
     for _, surface in pairs(list) do
-        if game.surfaces[surface.id].platform ~= nil then
+        local game_surface = game.surfaces[surface.id]
+        if game_surface.platform ~= nil then
             surface.hidden = true
             surface.tracking = false
-        elseif script.active_mods['space-exploration'] then
+            goto continue
+        end
+
+        if hide[game_surface.name] ~= nil and script.active_mods[hide[game_surface.name]] then
+            surface.hidden = true
+            surface.tracking = false
+            goto continue
+        end
+
+        if script.active_mods['minime'] then
+            if string.sub(game_surface.name, 1, 7) == 'minime_' then
+                surface.hidden = true
+                surface.tracking = false
+                goto continue
+            end 
+        end
+        
+        if script.active_mods['space-exploration'] then
+            -- this might need fixing once SE releases for 2.0
             local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = surface.id })
             local type = zone and zone.type
 
@@ -36,6 +60,8 @@ local function finish_generate_from_game()
                 surface.tracking = true
             end
         end
+
+        ::continue::
     end
     finish_generate_surface_list = {}
 end
