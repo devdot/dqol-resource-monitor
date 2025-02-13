@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.5.3
+Date: 13.02.2025
+  Minor Features:
+    - Automatically hide unplayable surfaces that are added by some mods (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67a781808487adeb6c4b508c).
+  Bugfixes:
+    - Fix crashes when sites are deleted while other players are interacting with them (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67aa29b68ee3eac6312477f0).
+    - Fix UI overflow in "Other" tab that happened with some modded resources (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67a7824f7bb8d922068caa91).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.2
 Date: 29.01.2025
   Bugfixes:
