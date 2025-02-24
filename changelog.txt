@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.5.4
-Date: -------
+Date: 24.02.2025
   Minor Features:
-    - Ukrainian translation.
+    - Ukrainian translation (thanks to bootseller).
+    - Improve auto-detection of unplayable surfaces (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67a781808487adeb6c4b508c).
 ---------------------------------------------------------------------------------------------------
 Version: 1.5.3
 Date: 13.02.2025
