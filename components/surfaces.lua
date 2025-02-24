@@ -10,17 +10,34 @@ Surfaces = {
 
 local finish_generate_surface_list = {}
 
+---@return LuaForce
+local function get_player_force()
+    if game.forces['player'] then return game.forces['player'] end
+
+    local last = nil
+    for _, force in pairs(game.forces) do
+        if table_size(force.players) > 0 then
+            return force
+        end
+        last = force
+    end
+
+    return last
+end
+
 local function finish_generate_from_game()
     -- filter the list (remove surfaces that do not exist anymore)
     local list = {}
     for _, surface in pairs(finish_generate_surface_list) do if game.get_surface(surface.id) then table.insert(list, surface) end end
 
     local hide = {
-        ['aai-signals'] = 'aai-signal-transmission',
+        -- ['aai-signals'] = 'aai-signal-transmission', -- automatically detected
         ['thruster-control-behavior'] = 'thruster-control-behavior',
     }
 
-    -- find a way to work this queue more performatly?
+    local force = nil
+    
+    -- work through the surfaces
     for _, surface in pairs(list) do
         local game_surface = game.surfaces[surface.id]
         if game_surface.platform ~= nil then
@@ -29,18 +46,20 @@ local function finish_generate_from_game()
             goto continue
         end
 
-        if hide[game_surface.name] ~= nil and script.active_mods[hide[game_surface.name]] then
+        -- find a force that can be used here
+        force = force or get_player_force()
+        if force.get_surface_hidden(surface.id) then
             surface.hidden = true
             surface.tracking = false
+            log('Detected hidden surface ' .. game_surface.name)
             goto continue
         end
 
-        if script.active_mods['minime'] then
-            if string.sub(game_surface.name, 1, 7) == 'minime_' then
-                surface.hidden = true
-                surface.tracking = false
-                goto continue
-            end 
+        if hide[game_surface.name] ~= nil and script.active_mods[hide[game_surface.name]] then
+            surface.hidden = true
+            surface.tracking = false
+            log('Detected hidden surface (blacklist) ' .. game_surface.name)
+            goto continue
         end
         
         if script.active_mods['space-exploration'] then
