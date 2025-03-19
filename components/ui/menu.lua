@@ -888,7 +888,8 @@ function UiMenu.filters.getSites(state, use_products)
                 if not use_products then
                     allowType = state.resources[type] ~= nil
                 else
-                    for _, key in pairs(Resources.types[type].products) do
+                    local products = (Resources.types[type] and Resources.types[type].products) or {}
+                    for _, key in pairs(products) do
                         if state.resources[key] ~= nil then
                             allowType = true
                         end
