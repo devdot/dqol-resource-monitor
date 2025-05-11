@@ -73,6 +73,23 @@ function Scanner.scan_chunk(surface, chunk, site_list)
     return true
 end
 
+---@param surface LuaSurface
+---@param area {left_top: {x: float, y: float}, right_bottom: {x: float, y: float}}
+---@param site_list table<string, Site>|nil
+function Scanner.scan_area(surface, area, site_list)
+    local resources = surface.find_entities_filtered {
+        area = area,
+        type = 'resource',
+    }
+
+    local chunk = {
+        x = math.floor(area.left_top.x / 32),
+        y = math.floor(area.left_top.y / 32),
+    }
+
+    Sites.createFromChunkResources(resources, surface, chunk, site_list)
+end
+
 ---@alias ScannerCache {chunks: table<integer, table<string, boolean>>}
 ---chunks: first index is the surface index, inner index is position_to_key of that chunk
 
@@ -193,6 +210,59 @@ function on_built_entity(event)
     end
 end
 
+local function py_bitumen_callback(_, meta, event)
+    Scanner.py_update_bitumen_seep(meta.pos, meta.surface)
+end
+
+local function on_resource_depleted(event)
+    -- this is only active with certain mods
+
+    -- check for pyanodons bitumen seep
+    ---@type LuaEntity
+    local resource = event.entity
+    if resource.name == 'bitumen-seep' and resource.valid then
+        -- find the old site
+        local site = nil
+        local pos = resource.position
+        for _, _site in pairs(Sites.storage.getSurfaceSubList(resource.surface.index)['bitumen-seep'] or {}) do
+            -- we need some more margin to match the site with 0x0 dimension
+            local match = (_site.area.left - 1) <= pos.x and (_site.area.right + 1) >= pos.x and
+            (_site.area.top - 1) <= pos.y and (_site.area.bottom + 1) >= pos.y
+            if match then
+                site = _site
+                break
+            end
+        end
+        
+        -- call for a re-scan of that chunk
+        -- use the translation system as a callback for next tick
+        -- todo: use a less hacky system for this
+        Translation.request('bitumen' .. ((site and site.id) or '0'), py_bitumen_callback, {site_id = site.id or nil, pos = pos, surface = resource.surface})
+
+         -- remove the site now
+        if site ~= nil then
+            game.print('Removed site ' .. site.name) -- todo translation
+            Sites.storage.remove(site)
+        end
+        return
+    end
+end
+
+function Scanner.py_update_bitumen_seep(pos, surface)
+    local sites = {}
+    Scanner.scan_area(surface, {
+        left_top = { x = pos.x - 0.5, y = pos.y - 0.5 },
+        right_bottom = { x = pos.x + 0.5, y = pos.y + 0.5},
+    }, sites)
+
+    for _, site in pairs(sites) do
+        site.tracking = true
+        Sites.storage.insert(site)
+        local message = { 'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) .. site.name }
+        game.print(message)
+    end
+end
+
 function Scanner.boot()
     if settings.global['dqol-resource-monitor-site-auto-scan'].value then
         script.on_event(defines.events.on_chunk_charted, on_chunk_charted)
@@ -210,6 +280,10 @@ function Scanner.boot()
     script.on_event(defines.events.on_chunk_deleted, on_chunk_deleted)
     script.on_event(defines.events.on_surface_deleted, on_surface_deleted)
     script.on_event(defines.events.on_surface_created, on_surface_created)
+
+    if script.active_mods['pypetroleumhandling'] then
+        script.on_event(defines.events.on_resource_depleted, on_resource_depleted)
+    end
 end
 
 function Scanner.onInitMod()

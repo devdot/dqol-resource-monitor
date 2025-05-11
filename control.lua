@@ -1,6 +1,6 @@
 require('version')
 
-if _DEBUG then require('commands/commands') end
+require('commands/commands')
 
 require('util/util')
 
