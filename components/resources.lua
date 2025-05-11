@@ -71,13 +71,31 @@ end
 
 local function resource_translated(string, meta, event)
     if Resources.types[meta.type] ~= nil then
+        if string == '' then
+            -- try some other domains
+            if meta.domain == 'entity-name' then
+                Translation.request({ 'resource-name', meta.type }, resource_translated)
+            elseif meta.domain == 'resource-name' then
+                Translation.request({ 'item-name' , meta.type}, resource_translated)
+            else
+                log('Failed translation for ' .. meta.type)
+                -- now call self to pretend a translation
+                resource_translated(meta.type, meta, event)
+            end
+
+            -- return and wait for next callback
+            return
+        end
+
         Resources.types[meta.type].translated_name = string
-        log('Translated ' .. meta.type .. ' to ' .. string)
+        log('Translated ' .. meta.domain .. '.' .. meta.type .. ' to ' .. string)
         save_to_storage()
     end
 end
 
 local function generate_resources()
+    -- for new games, this is called twice (on_init, on_player_created)
+    -- for first time loaded games, this is called 2-3 times (on_load, player_reboot, on_configuration_changed)
     Resources.types = {}
     Resources.products = {}
 
@@ -125,7 +143,7 @@ local function generate_resources()
 
     -- request translations for all resources
     for _, resource in pairs(Resources.types) do
-        Translation.request({'entity-name.' .. resource.resource_name}, resource_translated, {type = resource.resource_name})
+        Translation.request({'entity-name', resource.resource_name}, resource_translated)
     end
 
     -- write to global cache

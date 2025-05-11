@@ -6,18 +6,29 @@ Translation = {
     -- maybe we need to store callbacks in storage?
 }
 
----@param string LocalisedString
+---@param string string|string[] {1: string, 2: string}
 ---@param callback function
 ---@param meta table?
 ---@param player LuaPlayer?
 ---@returns boolean
 function Translation.request(string, callback, meta, player)
+    if type(string) ~= 'string' then
+        if meta == nil then
+            meta = { domain = string[1], type = string[2] }
+        end
+
+        string = string[1] .. '.' .. string[2]
+    end
+
+    -- now transform into localized string
+    string = {string}
+
     if player == nil then
         local _key, _player = pairs(game.players)(game.players, nil)
         player = _player or nil
     end
     if player == nil then
-        log('Failed requesting translation without player: ' .. serpent.line(string))
+        -- log('Failed requesting translation without player: ' .. serpent.line(string))
         return false
     end
 

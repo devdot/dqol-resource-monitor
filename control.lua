@@ -73,7 +73,11 @@ end
 
 ---This is called when a player is created in multiplayer (join)
 function on_player_joined_game(event)
-    boot_player(game.players[event.player_index])
+    -- this is also called in singleplayer once when the game is created
+    -- therefore, filter when tick is 0
+    if game.tick > 0 then
+        boot_player(game.players[event.player_index])
+    end
 end
 
 script.on_event(defines.events.on_player_created, on_player_created)
