@@ -162,6 +162,7 @@ function on_built_entity(event)
     -- however, most people place some miner on the site so this is "good enough"
     local pos = event.entity.position
     local surface = event.entity.surface_index
+    ---@type LuaPlayer?
     local player = (event.player_index and game.players[event.player_index]) or event.entity.last_user
 
     -- match this position with any site that could work
@@ -174,8 +175,10 @@ function on_built_entity(event)
                 if site.tracking == false then
                     site.tracking = true
                     Sites.site.updateCalculated(site)
-                    player.print({ 'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) ..
-                    site.name })
+
+                    -- in strange circumstances, player can still be nil
+                    local message = { 'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) .. site.name }
+                    if player then player.print(message) else game.print(message) end
                 end
 
                 -- don't look for this type anymore ... we assume there is at most one match per type
