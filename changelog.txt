@@ -2,7 +2,7 @@
 Version: 1.5.6
 Date: 11.05.2025
   Features:
-    - Update chunk data what a Pyanodons Bitumen Seep is depleted (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67a333cabd5ab6beee14a148).
+    - Update site when a Pyanodons Bitumen Seep is depleted (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67a333cabd5ab6beee14a148).
   Bugfixes:
     - Fix crash when upgrading a miner with a robot (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/681ecd5d311051a44f8ea337).
     - Fix auto naming (translation) issues for Spaghetorio ores (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/680f7d2c232e9a9646f85129).
