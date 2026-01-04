@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.5.7
+Date: 04.01.2026
+  Minor Features:
+    - Auto-tracking now recognizes miners that were placed by script (i.e. other mods like Mouse Over Construction), see #22 and https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6900cf8920092e3421d13227 .
+  Bugfixes:
+    - Fix crash related to Py bitumen seep, as provided by iAndy (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6845eb667fc9585c043d7763).
+    - Fix crash after removing a mod that added resources (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/68ffb9125a83c0c180a8768f).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.6
 Date: 11.05.2025
   Features:
