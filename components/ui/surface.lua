@@ -28,7 +28,8 @@ function UiSurface.showInMenu(surface_id, outer)
     for resource, sites in pairs(sitesByType) do
         local type = Resources.types[resource]
 
-        if type.hidden == false then
+        -- make sure the type exists in the first place
+        if type and type.hidden == false then
             local sum = 0
             local sum_tracking = 0
             local sites_tracking = 0
