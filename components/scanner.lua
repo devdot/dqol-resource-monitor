@@ -275,6 +275,7 @@ function Scanner.boot()
         }}
         script.on_event(defines.events.on_built_entity, on_built_entity, filter)
         script.on_event(defines.events.on_robot_built_entity, on_built_entity, filter)
+        script.on_event(defines.events.script_raised_built, on_built_entity, filter)
     end
 
     script.on_event(defines.events.on_chunk_deleted, on_chunk_deleted)
