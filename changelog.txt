@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.5.8
+Date: 07.01.2026
+  Translation
+    - Add Russian translation (thanks to Eldrinn-Elantey/MateuFeo).
+    - Improve German translation (thanks to ST-DDT).
+    - Improve English translation (thanks to ST-DDT).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.7
 Date: 04.01.2026
   Minor Features:
