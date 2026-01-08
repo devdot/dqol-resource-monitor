@@ -1,6 +1,6 @@
 {
     "name": "dqol-resource-monitor",
-    "version": "1.5.8",
+    "version": "1.5.9",
     "title": "Resource Monitor",
     "author": "devdot",
     "description": "Monitor mining sites and track resources across planets \/ surfaces.",
