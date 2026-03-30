@@ -1,4 +1,7 @@
 data:extend({
+    -- startup
+
+    -- runtime global
     {
         name = 'dqol-resource-monitor-site-ticks-between-updates',
         type = 'int-setting',

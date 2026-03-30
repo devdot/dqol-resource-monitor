@@ -105,11 +105,9 @@ style.dqol_resource_monitor_dashboard_frame = {
     },
 }
 
-style.dqol_resource_monitor_dashboard_noframe = {
-    type = 'vertical_flow_style',
-    padding = 0,
-    vertical_spacing = 0,
-}
+style.dqol_resource_monitor_dashboard_frame_opaque = table.deepcopy(style.dqol_resource_monitor_dashboard_frame)
+style.dqol_resource_monitor_dashboard_frame_opaque.graphical_set = table.deepcopy(style.frame.graphical_set)
+style.dqol_resource_monitor_dashboard_frame_opaque.graphical_set.base.opacity = 0.6
 
 -- sprites
 local filter_names = {'default', 'resource', 'name', 'amount', 'percent', 'rate', 'depletion'}

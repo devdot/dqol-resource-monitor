@@ -57,9 +57,9 @@ local function create_dashboard(player)
 
     local isFrame = state.dashboard.transparent_background == false
     local root = Ui.mod_gui.get_frame_flow(player).add {
-        type = (isFrame and 'frame') or 'flow',
+        type = 'frame',
         name = UiDashboard.ROOT_FRAME,
-        style = (isFrame and 'dqol_resource_monitor_dashboard_frame') or 'dqol_resource_monitor_dashboard_noframe',
+        style = (isFrame and 'dqol_resource_monitor_dashboard_frame') or 'dqol_resource_monitor_dashboard_frame_opaque',
         direction = 'vertical',
     }
 
