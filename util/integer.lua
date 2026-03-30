@@ -18,6 +18,27 @@ function integer.toTimeString(ticks, default)
     return hour .. ':' .. min .. ':' .. sec
 end
 
+---@param ticks integer
+---@param default string|LocalisedString
+---@return string|LocalisedString
+function integer.toFormattedTimeString(ticks, default)
+    if ticks == nil then
+        return default
+    end
+
+    local min = math.floor(ticks / 3600)
+    local hour = math.floor(min / 60)
+    min = min % 60
+
+    if hour >= 10 then
+        return hour .. 'h'
+    elseif hour > 0 then
+        return hour .. 'h ' .. min .. 'm'
+    else
+        return min .. 'm'
+    end
+end
+
 local SI_STRINGS = {'', 'k', 'M', 'G', 'T', 'P', 'E', 'Z'}
 
 ---@param integer integer
