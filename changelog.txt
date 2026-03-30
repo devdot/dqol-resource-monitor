@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.5.10
+Date: 30.03.2026
+  Minor Features:
+    - Improve on depletion estimation time display (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/69c8475fe45c78ff81485086).
+    - Turn transparent dashboard slightly opaque to improve readability (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/68db6dbb1b9e29fabd7d2bdd).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.9
 Date: 08.01.2026
   Bugfixes:
