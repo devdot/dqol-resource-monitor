@@ -166,6 +166,7 @@ function Ui.boot()
 
     -- subcomponents
     Ui.Dashboard.boot()
+    Ui.Menu.boot()
 end
 
 ---This is supposed to run on on_player_created or (or multiplayer join?)

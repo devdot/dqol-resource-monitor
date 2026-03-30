@@ -2,6 +2,7 @@ local UiMenu = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-menu',
     BUTTON_NAME = Ui.ROOT_FRAME .. '-menu-show',
     WINDOW_ID = 'menu',
+    UPDATE_INTERVAL = 600,
     tabs = {
         sites = {},
         surfaces = {},
@@ -17,6 +18,17 @@ local UiMenu = {
 function UiMenu.bootPlayer(player)
     UiMenu.createButton(player)
     UiMenu.close(player)
+end
+
+function UiMenu.boot()
+    local function updateInterval()
+        for _, player in pairs(game.players) do
+            if UiMenu.isOpen(player) then
+                UiMenu.show(player)
+            end
+        end
+    end
+    script.on_nth_tick(UiMenu.UPDATE_INTERVAL, updateInterval)
 end
 
 ---@param player LuaPlayer
