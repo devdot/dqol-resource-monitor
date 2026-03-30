@@ -109,7 +109,7 @@ function UiSite.showInMenu(site_id, outer)
     info.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-rate]', tooltip = {'dqol-resource-monitor.ui-site-rate'}}.style.width = 20
     info.add { type = 'label', caption = Util.Integer.toExponentString(site.calculated.rate, 2) .. '/s' }.style.width = 86
     info.add { type = 'label', caption = '[img=dqol-resource-monitor-filter-depletion]', tooltip = {'dqol-resource-monitor.ui-site-estimated-depletion'}}.style.width = 20
-    info.add { type = 'label', caption = Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'})}.style.width = 86
+    info.add { type = 'label', caption = Util.Integer.toFormattedTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'})}.style.width = 86
     info.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), tooltip = Surfaces.surface.getNameById(site.surface) }.style.width = 20
     info.add { type = 'label', caption = Surfaces.surface.getNameById(site.surface) }.style.width = 86
 

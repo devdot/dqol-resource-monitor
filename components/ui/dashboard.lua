@@ -39,7 +39,7 @@ local UiDashboard = {
             img = 'dqol-resource-monitor-filter-depletion',
             tooltip = { 'dqol-resource-monitor.ui-site-estimated-depletion' },
             style = 'dqol_resource_monitor_table_cell_number',
-            value = function (site) return Util.Integer.toTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'}) end,
+            value = function (site) return Util.Integer.toFormattedTimeString(site.calculated.estimated_depletion, {'dqol-resource-monitor.ui-site-estimated-depletion-never'}) end,
         },
         rate = {
             img = 'dqol-resource-monitor-filter-rate',
