@@ -107,7 +107,7 @@ style.dqol_resource_monitor_dashboard_frame = {
 
 style.dqol_resource_monitor_dashboard_frame_opaque = table.deepcopy(style.dqol_resource_monitor_dashboard_frame)
 style.dqol_resource_monitor_dashboard_frame_opaque.graphical_set = table.deepcopy(style.frame.graphical_set)
-style.dqol_resource_monitor_dashboard_frame_opaque.graphical_set.base.opacity = 0.6
+style.dqol_resource_monitor_dashboard_frame_opaque.graphical_set.base.opacity = settings.startup['dqol-resource-monitor-dashboard-frame-opacity'].value
 
 -- sprites
 local filter_names = {'default', 'resource', 'name', 'amount', 'percent', 'rate', 'depletion'}

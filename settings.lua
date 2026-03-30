@@ -1,5 +1,13 @@
 data:extend({
     -- startup
+    {
+        name = 'dqol-resource-monitor-dashboard-frame-opacity',
+        setting_type = 'startup',
+        type = 'double-setting',
+        default_value = 0.6,
+        minimum_value = 0,
+        maximum_value = 1,
+    },
 
     -- runtime global
     {
