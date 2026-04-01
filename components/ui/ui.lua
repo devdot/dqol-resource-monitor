@@ -32,6 +32,8 @@ Ui.routes = {
         toggle_pin = Ui.Site.onTogglePin,
         merge_open = Ui.Site.onMergeOpen,
         merge_confirm = Ui.Site.onMergeConfirm,
+        area_open = Ui.Site.onAreaOpen,
+        area_select = Ui.Site.onAreaSelect,
     },
     surface = {
         show = Ui.Menu.onSurfaceShow,
@@ -119,6 +121,15 @@ Ui.onSelectedTabChanged = route_event
 Ui.onSwitchStateChanged = route_event
 Ui.onHoverIn = route_event
 Ui.onHoverOut = route_event
+Ui.onSelectedArea = function(event)
+    local state = Ui.State.get(event.player_index)
+    event.element = { tags = {
+        _module = 'site',
+        _action = 'area_select',
+        site_id = state.menu.open_site_id,
+    }}
+    route_event(event)
+end
 
 function Ui.routes.surface.__prepare(event)
     return {
@@ -163,6 +174,9 @@ function Ui.boot()
     script.on_event({ defines.events.on_gui_closed }, Ui.onClosed)
     script.on_event({ defines.events.on_gui_hover }, Ui.onHoverIn)
     script.on_event({ defines.events.on_gui_leave }, Ui.onHoverOut)
+    script.on_event({ defines.events.on_player_selected_area }, Ui.onSelectedArea)
+    script.on_event({ defines.events.on_player_reverse_selected_area }, Ui.onSelectedArea)
+    script.on_event({ defines.events.on_player_alt_selected_area }, Ui.onSelectedArea)
 
     -- subcomponents
     Ui.Dashboard.boot()

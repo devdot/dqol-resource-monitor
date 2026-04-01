@@ -300,6 +300,54 @@ function Sites.createFromChunkResources(resources, surface, chunk, input)
     end
 end
 
+---@param resources LuaEntity[]
+---@param surface LuaSurface
+---@param input table<string, Site>|nil
+function Sites.createFromResources(resources, surface, input)
+    -- split into chunks
+    local chunks = {}
+    for _, entity in pairs(resources) do
+        local chunk = {
+            x = math.floor(entity.position.x / 32),
+            y = math.floor(entity.position.y / 32),
+        }
+        local key = chunk.x .. '-' .. chunk.y
+        if chunks[key] == nil then
+            chunks[key] = {
+                chunk = chunk,
+                entities = {}
+            }
+        end
+
+        table.insert(chunks[key].entities, entity)
+    end
+
+    -- process each chunk into a site
+    local sites = {}
+    for _, chunk in pairs(chunks) do
+        local tmp = {}
+        Sites.createFromChunkResources(chunk.entities, surface, chunk.chunk, tmp)
+        for type, site in pairs(tmp) do
+            if sites[type] == nil then sites[type] = {} end
+            table.insert(sites[type], site)
+        end
+    end
+
+    -- merge those chunk sites into a single site per resource
+    for type, sites in pairs(sites) do
+        local site = sites[1]
+        for i = 2, #sites, 1 do
+            Sites.merge(site, sites[i])
+        end
+
+        if input == nil then
+            Sites.storage.insert(site)
+        else
+            input[type] = site
+        end
+    end
+end
+
 ---@param surface uint
 function Sites.deleteSurface(surface)
     local types = Sites.storage.getSurfaceSubList(surface)
@@ -416,6 +464,66 @@ function Sites.site.updateMapTag(site)
             site.map_tag.destroy()
             site.map_tag = nil
         end
+    end
+end
+
+---@param site Site
+function Sites.site.calculateArea(site)
+    -- expensive function to re-calculate the site area
+
+    -- first chunk
+    local first = site.chunks[pairs(site.chunks)(site.chunks)]
+    if first == nil then return end
+
+    local area = {
+        left = (first.x * 32),
+        right = (first.x * 32) + 31,
+        top = (first.y * 32),
+        bottom = (first.y * 32) + 31,
+        x = first.x * 32,
+        y = first.y * 32,
+    }
+
+    -- find outermost chunks to start with
+    for _, chunk in pairs(site.chunks) do
+        area.left = math.min(chunk.x * 32, area.left)
+        area.right = math.max((chunk.x * 32) + 31, area.right)
+        area.top = math.min(chunk.y * 32, area.top)
+        area.bottom = math.max((chunk.y * 32) + 31, area.bottom)
+    end
+
+    -- now narrow the box
+    local surface = game.surfaces[site.surface]
+    local narrow = function(area, dir, opposite, step, axis)
+        local a = { left_top = { x = area.left, y = area.top }, right_bottom = { x = area.right, y = area.bottom } }
+        for pos = area[dir], area[opposite], step do
+
+                       a.left_top[axis] = pos a.right_bottom[axis] = pos + 1
+            local resources = surface.find_entities_filtered {
+                area = a,
+                name = site.type,
+            }
+            if #resources > 0 then
+                area[dir] = pos
+                break
+            end
+        end
+    end
+    narrow(area, 'left', 'right', 1, 'x')
+    narrow(area, 'right', 'left', -1, 'x')
+    narrow(area, 'top', 'bottom', 1, 'y')
+    narrow(area, 'bottom', 'top', -1, 'y')
+
+    -- calculate center
+    area.x = area.left + ((area.right - area.left) / 2)
+    area.y = area.top + ((area.bottom - area.top) / 2)
+
+    -- set te new area
+    site.area = area
+
+    -- move map tag if applicable
+    if site.map_tag and site.map_tag.valid then
+        site.map_tag.position = area
     end
 end
 
