@@ -475,4 +475,31 @@ function UiSite.onMergeConfirm(site, player, event)
     player.print({'dqol-resource-monitor.ui-print-merged-sites', otherSite.id, site.id})
 end
 
+---@param site ?Site
+---@param player LuaPlayer
+function UiSite.onAdd(site, player, event)
+    local tab = get_tab_from_event(event)
+
+    -- retrieve data
+    local selectSurface = tab.top_flow.add_site.form.surface
+    local surfaceId = selectSurface.tags.indexToSurface[selectSurface.selected_index]
+    local surface = game.surfaces[surfaceId]
+    local selectResource = tab.top_flow.add_site.form.resource
+    local resourceType = selectResource.tags.indexToResource[selectResource.selected_index]
+    local resource = Resources.types[resourceType]
+
+    if surface == nil or resource == nil then return end
+
+    -- create the new site
+    local site = Sites.createEmpty(
+        true,
+        surface.index,
+        resource.resource_name,
+        Util.Naming.getSiteName({x = player.position[1], y = player.position[2]}, resource.resource_name)
+    )
+
+    -- show this site in the menu
+    Ui.Menu.onSiteShow(site, player)
+end
+
 return UiSite

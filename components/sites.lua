@@ -221,20 +221,8 @@ function Sites.createFromChunkResources(resources, surface, chunk, input)
         }
 
         if not types[resource.name] then
-            types[resource.name] = {
-                id = 0,
-                type = resource.name,
-                name = Util.Naming.getSiteName(pos, resource.name),
-                surface = surface.index,
-                chunks = {},
-                initial_amount = 0,
-                since = game.tick,
-                index = 0,
-                area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
-                tracking = settings.global['dqol-resource-monitor-site-track-new-default'].value,
-                pinned = false,
-            }
-
+            types[resource.name] = Sites.createEmpty(false, surface.index, resource.name, Util.Naming.getSiteName(pos, resource.name))
+            types[resource.name].area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x }
             types[resource.name].chunks[chunk_key] = {
                 x = chunk.x,
                 y = chunk.y,
@@ -346,6 +334,37 @@ function Sites.createFromResources(resources, surface, input)
             input[type] = site
         end
     end
+end
+
+---@param store boolean
+---@param surfaceIndex integer
+---@param resourceType ResourceIdentifier
+---@param name ?string
+---@return Site
+function Sites.createEmpty(store, surfaceIndex, resourceType, name)
+    local site = {
+        area = { top = 0, bottom = 0, left = 0, right = 0, x = 0, y = 0 },
+        calculated = {},
+        chunks = {},
+        id = 0,
+        index = 0,
+        initial_amount = 0,
+        map_tag = nil,
+        name = name or '',
+        pinned = false,
+        since = game.tick,
+        surface = surfaceIndex,
+        tracking = settings.global['dqol-resource-monitor-site-track-new-default'].value,
+        type = resourceType,
+    }
+
+    Sites.site.updateCalculated(site)
+
+    if store then
+        Sites.storage.insert(site)
+    end
+
+    return site
 end
 
 ---@param surface uint
@@ -514,12 +533,8 @@ function Sites.site.calculateArea(site)
     narrow(area, 'top', 'bottom', 1, 'y')
     narrow(area, 'bottom', 'top', -1, 'y')
 
-    -- calculate center
-    area.x = area.left + ((area.right - area.left) / 2)
-    area.y = area.top + ((area.bottom - area.top) / 2)
-
-    -- set te new area
-    site.area = area
+    -- set the new area
+    site.area = update_site_area_center(area)
 
     -- move map tag if applicable
     if site.map_tag and site.map_tag.valid then

@@ -33,7 +33,7 @@ Ui.routes = {
         merge_open = Ui.Site.onMergeOpen,
         merge_confirm = Ui.Site.onMergeConfirm,
         area_open = Ui.Site.onAreaOpen,
-        area_select = Ui.Site.onAreaSelect,
+        add = Ui.Site.onAdd,
     },
     surface = {
         show = Ui.Menu.onSurfaceShow,
