@@ -529,6 +529,11 @@ function UiSite.onAreaSelect(site, player, event)
     Sites.site.calculateArea(site)
     Sites.updater.updateSite(site)
 
+    -- make sure the initial size is grown if needed
+    if site.initial_amount < site.calculated.amount then
+        site.initial_amount = site.calculated.amount
+    end
+
     -- finish with showing everything
     player.print({ 'dqol-resource-monitor.ui-print-area-tool-' .. mode, site.id, site.name })
     player.cursor_stack.clear()
