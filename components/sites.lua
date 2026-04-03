@@ -761,6 +761,10 @@ function Sites.updater.updateSite(site)
         Sites.updater.updateSiteChunk(site.id, chunkKey)
     end
 
+    if table_size(site.chunks) == 0 then
+        Sites.site.updateCalculated(site)
+    end
+
     Sites.site.updateMapTag(site)
 end
 
