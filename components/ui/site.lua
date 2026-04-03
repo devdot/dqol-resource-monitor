@@ -113,7 +113,7 @@ function UiSite.showInMenu(site_id, outer)
     info.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), tooltip = Surfaces.surface.getNameById(site.surface) }.style.width = 20
     info.add { type = 'label', caption = Surfaces.surface.getNameById(site.surface) }.style.width = 86
 
-    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 8, style = 'compact_slot_table' }
+    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 9, style = 'compact_slot_table' }
     buttons.add {
         type = 'sprite-button',
         style = 'slot_sized_button_blue',
@@ -129,11 +129,12 @@ function UiSite.showInMenu(site_id, outer)
     buttons.add {
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
-        tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
-        sprite = 'utility/center', -- maybe utility/map ?
+        tooltip = { 'dqol-resource-monitor.ui-site-archived-tooltip' },
+        sprite = 'utility/resources_depleted_icon',
+        toggled = site.archived or false,
         tags = {
             _module = 'site',
-            _action = 'highlight',
+            _action = 'toggle_archived',
             site_id = site.id,
         },
     }
@@ -146,6 +147,17 @@ function UiSite.showInMenu(site_id, outer)
         tags = {
             _module = 'site',
             _action = 'toggle_pin',
+            site_id = site.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
+        tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
+        sprite = 'utility/center', -- maybe utility/map ?
+        tags = {
+            _module = 'site',
+            _action = 'highlight',
             site_id = site.id,
         },
     }
@@ -397,6 +409,24 @@ function UiSite.onToggleTracking(site, player, event)
     if site == nil then return Ui.Menu.show(player) end
 
     site.tracking = (site.tracking == false) or false
+
+    -- immediately update the site
+    Sites.updater.updateSite(site)
+
+    Ui.Menu.show(player)
+end
+
+---@param site ?Site
+---@param player LuaPlayer
+function UiSite.onToggleArchived(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
+    site.archived = (site.archived == false) or false
+
+    if site.archived == true and site.calculated.amount == 0 then
+        -- automatically turn of tracking when archiving sites
+        site.tracking = false
+    end
 
     -- immediately update the site
     Sites.updater.updateSite(site)

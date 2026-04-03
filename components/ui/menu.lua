@@ -832,8 +832,8 @@ function UiMenu.filters.create(tab, filter_group)
             localized = 'only-tracked',
         },
         {
-            name = 'onlyEmpty',
-            localized = 'only-empty',
+            name = 'onlyArchived',
+            localized = 'only-archived',
             sprite = 'utility/resources_depleted_icon',
         },
         {
@@ -890,7 +890,7 @@ function UiMenu.filters.fill(tab, state, filter_group)
     
     -- state
     filters.orderAndState.states.onlyTracked.toggled = state.onlyTracked or false
-    filters.orderAndState.states.onlyEmpty.toggled = state.onlyEmpty or false
+    filters.orderAndState.states.onlyArchived.toggled = state.onlyArchived or false
     filters.orderAndState.states.onlyPinned.toggled = state.onlyPinned or false
 
     -- order by
@@ -956,7 +956,7 @@ function UiMenu.filters.getSites(state, use_products)
                         local insert = true
                         if state.onlyTracked == true and site.tracking == false then
                             insert = false
-                        elseif state.onlyEmpty == true and site.calculated.amount > 0 then
+                        elseif state.onlyArchived == true and site.archived ~= true then
                             insert = false
                         elseif state.onlyPinned == true and site.pinned ~= true then
                             insert = false

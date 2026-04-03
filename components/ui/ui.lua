@@ -29,6 +29,7 @@ Ui.routes = {
         delete_open = Ui.Site.onDeleteOpen,
         delete = Ui.Site.onDelete,
         toggle_tracking = Ui.Site.onToggleTracking,
+        toggle_archived = Ui.Site.onToggleArchived,
         toggle_pin = Ui.Site.onTogglePin,
         merge_open = Ui.Site.onMergeOpen,
         merge_confirm = Ui.Site.onMergeConfirm,

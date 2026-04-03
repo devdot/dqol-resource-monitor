@@ -20,7 +20,7 @@ Sites = {
 ---@alias SiteChunk {x: integer, y: integer, tiles: integer, amount: integer, updated: integer, borders: SiteChunkBorders}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
 ---@alias SiteCalculated {updated_at: integer, amount: integer, percent: number, rate: number, estimated_depletion: integer?, last_amount: integer, last_amount_tick: integer}
----@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?, pinned: boolean?}
+---@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, archived: boolean?, map_tag: LuaCustomChartTag?, pinned: boolean?}
 
 ---@alias GlobalSitesUpdater {pointer: integer, queue: table<integer, table<1|2, integer|SiteChunkKey>>} -- queue sub-entries simply have 1: siteId and 2: chunkId
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
@@ -343,6 +343,7 @@ end
 ---@return Site
 function Sites.createEmpty(store, surfaceIndex, resourceType, name)
     local site = {
+        archived = false,
         area = { top = 0, bottom = 0, left = 0, right = 0, x = 0, y = 0 },
         calculated = {},
         chunks = {},
@@ -739,6 +740,13 @@ function Sites.updater.updateSiteChunk(siteId, chunkKey)
     -- remove if empty
     if #resources == 0 then
         site.chunks[chunkKey] = nil
+
+        
+        -- check if entire site is empty
+        if site.calculated.amount <= 0 then
+            game.print({ 'dqol-resource-monitor.ui-print-now-empty', site.name })
+        end
+        
         return nil
     end
 
