@@ -1,4 +1,36 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.6.0
+Date: 01.04.2026
+  Major Features:
+    - Sites can be moved manually using the new site area tool (https://github.com/devdot/dqol-resource-monitor/issues/17).
+    - Empty sites can be added manually through the other tab.
+---------------------------------------------------------------------------------------------------
+Version: 1.5.10
+Date: 30.03.2026
+  Minor Features:
+    - Improve on depletion estimation time display (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/69c8475fe45c78ff81485086).
+    - Turn transparent dashboard slightly opaque to improve readability (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/68db6dbb1b9e29fabd7d2bdd).
+---------------------------------------------------------------------------------------------------
+Version: 1.5.9
+Date: 08.01.2026
+  Bugfixes:
+    - Fix Changelog.
+---------------------------------------------------------------------------------------------------
+Version: 1.5.8
+Date: 07.01.2026
+  Translation:
+    - Add Russian translation (thanks to Eldrinn-Elantey/MateuFeo).
+    - Improve German translation (thanks to ST-DDT).
+    - Improve English translation (thanks to ST-DDT).
+---------------------------------------------------------------------------------------------------
+Version: 1.5.7
+Date: 04.01.2026
+  Minor Features:
+    - Auto-tracking now recognizes miners that were placed by script (i.e. other mods like Mouse Over Construction), see #22 and https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6900cf8920092e3421d13227 .
+  Bugfixes:
+    - Fix crash related to Py bitumen seep, as provided by iAndy (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6845eb667fc9585c043d7763).
+    - Fix crash after removing a mod that added resources (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/68ffb9125a83c0c180a8768f).
+---------------------------------------------------------------------------------------------------
 Version: 1.5.6
 Date: 11.05.2025
   Features:
@@ -16,8 +48,9 @@ Date: 19.03.2025
 Version: 1.5.4
 Date: 24.02.2025
   Minor Features:
-    - Ukrainian translation (thanks to bootseller).
     - Improve auto-detection of unplayable surfaces (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/67a781808487adeb6c4b508c).
+  Translation:
+    - Ukrainian translation (thanks to bootseller).
 ---------------------------------------------------------------------------------------------------
 Version: 1.5.3
 Date: 13.02.2025

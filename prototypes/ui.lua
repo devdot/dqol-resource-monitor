@@ -141,6 +141,45 @@ end
 
 data:extend {
     {
+        type = 'selection-tool',
+        name = 'dqol-resource-monitor-area-tool',
+        icons = {
+            {
+                icon = '__core__/graphics/icons/mip/reassign.png',
+                icon_size = 32,
+            },
+        },
+        flags = { 'only-in-cursor', 'not-stackable', },
+        stack_size = 1,
+        hidden = true,
+        -- set
+        select = {
+            border_color = { g = 1 },
+            cursor_box_type = 'copy',
+            mode = 'any-entity',
+            entity_filter_mode = 'whitelist',
+            entity_type_filters = { 'resource' },
+        },
+        -- add
+        alt_select = {
+            border_color = { b = 1 },
+            cursor_box_type = 'copy',
+            mode = 'any-entity',
+            entity_filter_mode = 'whitelist',
+            entity_type_filters = { 'resource' },
+        },
+        -- subtract
+        reverse_select = {
+            border_color = { r = 1 },
+            cursor_box_type = 'copy',
+            mode = 'any-entity',
+            entity_filter_mode = 'whitelist',
+            entity_type_filters = { 'resource' },
+        },
+    },
+
+    -- sprites
+    {
         type = 'sprite',
         name = 'dqol-resource-monitor-logo',
         filename = '__dqol-resource-monitor__/graphics/logo.png',
@@ -162,6 +201,15 @@ data:extend {
         type = 'sprite',
         name = 'dqol-resource-monitor-site-merge',
         filename = '__dqol-resource-monitor__/graphics/site-merge.png',
+        priority = 'extra-high',
+        width = 64,
+        height = 64,
+        flags = {'gui-icon'}
+    },
+    {
+        type = 'sprite',
+        name = 'dqol-resource-monitor-site-archive',
+        filename = '__dqol-resource-monitor__/graphics/site-archive.png',
         priority = 'extra-high',
         width = 64,
         height = 64,

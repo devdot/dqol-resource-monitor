@@ -237,7 +237,7 @@ local function on_resource_depleted(event)
         -- call for a re-scan of that chunk
         -- use the translation system as a callback for next tick
         -- todo: use a less hacky system for this
-        Translation.request('bitumen' .. ((site and site.id) or '0'), py_bitumen_callback, {site_id = site.id or nil, pos = pos, surface = resource.surface})
+        Translation.request('bitumen' .. ((site and site.id) or '0'), py_bitumen_callback, {site_id = (site) and (site.id or nil), pos = pos, surface = resource.surface}) 
 
          -- remove the site now
         if site ~= nil then
@@ -275,6 +275,7 @@ function Scanner.boot()
         }}
         script.on_event(defines.events.on_built_entity, on_built_entity, filter)
         script.on_event(defines.events.on_robot_built_entity, on_built_entity, filter)
+        script.on_event(defines.events.script_raised_built, on_built_entity, filter)
     end
 
     script.on_event(defines.events.on_chunk_deleted, on_chunk_deleted)

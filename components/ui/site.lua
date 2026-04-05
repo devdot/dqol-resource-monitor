@@ -113,7 +113,7 @@ function UiSite.showInMenu(site_id, outer)
     info.add { type = 'label', caption = Surfaces.surface.getIconString(site.surface), tooltip = Surfaces.surface.getNameById(site.surface) }.style.width = 20
     info.add { type = 'label', caption = Surfaces.surface.getNameById(site.surface) }.style.width = 86
 
-    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 7, style = 'compact_slot_table' }
+    local buttons = inner.add { name = 'buttons', type = 'table', column_count = 9, style = 'compact_slot_table' }
     buttons.add {
         type = 'sprite-button',
         style = 'slot_sized_button_blue',
@@ -129,11 +129,12 @@ function UiSite.showInMenu(site_id, outer)
     buttons.add {
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
-        tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
-        sprite = 'utility/center', -- maybe utility/map ?
+        tooltip = { 'dqol-resource-monitor.ui-site-archived-tooltip' },
+        sprite = 'dqol-resource-monitor-site-archive',
+        toggled = site.archived or false,
         tags = {
             _module = 'site',
-            _action = 'highlight',
+            _action = 'toggle_archived',
             site_id = site.id,
         },
     }
@@ -152,6 +153,17 @@ function UiSite.showInMenu(site_id, outer)
     buttons.add {
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
+        tooltip = { 'dqol-resource-monitor.ui-site-highlight-tooltip' },
+        sprite = 'utility/center', -- maybe utility/map ?
+        tags = {
+            _module = 'site',
+            _action = 'highlight',
+            site_id = site.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
         tooltip = {'dqol-resource-monitor.ui-site-rename', site.name},
         sprite = 'utility/rename_icon',
         tags = renameOpenTags,
@@ -164,6 +176,17 @@ function UiSite.showInMenu(site_id, outer)
         tags = {
             _module = 'site',
             _action = 'merge_open',
+            site_id = site.id,
+        },
+    }
+    buttons.add {
+        type = 'sprite-button',
+        style = 'compact_slot_sized_button',
+        tooltip = {'dqol-resource-monitor.ui-site-area-tooltip', site.name},
+        sprite = 'utility/area_icon',
+        tags = {
+            _module = 'site',
+            _action = 'area_open',
             site_id = site.id,
         },
     }
@@ -220,6 +243,9 @@ function UiSite.showInMenu(site_id, outer)
             site_id = site.id,
         }
     }
+
+    local areaGroup = inner.add { name = 'area', type = 'flow', direction = 'horizontal', visible = false }
+    areaGroup.add { type = 'label', caption = {'dqol-resource-monitor.ui-site-area-caption'}, style = 'info_label' }
 
     local camera = inner.add {
         type = 'camera',
@@ -392,6 +418,24 @@ end
 
 ---@param site ?Site
 ---@param player LuaPlayer
+function UiSite.onToggleArchived(site, player, event)
+    if site == nil then return Ui.Menu.show(player) end
+
+    site.archived = (site.archived ~= true) or false
+
+    if site.archived == true and site.calculated.amount == 0 then
+        -- automatically turn of tracking when archiving sites
+        site.tracking = false
+    end
+
+    -- immediately update the site
+    Sites.updater.updateSite(site)
+
+    Ui.Menu.show(player)
+end
+
+---@param site ?Site
+---@param player LuaPlayer
 function UiSite.onTogglePin(site, player, event)
     if site == nil then return Ui.Menu.show(player) end
 
@@ -451,6 +495,84 @@ end
 
 ---@param site ?Site
 ---@param player LuaPlayer
+function UiSite.onAreaOpen(site, player, event)
+    -- show area tool note
+    local tab = get_tab_from_event(event)
+    local area = tab.main.site_outer.site.area
+    if area == nil then return end
+    area.visible = true
+
+    -- toggle tool
+    if player.cursor_stack.valid_for_read and player.cursor_stack.name == 'dqol-resource-monitor-area-tool' then
+        player.cursor_stack.clear()
+    else
+        player.cursor_stack.set_stack({name = 'dqol-resource-monitor-area-tool'})
+    end
+end
+
+---@param site ?Site
+---@param player LuaPlayer
+---@param event 
+function UiSite.onAreaSelect(site, player, event)
+    if site == nil then return end
+    local mode = (event.name == 58 and 'add') or (event.name == 196 and 'sub') or 'set'
+
+    -- make sure the surface is right
+    local surface = event.surface ---@as LuaSurface
+    if surface.index ~= site.surface then
+        player.print({ 'dqol-resource-monitor.ui-print-area-tool-fail-surface', site.id, site.name })
+        return
+    end
+
+    local sites = {}
+    Sites.createFromResources(event.entities, surface, sites)
+    local newSite = sites[site.type]
+
+    -- make sure there were valid resources selected
+    if newSite == nil then
+        player.print({ 'dqol-resource-monitor.ui-print-area-tool-fail-resources', site.id, site.name })
+        return
+    end
+
+    -- now decide the mode
+    if mode == 'add' then
+        -- add all chunks that do not exist already
+        for key, chunk in pairs(newSite.chunks) do
+            if site.chunks[key] == nil then
+                site.chunks[key] = chunk
+            end
+        end
+    elseif mode == 'sub' then
+        -- remove the chunks that overlap
+        for key, chunk in pairs(newSite.chunks) do
+            if site.chunks[key] ~= nil then
+                site.chunks[key] = nil
+            end
+        end
+    else
+        -- simply replace the chunks with these ones
+        site.chunks = newSite.chunks
+    end
+    
+    -- update all data
+    Sites.site.updateCalculated(site)
+    Sites.site.calculateArea(site)
+    Sites.updater.updateSite(site)
+
+    -- make sure the initial size is grown if needed
+    if site.initial_amount < site.calculated.amount then
+        site.initial_amount = site.calculated.amount
+    end
+
+    -- finish with showing everything
+    player.print({ 'dqol-resource-monitor.ui-print-area-tool-' .. mode, site.id, site.name })
+    player.cursor_stack.clear()
+    Sites.site.highlight(site)
+    Ui.Menu.onSiteShow(site, player)
+end
+
+---@param site ?Site
+---@param player LuaPlayer
 function UiSite.onMergeConfirm(site, player, event)
     if site == nil then return Ui.Menu.show(player) end
 
@@ -473,6 +595,33 @@ function UiSite.onMergeConfirm(site, player, event)
     Ui.Menu.show(player)
 
     player.print({'dqol-resource-monitor.ui-print-merged-sites', otherSite.id, site.id})
+end
+
+---@param site ?Site
+---@param player LuaPlayer
+function UiSite.onAdd(site, player, event)
+    local tab = get_tab_from_event(event)
+
+    -- retrieve data
+    local selectSurface = tab.top_flow.add_site.form.surface
+    local surfaceId = selectSurface.tags.indexToSurface[selectSurface.selected_index]
+    local surface = game.surfaces[surfaceId]
+    local selectResource = tab.top_flow.add_site.form.resource
+    local resourceType = selectResource.tags.indexToResource[selectResource.selected_index]
+    local resource = Resources.types[resourceType]
+
+    if surface == nil or resource == nil then return end
+
+    -- create the new site
+    local site = Sites.createEmpty(
+        true,
+        surface.index,
+        resource.resource_name,
+        Util.Naming.getSiteName({x = player.position[1], y = player.position[2]}, resource.resource_name)
+    )
+
+    -- show this site in the menu
+    Ui.Menu.onSiteShow(site, player)
 end
 
 return UiSite
