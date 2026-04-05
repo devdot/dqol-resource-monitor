@@ -469,7 +469,9 @@ end
 function UiMenu.tabs.other.fill(tab)
     tab.clear()
 
-    local info = tab.add { type = 'table', column_count = 2 }
+    tab.add { name = 'top_flow', type = 'flow', direction = 'horizontal' }
+
+    local info = tab.top_flow.add { type = 'table', column_count = 2 }
     info.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-info-headline'}, style = 'caption_label' }
     info.add { type = 'label', caption = '' }
     
@@ -494,7 +496,56 @@ function UiMenu.tabs.other.fill(tab)
         info.add { type = 'label', caption = 'Updater is not initialized yet. If the mod was just loaded, you may need to wait a little. Otherwise, check that there are sites with tracking enabled.' }
         info.add { type = 'label', caption = '' }
     end
+
+    tab.top_flow.add { type = 'line' }
     
+    local addSite = tab.top_flow.add { name = 'add_site', type = 'flow', direction = 'vertical' }
+    addSite.add { type = 'label', caption = {'dqol-resource-monitor.ui-menu-other-sites-add'}, style = 'caption_label'}
+    local addSiteForm = addSite.add { name = 'form', type = 'flow', direction = 'horizontal' }
+
+    local surfaces = {}
+    local indexToSurface = {}
+    for _, surface in pairs(Surfaces.getVisibleSurfaces()) do
+        table.insert(surfaces, Surfaces.surface.getName(surface))
+        table.insert(indexToSurface, surface.id)
+    end
+    addSiteForm.add {
+        name = 'surface',
+        type = 'drop-down',
+        items = surfaces,
+        selected_index = 1,
+        tooltip = {'dqol-resource-monitor.ui-site-surface'},
+        tags = {
+            indexToSurface = indexToSurface,
+        },
+    }
+    local resources = {}
+    local indexToResource = {}
+    for type, resource in pairs(Resources.types) do
+        table.insert(resources, resource.translated_name)
+        table.insert(indexToResource, type)
+    end
+    addSiteForm.add {
+        name = 'resource',
+        type = 'drop-down',
+        items = resources,
+        selected_index = 1,
+        tooltip = {'dqol-resource-monitor.ui-site-type'},
+        tags = {
+            indexToResource = indexToResource,
+        },
+    }
+    addSiteForm.add {
+        type = 'button',
+        caption = { 'dqol-resource-monitor.ui-ok' },
+        tooltip = {'dqol-resource-monitor.ui-menu-other-sites-add'},
+        style = 'item_and_count_select_confirm',
+        tags = {
+            _module = 'site',
+            _action = 'add',
+        }
+    }
+
     tab.add { type = 'line' }
     tab.add {
         type = 'switch',
@@ -781,9 +832,9 @@ function UiMenu.filters.create(tab, filter_group)
             localized = 'only-tracked',
         },
         {
-            name = 'onlyEmpty',
-            localized = 'only-empty',
-            sprite = 'utility/resources_depleted_icon',
+            name = 'onlyArchived',
+            localized = 'only-archived',
+            sprite = 'dqol-resource-monitor-site-archive',
         },
         {
             name = 'onlyPinned',
@@ -839,7 +890,7 @@ function UiMenu.filters.fill(tab, state, filter_group)
     
     -- state
     filters.orderAndState.states.onlyTracked.toggled = state.onlyTracked or false
-    filters.orderAndState.states.onlyEmpty.toggled = state.onlyEmpty or false
+    filters.orderAndState.states.onlyArchived.toggled = state.onlyArchived or false
     filters.orderAndState.states.onlyPinned.toggled = state.onlyPinned or false
 
     -- order by
@@ -905,7 +956,7 @@ function UiMenu.filters.getSites(state, use_products)
                         local insert = true
                         if state.onlyTracked == true and site.tracking == false then
                             insert = false
-                        elseif state.onlyEmpty == true and site.calculated.amount > 0 then
+                        elseif state.onlyArchived == true and site.archived ~= true then
                             insert = false
                         elseif state.onlyPinned == true and site.pinned ~= true then
                             insert = false

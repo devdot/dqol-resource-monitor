@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.6.0
+Date: 01.04.2026
+  Major Features:
+    - Sites can be moved manually using the new site area tool (https://github.com/devdot/dqol-resource-monitor/issues/17).
+    - Empty sites can be added manually through the other tab.
+---------------------------------------------------------------------------------------------------
 Version: 1.5.10
 Date: 30.03.2026
   Minor Features:

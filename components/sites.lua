@@ -20,7 +20,7 @@ Sites = {
 ---@alias SiteChunk {x: integer, y: integer, tiles: integer, amount: integer, updated: integer, borders: SiteChunkBorders}
 ---@alias SiteArea {left: integer, right: integer, top: integer, bottom: integer, x: integer, y: integer}
 ---@alias SiteCalculated {updated_at: integer, amount: integer, percent: number, rate: number, estimated_depletion: integer?, last_amount: integer, last_amount_tick: integer}
----@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, map_tag: LuaCustomChartTag?, pinned: boolean?}
+---@alias Site {id: integer, calculated: SiteCalculated, type: string, name: string, surface: integer, chunks: table<SiteChunkKey, SiteChunk>, initial_amount: integer, index: integer, since: integer, area: SiteArea, tracking: boolean, archived: boolean?, map_tag: LuaCustomChartTag?, pinned: boolean?}
 
 ---@alias GlobalSitesUpdater {pointer: integer, queue: table<integer, table<1|2, integer|SiteChunkKey>>} -- queue sub-entries simply have 1: siteId and 2: chunkId
 ---@alias GlobalSites {surfaces: table<integer, table<string, Site[]?>?>?, ids: table<integer, Site>?, updater: GlobalSitesUpdater}
@@ -221,20 +221,8 @@ function Sites.createFromChunkResources(resources, surface, chunk, input)
         }
 
         if not types[resource.name] then
-            types[resource.name] = {
-                id = 0,
-                type = resource.name,
-                name = Util.Naming.getSiteName(pos, resource.name),
-                surface = surface.index,
-                chunks = {},
-                initial_amount = 0,
-                since = game.tick,
-                index = 0,
-                area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x },
-                tracking = settings.global['dqol-resource-monitor-site-track-new-default'].value,
-                pinned = false,
-            }
-
+            types[resource.name] = Sites.createEmpty(false, surface.index, resource.name, Util.Naming.getSiteName(pos, resource.name))
+            types[resource.name].area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x }
             types[resource.name].chunks[chunk_key] = {
                 x = chunk.x,
                 y = chunk.y,
@@ -298,6 +286,86 @@ function Sites.createFromChunkResources(resources, surface, chunk, input)
             Sites.storage.insert(site)
         end
     end
+end
+
+---@param resources LuaEntity[]
+---@param surface LuaSurface
+---@param input table<string, Site>|nil
+function Sites.createFromResources(resources, surface, input)
+    -- split into chunks
+    local chunks = {}
+    for _, entity in pairs(resources) do
+        local chunk = {
+            x = math.floor(entity.position.x / 32),
+            y = math.floor(entity.position.y / 32),
+        }
+        local key = chunk.x .. '-' .. chunk.y
+        if chunks[key] == nil then
+            chunks[key] = {
+                chunk = chunk,
+                entities = {}
+            }
+        end
+
+        table.insert(chunks[key].entities, entity)
+    end
+
+    -- process each chunk into a site
+    local sites = {}
+    for _, chunk in pairs(chunks) do
+        local tmp = {}
+        Sites.createFromChunkResources(chunk.entities, surface, chunk.chunk, tmp)
+        for type, site in pairs(tmp) do
+            if sites[type] == nil then sites[type] = {} end
+            table.insert(sites[type], site)
+        end
+    end
+
+    -- merge those chunk sites into a single site per resource
+    for type, sites in pairs(sites) do
+        local site = sites[1]
+        for i = 2, #sites, 1 do
+            Sites.merge(site, sites[i])
+        end
+
+        if input == nil then
+            Sites.storage.insert(site)
+        else
+            input[type] = site
+        end
+    end
+end
+
+---@param store boolean
+---@param surfaceIndex integer
+---@param resourceType ResourceIdentifier
+---@param name ?string
+---@return Site
+function Sites.createEmpty(store, surfaceIndex, resourceType, name)
+    local site = {
+        archived = false,
+        area = { top = 0, bottom = 0, left = 0, right = 0, x = 0, y = 0 },
+        calculated = {},
+        chunks = {},
+        id = 0,
+        index = 0,
+        initial_amount = 0,
+        map_tag = nil,
+        name = name or '',
+        pinned = false,
+        since = game.tick,
+        surface = surfaceIndex,
+        tracking = settings.global['dqol-resource-monitor-site-track-new-default'].value,
+        type = resourceType,
+    }
+
+    Sites.site.updateCalculated(site)
+
+    if store then
+        Sites.storage.insert(site)
+    end
+
+    return site
 end
 
 ---@param surface uint
@@ -416,6 +484,62 @@ function Sites.site.updateMapTag(site)
             site.map_tag.destroy()
             site.map_tag = nil
         end
+    end
+end
+
+---@param site Site
+function Sites.site.calculateArea(site)
+    -- expensive function to re-calculate the site area
+
+    -- first chunk
+    local first = site.chunks[pairs(site.chunks)(site.chunks)]
+    if first == nil then return end
+
+    local area = {
+        left = (first.x * 32),
+        right = (first.x * 32) + 31,
+        top = (first.y * 32),
+        bottom = (first.y * 32) + 31,
+        x = first.x * 32,
+        y = first.y * 32,
+    }
+
+    -- find outermost chunks to start with
+    for _, chunk in pairs(site.chunks) do
+        area.left = math.min(chunk.x * 32, area.left)
+        area.right = math.max((chunk.x * 32) + 31, area.right)
+        area.top = math.min(chunk.y * 32, area.top)
+        area.bottom = math.max((chunk.y * 32) + 31, area.bottom)
+    end
+
+    -- now narrow the box
+    local surface = game.surfaces[site.surface]
+    local narrow = function(area, dir, opposite, step, axis)
+        local a = { left_top = { x = area.left, y = area.top }, right_bottom = { x = area.right, y = area.bottom } }
+        for pos = area[dir], area[opposite], step do
+
+                       a.left_top[axis] = pos a.right_bottom[axis] = pos + 1
+            local resources = surface.find_entities_filtered {
+                area = a,
+                name = site.type,
+            }
+            if #resources > 0 then
+                area[dir] = pos
+                break
+            end
+        end
+    end
+    narrow(area, 'left', 'right', 1, 'x')
+    narrow(area, 'right', 'left', -1, 'x')
+    narrow(area, 'top', 'bottom', 1, 'y')
+    narrow(area, 'bottom', 'top', -1, 'y')
+
+    -- set the new area
+    site.area = update_site_area_center(area)
+
+    -- move map tag if applicable
+    if site.map_tag and site.map_tag.valid then
+        site.map_tag.position = area
     end
 end
 
@@ -616,6 +740,13 @@ function Sites.updater.updateSiteChunk(siteId, chunkKey)
     -- remove if empty
     if #resources == 0 then
         site.chunks[chunkKey] = nil
+
+        
+        -- check if entire site is empty
+        if site.calculated.amount <= 0 then
+            game.print({ 'dqol-resource-monitor.ui-print-now-empty', site.name })
+        end
+        
         return nil
     end
 
@@ -628,6 +759,10 @@ end
 function Sites.updater.updateSite(site)
     for chunkKey, chunk in pairs(site.chunks) do
         Sites.updater.updateSiteChunk(site.id, chunkKey)
+    end
+
+    if table_size(site.chunks) == 0 then
+        Sites.site.updateCalculated(site)
     end
 
     Sites.site.updateMapTag(site)
