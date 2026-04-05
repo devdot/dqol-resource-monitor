@@ -51,6 +51,7 @@ Ui.routes = {
     menu = {
         show = Ui.Menu.onShow,
         toggle = Ui.Menu.onToggle,
+        toggle_refresh = Ui.Menu.onToggleRefresh,
         tab_select = Ui.Menu.onSelectedTabChanged,
         use_products_toggle = Ui.Menu.onUseProductsToggle,
         toggle_resource_type_setting = Ui.Menu.onToggleResourceTypeSetting,

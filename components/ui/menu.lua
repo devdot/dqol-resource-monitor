@@ -23,8 +23,8 @@ end
 function UiMenu.boot()
     local function updateInterval()
         for _, player in pairs(game.players) do
-            if UiMenu.isOpen(player) then
-                UiMenu.show(player)
+            if Ui.State.get(player.index).menu.refresh and Ui.Menu.isOpen(player) then
+                Ui.Menu.show(player)
             end
         end
     end
@@ -82,19 +82,20 @@ function UiMenu.create(player)
     window.style.maximal_width = 960
     window.style.natural_height = 880
 
-    if window.titlebar ~= nil and window.titlebar.reload == nil then
-        -- create the reload button
+    if window.titlebar ~= nil and window.titlebar.refresh == nil then
+        -- create the refresh toggle button
         window.titlebar.add {
-            name = 'reload',
+            name = 'refresh',
             index = #(window.titlebar.children),
             type = 'sprite-button',
             style = 'frame_action_button',
             sprite = 'utility/reset_white',
-            tooltip = {'dqol-resource-monitor.ui-menu-reload-tooltip'},
+            tooltip = {'dqol-resource-monitor.ui-menu-refresh-tooltip'},
             tags = {
                 _module = 'menu',
-                _action = 'show',
+                _action = 'toggle_refresh',
             },
+            toggled = Ui.State.get(player.index).menu.refresh or false,
         }
     end
 
@@ -1056,6 +1057,14 @@ function UiMenu.onToggle(event)
     end
 end
 
+function UiMenu.onToggleRefresh(event)
+    local state = Ui.State.get(event.player_index)
+    state.menu.refresh = state.menu.refresh ~= true
+    
+    local player = game.players[event.player_index]
+    Ui.Menu.get(player).titlebar.refresh.toggled = state.menu.refresh
+    Ui.Menu.show(player)
+end
 
 function UiMenu.onSelectedTabChanged(event)
     UiMenu.switchToTab(game.players[event.player_index], event.element.selected_tab_index or 1)
