@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.6.1
+Date: ???
+  Bugfixes:
+    - Archived sites cannot be auto-tracked by placing miners in the former area anymore.
+---------------------------------------------------------------------------------------------------
 Version: 1.6.0
 Date: 05.04.2026
   Major Features:

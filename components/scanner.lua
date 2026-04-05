@@ -189,7 +189,7 @@ function on_built_entity(event)
             -- simply check if the position is within the area of this site
             local match = site.area.left <= pos.x and site.area.right >= pos.x and site.area.top <= pos.y and site.area.bottom >= pos.y
             if match then
-                if site.tracking == false then
+                if site.archived ~= true and site.tracking == false then
                     site.tracking = true
                     Sites.site.updateCalculated(site)
 
