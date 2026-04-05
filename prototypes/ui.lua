@@ -143,9 +143,12 @@ data:extend {
     {
         type = 'selection-tool',
         name = 'dqol-resource-monitor-area-tool',
-        -- icon = 'utility/area_icon',
-        icon = '__core__/graphics/icons/mip/select-area.png',
-        icon_size = 32,
+        icons = {
+            {
+                icon = '__core__/graphics/icons/mip/reassign.png',
+                icon_size = 32,
+            },
+        },
         flags = { 'only-in-cursor', 'not-stackable', },
         stack_size = 1,
         hidden = true,
@@ -198,6 +201,15 @@ data:extend {
         type = 'sprite',
         name = 'dqol-resource-monitor-site-merge',
         filename = '__dqol-resource-monitor__/graphics/site-merge.png',
+        priority = 'extra-high',
+        width = 64,
+        height = 64,
+        flags = {'gui-icon'}
+    },
+    {
+        type = 'sprite',
+        name = 'dqol-resource-monitor-site-archive',
+        filename = '__dqol-resource-monitor__/graphics/site-archive.png',
         priority = 'extra-high',
         width = 64,
         height = 64,

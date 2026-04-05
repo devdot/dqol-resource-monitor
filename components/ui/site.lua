@@ -130,7 +130,7 @@ function UiSite.showInMenu(site_id, outer)
         type = 'sprite-button',
         style = 'compact_slot_sized_button',
         tooltip = { 'dqol-resource-monitor.ui-site-archived-tooltip' },
-        sprite = 'utility/resources_depleted_icon',
+        sprite = 'dqol-resource-monitor-site-archive',
         toggled = site.archived or false,
         tags = {
             _module = 'site',
@@ -421,7 +421,7 @@ end
 function UiSite.onToggleArchived(site, player, event)
     if site == nil then return Ui.Menu.show(player) end
 
-    site.archived = (site.archived == false) or false
+    site.archived = (site.archived ~= true) or false
 
     if site.archived == true and site.calculated.amount == 0 then
         -- automatically turn of tracking when archiving sites

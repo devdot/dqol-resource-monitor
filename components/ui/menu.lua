@@ -834,7 +834,7 @@ function UiMenu.filters.create(tab, filter_group)
         {
             name = 'onlyArchived',
             localized = 'only-archived',
-            sprite = 'utility/resources_depleted_icon',
+            sprite = 'dqol-resource-monitor-site-archive',
         },
         {
             name = 'onlyPinned',
