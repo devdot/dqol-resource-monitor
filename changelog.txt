@@ -1,9 +1,14 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.6.0
-Date: 01.04.2026
+Date: 05.04.2026
   Major Features:
     - Sites can be moved manually using the new site area tool (https://github.com/devdot/dqol-resource-monitor/issues/17).
+    - Sites can be archived now, replacing the previous empty filters with improved archiving mechanics.
+  Minor Features:
     - Empty sites can be added manually through the other tab.
+    - The Resource Monitor Menu can automatically refresh now if the refresh button is toggled.
+  Bugfixes:
+    - Fixed estimated depletion turning to never on empty sites when the update is forced manually.
 ---------------------------------------------------------------------------------------------------
 Version: 1.5.10
 Date: 30.03.2026
