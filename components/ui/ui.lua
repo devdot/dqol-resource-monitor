@@ -125,13 +125,15 @@ Ui.onSwitchStateChanged = route_event
 Ui.onHoverIn = route_event
 Ui.onHoverOut = route_event
 Ui.onSelectedArea = function(event)
-    local state = Ui.State.get(event.player_index)
-    event.element = { tags = {
-        _module = 'site',
-        _action = 'area_select',
-        site_id = state.menu.open_site_id,
-    }}
-    route_event(event)
+    if event.item == 'dqol-resource-monitor-area-tool' then
+        local state = Ui.State.get(event.player_index)
+        event.element = { tags = {
+            _module = 'site',
+            _action = 'area_select',
+            site_id = state.menu.open_site_id,
+        }}
+        route_event(event)
+    end
 end
 
 function Ui.routes.surface.__prepare(event)
