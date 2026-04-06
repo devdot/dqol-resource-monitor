@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.6.1
-Date: ???
+Date: 06.04.2026
   Bugfixes:
     - Archived sites cannot be auto-tracked by placing miners in the former area anymore.
     - Area tool no longer triggers errors when other area selection tools are used.
