@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.6.2
+Date: 13.04.2026
+  Bugfixes:
+    - Fix sites not being updated at all in default config - sorry about this one! (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/69dba7696e2ee60905955e81).
+---------------------------------------------------------------------------------------------------
 Version: 1.6.1
 Date: 06.04.2026
   Bugfixes:
