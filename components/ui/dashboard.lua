@@ -1,6 +1,5 @@
 local UiDashboard = {
     ROOT_FRAME = Ui.ROOT_FRAME .. '-sites',
-    UPDATE_INTERVAL = 60,
     columns = {
         name = {
             img = 'dqol-resource-monitor-filter-name',
@@ -94,11 +93,6 @@ end
 local function remove_dashboard(player)
     local old = Ui.mod_gui.get_frame_flow(player)[UiDashboard.ROOT_FRAME]
     if old ~= nil then old.destroy() end
-end
-
----Called on mod load/init
-function UiDashboard.boot()
-    script.on_nth_tick(UiDashboard.UPDATE_INTERVAL, UiDashboard.onUpdate)
 end
 
 ---@param player LuaPlayer
