@@ -2,3 +2,6 @@
 bin export-ignore
 logo.svg export-ignore
 generate-from-svg export-ignore
+
+README.md export-ignore
+FAQ.md export-ignore

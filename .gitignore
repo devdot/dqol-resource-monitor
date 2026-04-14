@@ -1,5 +1,6 @@
 .vscode/
 dist/
+.env
 .TODO
 mod-helper
 graphics/original
