@@ -84,7 +84,7 @@ Ui.routes = {
 --      within the modules there are keys that represent actions and their values are the callbacks
 --      __prepare is called to prepare the arguments that are given to actions
 local function route_event(event)
-    if event.element then
+    if event.element and event.element.get_mod() == _MOD then
         -- check if there is a filter present
         -- filter out if it does not match
         if event.element.tags._only and event.element.tags._only ~= event.name then return end
