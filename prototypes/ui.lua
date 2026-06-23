@@ -211,8 +211,8 @@ data:extend {
         name = 'dqol-resource-monitor-site-archive',
         filename = '__dqol-resource-monitor__/graphics/site-archive.png',
         priority = 'extra-high',
-        width = 64,
-        height = 64,
+        width = 32,
+        height = 32,
         flags = {'gui-icon'}
     },
     {
