@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.6.3
+Date: 23.06.2026
+  Bugfixes:
+    - Fix broken atlas caching, thanks to @urmet #26
+    - Fix crash when adding new sites in some cases, thanks to @163140 #25
+    - Fix rare compatibility issues with other mods.
+---------------------------------------------------------------------------------------------------
 Version: 1.6.2
 Date: 13.04.2026
   Bugfixes:
