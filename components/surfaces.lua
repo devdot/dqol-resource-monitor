@@ -26,6 +26,8 @@ local function get_player_force()
 end
 
 local function finish_generate_from_game()
+    if game.tick == 0 then return end -- make sure this doesn't cause any issues on game start
+
     -- filter the list (remove surfaces that do not exist anymore)
     local list = {}
     for _, surface in pairs(finish_generate_surface_list) do if game.get_surface(surface.id) then table.insert(list, surface) end end
@@ -67,9 +69,7 @@ local function finish_generate_from_game()
             local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = surface.id })
             local type = zone and zone.type
 
-            if _DEBUG then
-                game.print('Used SE universe to find zone type for ' .. surface.id .. ': ' .. (type or 'nil'))
-            end
+            log('Used SE universe to find zone type for ' .. surface.id .. ': ' .. (type or 'nil'))
 
             if type == nil then
                 surface.hidden = true
@@ -139,9 +139,7 @@ function Surfaces.generateFromGame(luaSurface)
         hidden = false,
     }
 
-    if _DEBUG then
-        game.print('Added surface ' .. serpent.line(surface))
-    end
+    log('Added surface ' .. surface.id .. ' (' .. luaSurface.name .. ')')
 
     -- add to the finish generate list
     table.insert(finish_generate_surface_list, surface)
