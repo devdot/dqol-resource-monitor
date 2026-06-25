@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.6.4
+Date: 25.06.2026
+  Bugfixes:
+    - Fix crash on Space Exploration startup depending on mod order. (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6a3c6229309afae6e23eb722)
+---------------------------------------------------------------------------------------------------
 Version: 1.6.3
 Date: 23.06.2026
   Bugfixes:
