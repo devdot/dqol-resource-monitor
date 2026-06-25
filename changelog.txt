@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.7.0
+Date: 25.06.2026
+  Features:
+    - First release for 2.1. Please report any bugs, the changelog is way too long but I've found no incompatibilities so far!
+---------------------------------------------------------------------------------------------------
 Version: 1.6.4
 Date: 25.06.2026
   Bugfixes:
