@@ -132,7 +132,7 @@ Ui.onSelectedArea = function(event)
             _module = 'site',
             _action = 'area_select',
             site_id = state.menu.open_site_id,
-        }}
+        }, get_mod = function() return _MOD end }
         route_event(event)
     end
 end
