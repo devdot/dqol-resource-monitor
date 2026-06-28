@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.7.1
+Date: 28.06.2026
+  Bugfixes:
+    - Fix broken area selection tool (https://mods.factorio.com/mod/dqol-resource-monitor/discussion/6a3d25a5e1db1ab0b623680c).
+---------------------------------------------------------------------------------------------------
 Version: 1.7.0
 Date: 25.06.2026
   Features:
