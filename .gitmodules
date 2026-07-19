@@ -1,0 +1,3 @@
+[submodule "dqol-core"]
+	path = dqol-core
+	url = ../dqol-core.git
