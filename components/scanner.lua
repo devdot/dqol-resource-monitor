@@ -263,7 +263,7 @@ function Scanner.py_update_bitumen_seep(pos, surface)
     end
 end
 
-function Scanner.boot()
+Control.register('boot', function()
     if settings.global['dqol-resource-monitor-site-auto-scan'].value then
         script.on_event(defines.events.on_chunk_charted, on_chunk_charted)
     end
@@ -285,8 +285,6 @@ function Scanner.boot()
     if script.active_mods['pypetroleumhandling'] then
         script.on_event(defines.events.on_resource_depleted, on_resource_depleted)
     end
-end
+end)
 
-function Scanner.onInitMod()
-    Scanner.cache.reset()
-end
+Control.register('init', Scanner.cache.reset)

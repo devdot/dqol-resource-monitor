@@ -13,11 +13,11 @@ local UiMenu = {
     dashboard = {},
 }
 
----@param player LuaPlayer
-function UiMenu.bootPlayer(player)
+Control.register('player_joined', function(event)
+    local player = game.players[event.player_index]
     UiMenu.createButton(player)
     UiMenu.close(player)
-end
+end)
 
 function UiMenu.onUpdateInterval()
     for _, player in pairs(game.players) do

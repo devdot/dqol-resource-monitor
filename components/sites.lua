@@ -854,14 +854,12 @@ function Sites.updater.finishQueue()
     storage.sites.updater.queue = {}
 end
 
-function Sites.boot()
+Control.register('boot', function()
     local func = Sites.updater.onIncremental
     if settings.global['dqol-resource-monitor-site-chunks-per-update'].value == 0 then
         func = Sites.updater.onAll
     end
     script.on_nth_tick(settings.global['dqol-resource-monitor-site-ticks-between-updates'].value, func)
-end
+end)
 
-function Sites.onInitMod()
-    Sites.resetGlobal()
-end
+Control.register('init', Sites.resetGlobal)

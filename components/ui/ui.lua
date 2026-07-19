@@ -174,7 +174,7 @@ function Ui.onNth(event)
 end
 
 ---This is supposed to be called after load/init
-function Ui.boot()
+Control.register('boot', function()
     script.on_event({ defines.events.on_gui_click }, Ui.onClick)
     script.on_event({ defines.events.on_gui_confirmed }, Ui.onConfirmed)
     script.on_event({ defines.events.on_gui_selection_state_changed }, Ui.onSelectionChanged)
@@ -191,17 +191,9 @@ function Ui.boot()
 
     -- central event, because factorio will only trigger the event once even when registered multiple times
     script.on_nth_tick(Ui.UPDATE_INTERVAL, Ui.onNth)
-end
+end)
 
----This is supposed to run on on_player_created or (or multiplayer join?)
----@param player LuaPlayer
-function Ui.bootPlayer(player)
-    Ui.State.bootPlayer(player)
-    Ui.Menu.bootPlayer(player)
-    Ui.Dashboard.bootPlayer(player)
-end
-
-function Ui.on_configuration_changed(event)
+Control.register('config_changed', function(event)
     -- check if we changed or just some other mods
     if event.mod_changes['dqol-resource-monitor'] == nil then
         return
@@ -210,4 +202,4 @@ function Ui.on_configuration_changed(event)
     for _, player in pairs(game.players) do
         Ui.Menu.close(player)
     end
-end
+end)

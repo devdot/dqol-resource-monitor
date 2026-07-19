@@ -95,10 +95,10 @@ local function remove_dashboard(player)
     if old ~= nil then old.destroy() end
 end
 
----@param player LuaPlayer
-function UiDashboard.bootPlayer(player)
+Control.register('player_joined', function(event)
+    local player = game.players[event.player_index]
     UiDashboard.update(player)
-end
+end)
 
 
 ---Update dashboard with new UI

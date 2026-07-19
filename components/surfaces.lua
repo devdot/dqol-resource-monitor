@@ -211,13 +211,13 @@ function Surfaces.surface.updateResources(surface)
     surface.resources = newTypes
 end
 
-function Surfaces.onInitMod()
+Control.register('init', function()
     Surfaces.storage.reset()
     Surfaces.initialize()
-end
+end)
 
-function Surfaces.on_configuration_changed()
+Control.register('config_changed', function()
     Surfaces.storage.softInitialize()
     Surfaces.initialize()
     Surfaces.updateAll()
-end
+end)

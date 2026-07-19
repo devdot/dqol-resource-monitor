@@ -8,10 +8,9 @@ UiState = {}
 ---@alias UiStatePlayer {menu: UiStateMenu, dashboard: UiStateDashboard}
 ---@alias GlobalUi {players: table<integer, UiStatePlayer>?}
 
----@param player LuaPlayer
-function UiState.bootPlayer(player)
-    UiState.reset(player.index)
-end
+Control.register('player_joined', function(event)
+    UiState.reset(event.player_index)
+end)
 
 ---Reset the entire UI State for a player (or all if none provided)
 ---@param player_index integer?

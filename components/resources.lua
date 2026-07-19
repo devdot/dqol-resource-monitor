@@ -6,7 +6,7 @@
 --    the name of a prototype, is unqiue across all entity types
 ---@alias ProductType {type: 'item' | 'fluid', name: ProductIdentifier, produced_by: ResourceIdentifier[]}
 
----@type {types: table<ResourceIdentifier, ResourceType>, products: table<ProductIdentifier, ProductType>, boot: function, bootPlayer: function, getProduct: function, getProducts: function, getIconString: function, getSpriteString: function, getSignalId: function, cleanResources: function, cleanProducts: function, on_configuration_changed: function}
+---@type {types: table<ResourceIdentifier, ResourceType>, products: table<ProductIdentifier, ProductType>, boot: function, bootPlayer: function, getProduct: function, getProducts: function, getIconString: function, getSpriteString: function, getSignalId: function, cleanResources: function, cleanProducts: function, }
 Resources = {
     types = {},
     products = {},
@@ -221,7 +221,7 @@ function Resources.getSignalId(resource)
     end
 end
 
-function Resources.boot()
+Control.register('boot', function()
     -- check if we can generate now
     if game ~= nil then
         generate_resources()
@@ -232,10 +232,10 @@ function Resources.boot()
         Resources.types = storage.resources.types
         Resources.products = storage.resources.products
     end
-end
+end)
 
----@param player LuaPlayer
-function Resources.bootPlayer(player)
+Control.register('player_joined', function(event)
+    local player = game.players[event.player_index]
     -- this is currently required, so that resources can be translated in new single player games
     -- perhaps find a better way to figure out that a game has been started
     for _, resource in pairs(Resources.types) do
@@ -246,7 +246,7 @@ function Resources.bootPlayer(player)
     
     log('Re-run resource generation from player ' .. player.index)
     generate_resources()
-end
+end)
 
 ---@return table<ResourceIdentifier, ResourceType>
 function Resources.cleanResources()
@@ -282,5 +282,4 @@ function Resources.cleanProducts()
     return products
 end
 
-Resources.on_configuration_changed = generate_resources
-
+Control.register('config_changed', generate_resources)

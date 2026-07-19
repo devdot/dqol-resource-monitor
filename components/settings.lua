@@ -43,18 +43,17 @@ function Settings.updateCustomPattern(player_index)
     end
 end
 
-function Settings.boot()
+Control.register('boot', function()
     script.on_event({ defines.events.on_runtime_mod_setting_changed }, function(e)
         Settings.update(e.setting, e.player_index or nil)
     end)
-end
+end)
 
-function Settings.on_configuration_changed(event)
+Control.register('config_changed', function(event)
     -- check if we changed or just some other mods
     if event.mod_changes['dqol-resource-monitor'] == nil then
         return
     end
 
     Settings.updateAll()
-end
-
+end)
