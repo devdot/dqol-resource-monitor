@@ -12,12 +12,12 @@ require('commands/commands')
 
 require('util/util')
 
-require('components/translation')
-require('components/settings')
-require('components/resources')
-require('components/sites')
-require('components/surfaces')
-require('components/scanner')
+require('scripts/translation')
+require('scripts/settings')
+require('scripts/resources')
+require('scripts/sites')
+require('scripts/surfaces')
+require('scripts/scanner')
 require('scripts/ui/ui')
 
 Control.start()
