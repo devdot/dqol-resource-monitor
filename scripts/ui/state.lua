@@ -1,5 +1,3 @@
-UiState = {}
-
 ---@alias UiStateMenuFilter {resources: table<string, true>, surface: integer?, onlyTracked: boolean, onlyArchived: boolean, onlyPinned: boolean, maxPercent: integer, maxEstimatedDepletion: integer?, minAmount: integer, search: string?, orderBy: nil|'resource'|'name'|'amount'|'percent'|'rate'|'depletion', orderByDesc: boolean?}
 ---@alias UiStateMenu {tab: integer?, refresh: boolean?, open_site_id: integer?, open_surface_id: integer?, sites_filters: UiStateMenuFilter, dashboard_filters: UiStateMenuFilter, use_products: boolean}
 
@@ -8,46 +6,9 @@ UiState = {}
 ---@alias UiStatePlayer {menu: UiStateMenu, dashboard: UiStateDashboard}
 ---@alias GlobalUi {players: table<integer, UiStatePlayer>?}
 
-Control.register('player_joined', function(event)
-    UiState.reset(event.player_index)
-end)
-
----Reset the entire UI State for a player (or all if none provided)
----@param player_index integer?
-function UiState.reset(player_index)
-    if storage.ui == nil or storage.ui.players == nil then
-        storage.ui = {
-            players = {},
-        }
-    end
-
-    if player_index ~= nil then
-        storage.ui.players[player_index] = UiState.generateFreshPlayerState()
-    else
-        for key, state in pairs(storage.ui.players) do
-            storage.ui.players[key] = UiState.generateFreshPlayerState()
-        end
-    end
-end
-
----Get the UI State for a single player. Will create a state if this player is not known.
----@param player_index integer
----@return UiStatePlayer
-function UiState.get(player_index)
-    if storage.ui == nil or storage.ui.players == nil then
-        UiState.reset(player_index)
-    end
-
-    if storage.ui.players[player_index] == nil then
-        UiState.reset(player_index)
-    end
-
-    return storage.ui.players[player_index]
-end
-
 ---Generate a new player state
 ---@return UiStatePlayer
-function UiState.generateFreshPlayerState()
+function generate_fresh_player_state()
     return {
         menu = {
             tab = nil,
@@ -93,4 +54,4 @@ function UiState.generateFreshPlayerState()
     }
 end
 
-return UiState
+return require(_DQOL_CORE_PATH .. 'scripts/ui/state'):new(generate_fresh_player_state)

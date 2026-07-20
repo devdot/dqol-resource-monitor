@@ -1,6 +1,6 @@
 -- update filters for sites
 for _, player in pairs(game.players) do
-    local state = Ui.State.get(player.index)
+    local state = Ui.State:get(player.index)
     
     -- remove onlyEmpty
     state.menu.dashboard_filters.onlyEmpty = nil

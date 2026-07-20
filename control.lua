@@ -18,6 +18,6 @@ require('components/resources')
 require('components/sites')
 require('components/surfaces')
 require('components/scanner')
-require('components/ui/ui')
+require('scripts/ui/ui')
 
 Control.start()

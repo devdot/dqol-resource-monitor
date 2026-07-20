@@ -190,62 +190,6 @@ function UiSurface.showInMenu(surface_id, outer)
     info.add { type = 'label', caption = table_size(chunks) }
 end
 
----@param surface ?Surface
----@param player LuaPlayer
-function UiSurface.onScan(surface, player)
-    if surface ~= nil then
-        Scanner.scan_surface(game.surfaces[surface.id])
-    end
- 
-    Ui.Menu.onSurfaceShow(surface, player)
-end
-
----@param surface ?Surface
----@param player LuaPlayer
-function UiSurface.onAutoTrack(surface, player)
-    if surface == nil then return Ui.Menu.onSurfaceShow(surface, player) end
-
-    local types = Sites.storage.getSurfaceSubList(surface.id)
-    local luaSurface = game.surfaces[surface.id]
-    local found = false
-    for type, inner in pairs(types or {}) do
-        for __, site in pairs(inner or {}) do
-            if site.tracking == false then
-                local miners = luaSurface.count_entities_filtered {
-                    area = { left_top = { x = site.area.left, y = site.area.top }, right_bottom = { x = site.area.right, y = site.area.bottom } },
-                    type = 'mining-drill',
-                }
-
-                if miners > 0 then
-                    site.tracking = true
-                    found = true
-                    Sites.site.updateCalculated(site)
-                    player.print({'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) .. site.name})
-                end
-            end
-        end
-    end
-    if found == false then player.print({'dqol-resource-monitor.ui-print-no-untracked-sites-found'}) end
-    Ui.Menu.onSurfaceShow(surface, player)
-end
-
----@param surface ?Surface
----@param player LuaPlayer
-function UiSurface.onReset(surface, player)
-    if surface == nil then return Ui.Menu.onSurfaceShow(surface, player) end
-
-    Scanner.cache.resetSurface(surface.id)
-    local sites = Sites.storage.getSurfaceSubList(surface.id)
-    for _, inner in pairs(sites) do
-        for __, site in pairs(inner) do
-            Sites.storage.remove(site)
-        end
-    end
-    Surfaces.surface.delete(surface.id)
-    Surfaces.generateFromGame(game.surfaces[surface.id]) -- the surface was not really deleted, so we need to recreate it
-    Ui.Menu.onSurfaceShow(surface, player)
-end
-
 local function surface_tracking_helper(surfaceId, tracking)
     for _, sites in pairs(Sites.storage.getSurfaceSubList(surfaceId)) do
         for __, site in pairs(sites) do
@@ -256,49 +200,112 @@ end
 
 ---@param surface ?Surface
 ---@param player LuaPlayer
-function UiSurface.onTrackAll(surface, player)
-    if surface ~= nil then
-        surface_tracking_helper(surface.id, true)
-    end
-
-    Ui.Menu.onSurfaceShow(surface, player)
+function UiSurface.show(surface, player)
+    Ui.State:get(player.index).menu.open_surface_id = (surface and surface.id) or 0
+    Ui.Menu.openTab(player, Ui.Menu.tabs.surfaces.index)
+    Ui.Menu.open(player)
 end
 
----@param surface ?Surface
----@param player LuaPlayer
-function UiSurface.onUntrackAll(surface, player)
-    if surface ~= nil then
-        surface_tracking_helper(surface.id, false)
-    end
+---@type { __prepare: UiPrepareFunction, [string]: fun(surface: Surface?, player: LuaPlayer, event: UiBasicEvent)}
+Ui.Core.routes.surface = {
+    __prepare = function(event)
+        return {
+            Surfaces.storage.getById(event.element.tags.surface_id or 0),
+            game.players[event.player_index],
+            event,
+        }
+    end,
+
+    show = UiSurface.show,
         
-    Ui.Menu.onSurfaceShow(surface, player)
-end
-
----@param surface Surface
----@param player LuaPlayer
-function UiSurface.onAddMapTags(surface, player)
-    for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
-        for __, site in pairs(inner) do
-            Sites.site.updateMapTag(site)
+    scan = function(surface, player)
+        if surface ~= nil then
+            Scanner.scan_surface(game.surfaces[surface.id])
         end
-    end
-    Ui.Menu.onSurfaceShow(surface, player)
-end
+    
+        UiSurface.show(surface, player)
+    end,
 
----@param surface ?Surface
----@param player LuaPlayer
-function UiSurface.onRemoveMapTags(surface, player)
-    if surface == nil then return Ui.Menu.onSurfaceShow(surface, player) end
+    auto_track = function(surface, player)
+        if surface == nil then return UiSurface.show(surface, player) end
 
-    for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
-        for __, site in pairs(inner) do
-            if site.tracking == false and site.map_tag and site.map_tag.valid then
-                site.map_tag.destroy()
-                site.map_tag = nil
+        local types = Sites.storage.getSurfaceSubList(surface.id)
+        local luaSurface = game.surfaces[surface.id]
+        local found = false
+        for type, inner in pairs(types or {}) do
+            for __, site in pairs(inner or {}) do
+                if site.tracking == false then
+                    local miners = luaSurface.count_entities_filtered {
+                        area = { left_top = { x = site.area.left, y = site.area.top }, right_bottom = { x = site.area.right, y = site.area.bottom } },
+                        type = 'mining-drill',
+                    }
+
+                    if miners > 0 then
+                        site.tracking = true
+                        found = true
+                        Sites.site.updateCalculated(site)
+                        player.print({'dqol-resource-monitor.ui-print-now-tracking', Resources.getIconString(site.type) .. site.name})
+                    end
+                end
             end
         end
-    end
-    Ui.Menu.onSurfaceShow(surface, player)
-end
+        if found == false then player.print({'dqol-resource-monitor.ui-print-no-untracked-sites-found'}) end
+        UiSurface.show(surface, player)
+    end,
+
+    reset = function(surface, player)
+        if surface == nil then return UiSurface.show(surface, player) end
+
+        Scanner.cache.resetSurface(surface.id)
+        local sites = Sites.storage.getSurfaceSubList(surface.id)
+        for _, inner in pairs(sites) do
+            for __, site in pairs(inner) do
+                Sites.storage.remove(site)
+            end
+        end
+        Surfaces.surface.delete(surface.id)
+        Surfaces.generateFromGame(game.surfaces[surface.id]) -- the surface was not really deleted, so we need to recreate it
+        UiSurface.show(surface, player)
+    end,
+
+    track_all = function(surface, player)
+        if surface ~= nil then
+            surface_tracking_helper(surface.id, true)
+        end
+
+        UiSurface.show(surface, player)
+    end,
+
+    untrack_all = function(surface, player)
+        if surface ~= nil then
+            surface_tracking_helper(surface.id, false)
+        end
+            
+        UiSurface.show(surface, player)
+    end,
+
+    add_map_tags = function(surface, player)
+        for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
+            for __, site in pairs(inner) do
+                Sites.site.updateMapTag(site)
+            end
+        end
+        UiSurface.show(surface, player)
+    end,
+
+    remove_map_tags = function(surface, player)
+        if surface == nil then return UiSurface.show(surface, player) end
+
+        for _, inner in pairs(Sites.storage.getSurfaceSubList(surface.id)) do
+            for __, site in pairs(inner) do
+                if site.tracking == false and site.map_tag and site.map_tag.valid then
+                    site.map_tag.destroy()
+                    site.map_tag = nil
+                end
+            end
+        end
+        UiSurface.show(surface, player)
+    end,
+}
 
 return UiSurface

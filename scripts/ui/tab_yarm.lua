@@ -1,27 +1,4 @@
-UiYARM = {}
-
 Ui.Menu.tabs.yarm = {}
-
----@param tab LuaGuiElement
-function Ui.Menu.tabs.yarm.create(tab)
-    tab.add {
-        type = 'label',
-        caption = { 'dqol-resource-monitor.ui-menu-yarm-import-tooltip' },
-        style = 'info_label',
-    }
-    tab.add {
-        type = 'button',
-        caption = { 'dqol-resource-monitor.ui-menu-yarm-import' },
-        tooltip = { 'dqol-resource-monitor.ui-menu-yarm-import-tooltip' },
-        tags = {
-            _callback = 'yarm_import',
-        },
-    }
-end
-
----@param tab LuaGuiElement
-function Ui.Menu.tabs.yarm.fill(tab)
-end
 
 ---@param pos MapPosition
 ---@return ChunkPosition
@@ -29,7 +6,8 @@ local function position_to_chunk(pos)
     return { x = math.floor(pos.x / 32), y = math.floor(pos.y / 32) }
 end
 
-function Ui.callbacks.yarm_import(event)
+---@param event UiBasicEvent
+local function yarm_import(event)
     local player = game.players[event.player_index]
 
     local remote = remote.call('YARM', 'get_global_data')
@@ -137,4 +115,23 @@ function Ui.callbacks.yarm_import(event)
     Ui.Menu.show(player)
 end
 
-return UiYARM
+local callback = Ui.Core.registerCallback(yarm_import)
+
+function Ui.Menu.tabs.yarm.create(tab)
+    tab.add {
+        type = 'label',
+        caption = { 'dqol-resource-monitor.ui-menu-yarm-import-tooltip' },
+        style = 'info_label',
+    }
+    tab.add {
+        type = 'button',
+        caption = { 'dqol-resource-monitor.ui-menu-yarm-import' },
+        tooltip = { 'dqol-resource-monitor.ui-menu-yarm-import-tooltip' },
+        tags = {
+            _callback = callback,
+        },
+    }
+end
+
+function Ui.Menu.tabs.yarm.fill(tab)
+end

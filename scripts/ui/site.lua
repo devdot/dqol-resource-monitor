@@ -1,6 +1,4 @@
-local UiSite = {
-    ROOT_FRAME = Ui.ROOT_FRAME .. '-site',
-}
+local UiSite = {}
 
 ---@param site Site
 ---@return double
@@ -301,152 +299,6 @@ local function get_tab_from_event(event)
     return child
 end
 
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onRename(site, player, event)
-    if site == nil then return Ui.Menu.show(player) end
-
-    local tab = get_tab_from_event(event)
-    local textfield = tab.main.site_outer.rename.textfield
-
-    if textfield == nil then return end
-
-    site.name = textfield.text
-
-    Ui.Menu.show(player)
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onRenameOpen(site, player, event)
-    local tab = get_tab_from_event(event)
-    local outer = tab.main.site_outer
-    outer.title.visible = false
-    outer.rename.visible = true
-
-    local textfield = outer.rename.textfield
-    if textfield == nil then return end
-    textfield.focus()
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onHighlight(site, player)
-    if site == nil then return end
-
-    Sites.site.highlight(site)
-
-    -- show in game world
-    if script.active_mods["space-exploration"] ~= nil then
-        local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = site.surface})
-        if not zone then
-            -- zone is not available?!
-            player.print('Cannot go to zone!')
-            return
-        end
-        remote.call("space-exploration", "remote_view_start",
-            {
-                player = player,
-                zone_name = zone.name,
-                position = site.area,
-                location_name = site.name,
-                freeze_history = true
-            })
-    else
-        local entity = game.surfaces[site.surface].find_entities_filtered{
-            area = {left_top = {x = site.area.x - 1, y = site.area.y - 1}, right_bottom = {x = site.area.x + 1, y = site.area.y + 1}},
-            limit = 1,
-        }[1] or game.surfaces[site.surface].find_entities_filtered {
-            area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
-            limit = 1,
-        }[1] or nil
-
-        if entity then
-            player.centered_on = entity
-        else
-            player.print({'dqol-resource-monitor.ui-print-no-entity-to-center'})
-        end
-    end
-end
-
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onUpdate(site, player, event)
-    if site ~= nil then
-        Sites.updater.updateSite(site)
-    end
-    
-    Ui.Menu.show(player)
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onDeleteOpen(site, player, event)
-    local tab = get_tab_from_event(event)
-    local buttons = tab.main.site_outer.site.buttons
-
-    if buttons == nil then return end
-
-    if buttons.delete_open then buttons.delete_open.visible = false end
-    if buttons.delete_confirm then buttons.delete_confirm.visible = true end
-
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onDelete(site, player, event)
-    if site ~= nil then
-        Sites.storage.remove(site)
-    end
-
-    Ui.Menu.show(player)
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onToggleTracking(site, player, event)
-    if site == nil then return Ui.Menu.show(player) end
-
-    site.tracking = (site.tracking == false) or false
-
-    -- immediately update the site
-    Sites.updater.updateSite(site)
-
-    Ui.Menu.show(player)
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onToggleArchived(site, player, event)
-    if site == nil then return Ui.Menu.show(player) end
-
-    site.archived = (site.archived ~= true) or false
-
-    if site.archived == true and site.calculated.amount == 0 then
-        -- automatically turn of tracking when archiving sites
-        site.tracking = false
-    end
-
-    -- immediately update the site
-    Sites.updater.updateSite(site)
-
-    Ui.Menu.show(player)
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onTogglePin(site, player, event)
-    if site == nil then return Ui.Menu.show(player) end
-
-    site.pinned = (site.pinned ~= true) or false
-
-    -- immediately update the site
-    Sites.updater.updateSite(site)
-
-    Ui.Menu.show(player)
-end
-
 ---@param site Site
 ---@return {site: Site, distance: double}[]
 local function get_mergable_sites(site)
@@ -472,156 +324,291 @@ end
 
 ---@param site ?Site
 ---@param player LuaPlayer
-function UiSite.onMergeOpen(site, player, event)
-    if site == nil then return Ui.Menu.show(player) end
-
-    local tab = get_tab_from_event(event)
-    local merge = tab.main.site_outer.site.merge
-    if merge == nil then return end
-
-    merge.visible = true
-    local sites = get_mergable_sites(site)
-    local items = {}
-    local index = {}
-    for _, item in pairs(sites) do
-        table.insert(items, {'dqol-resource-monitor.ui-site-merge-select-item', item.site.id, item.site.name, item.distance})
-        table.insert(index, item.site.id)
-    end
-    merge.sites.items = items
-    local tags = merge.sites.tags
-    tags.index = index
-    merge.sites.tags = tags
+function UiSite.show(site, player)
+    Ui.State:get(player.index).menu.open_site_id = (site and site.id) or 0
+    Ui.Menu.openTab(player, Ui.Menu.tabs.sites.index)
+    Ui.Menu.open(player)
 end
 
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onAreaOpen(site, player, event)
-    -- show area tool note
-    local tab = get_tab_from_event(event)
-    local area = tab.main.site_outer.site.area
-    if area == nil then return end
-    area.visible = true
+---@type { __prepare: UiPrepareFunction, [string]: fun(site: Site?, player: LuaPlayer, event: UiBasicEvent) }
+Ui.Core.routes.site = {
+    __prepare = function(event)
+        return {
+            Sites.storage.getById(event.element.tags.site_id or 0),
+            game.players[event.player_index],
+            event,
+        }
+    end,
 
-    -- toggle tool
-    if player.cursor_stack.valid_for_read and player.cursor_stack.name == 'dqol-resource-monitor-area-tool' then
+    show = UiSite.show,
+
+    highlight = function(site, player)
+        if site == nil then return end
+
+        Sites.site.highlight(site)
+
+        -- show in game world
+        if script.active_mods["space-exploration"] ~= nil then
+            local zone = remote.call("space-exploration", "get_zone_from_surface_index", { surface_index = site.surface})
+            if not zone then
+                -- zone is not available?!
+                player.print('Cannot go to zone!')
+                return
+            end
+            remote.call("space-exploration", "remote_view_start",
+                {
+                    player = player,
+                    zone_name = zone.name,
+                    position = site.area,
+                    location_name = site.name,
+                    freeze_history = true
+                })
+        else
+            local entity = game.surfaces[site.surface].find_entities_filtered{
+                area = {left_top = {x = site.area.x - 1, y = site.area.y - 1}, right_bottom = {x = site.area.x + 1, y = site.area.y + 1}},
+                limit = 1,
+            }[1] or game.surfaces[site.surface].find_entities_filtered {
+                area = {left_top = {x = site.area.left, y = site.area.top}, right_bottom = {x = site.area.right, y = site.area.bottom}},
+                limit = 1,
+            }[1] or nil
+
+            if entity then
+                player.centered_on = entity
+            else
+                player.print({'dqol-resource-monitor.ui-print-no-entity-to-center'})
+            end
+        end
+    end,
+
+    rename_open = function(site, player, event)
+        local tab = get_tab_from_event(event)
+        local outer = tab.main.site_outer
+        outer.title.visible = false
+        outer.rename.visible = true
+
+        local textfield = outer.rename.textfield
+        if textfield == nil then return end
+        textfield.focus()
+    end,
+
+    rename = function(site, player, event)
+        if site == nil then return Ui.Menu.open(player) end
+
+        local tab = get_tab_from_event(event)
+        local textfield = tab.main.site_outer.rename.textfield
+
+        if textfield == nil then return end
+
+        site.name = textfield.text
+
+        Ui.Menu.open(player)
+    end,
+
+    update = function(site, player)
+        if site ~= nil then
+            Sites.updater.updateSite(site)
+        end
+        Ui.Menu.open(player)
+    end,
+
+    delete_open = function(site, player, event)
+        local tab = get_tab_from_event(event)
+        local buttons = tab.main.site_outer.site.buttons
+
+        if buttons == nil then return end
+
+        if buttons.delete_open then buttons.delete_open.visible = false end
+        if buttons.delete_confirm then buttons.delete_confirm.visible = true end
+    end,
+
+    delete = function(site, player)
+        if site ~= nil then
+            Sites.storage.remove(site)
+        end
+
+        Ui.Menu.open(player)
+    end,
+
+    toggle_tracking = function(site, player, event)
+        if site == nil then return Ui.Menu.open(player) end
+
+        site.tracking = (site.tracking == false) or false
+
+        -- immediately update the site
+        Sites.updater.updateSite(site)
+
+        Ui.Menu.open(player)
+    end,
+
+    toggle_archived = function(site, player, event)
+        if site == nil then return Ui.Menu.open(player) end
+
+        site.archived = (site.archived ~= true) or false
+
+        if site.archived == true and site.calculated.amount == 0 then
+            -- automatically turn of tracking when archiving sites
+            site.tracking = false
+        end
+
+        -- immediately update the site
+        Sites.updater.updateSite(site)
+
+        Ui.Menu.open(player)
+    end,
+
+    toggle_pin = function(site, player)
+        if site == nil then return Ui.Menu.open(player) end
+
+        site.pinned = (site.pinned ~= true) or false
+
+        -- immediately update the site
+        Sites.updater.updateSite(site)
+
+        Ui.Menu.open(player)
+    end,
+
+    merge_open = function(site, player, event)
+        if site == nil then return Ui.Menu.open(player) end
+
+        local tab = get_tab_from_event(event)
+        local merge = tab.main.site_outer.site.merge
+        if merge == nil then return end
+
+        merge.visible = true
+        local sites = get_mergable_sites(site)
+        local items = {}
+        local index = {}
+        for _, item in pairs(sites) do
+            table.insert(items, {'dqol-resource-monitor.ui-site-merge-select-item', item.site.id, item.site.name, item.distance})
+            table.insert(index, item.site.id)
+        end
+        merge.sites.items = items
+        local tags = merge.sites.tags
+        tags.index = index
+        merge.sites.tags = tags
+    end,
+
+    merge_confirm = function(site, player, event)
+        if site == nil then return Ui.Menu.open(player) end
+
+        local tab = get_tab_from_event(event)
+        local merge = tab.main.site_outer.site.merge
+        if merge == nil then return end
+
+        local otherId = merge.sites.tags.index[merge.sites.selected_index] or nil
+        local otherSite = otherId and Sites.storage.getById(otherId)
+
+        if otherSite == nil then
+            player.print({'dqol-resource-monitor.ui-print-merged-sites-failed', (otherId or ''), site.id})
+            return
+        end
+
+        -- do the merge
+        Sites.merge(site, otherSite)
+        Sites.storage.remove(otherSite)
+
+        Ui.Menu.open(player)
+
+        player.print({'dqol-resource-monitor.ui-print-merged-sites', otherSite.id, site.id})
+    end,
+
+    area_open = function(site, player, event)
+        -- show area tool note
+        local tab = get_tab_from_event(event)
+        local area = tab.main.site_outer.site.area
+        if area == nil then return end
+        area.visible = true
+
+        -- toggle tool
+        if player.cursor_stack.valid_for_read and player.cursor_stack.name == 'dqol-resource-monitor-area-tool' then
+            player.cursor_stack.clear()
+        else
+            player.cursor_stack.set_stack({name = 'dqol-resource-monitor-area-tool'})
+        end
+    end,
+
+    area_select = function(site, player, event)
+        if site == nil then return end
+        local mode = (event.name == 58 and 'add') or (event.name == 196 and 'sub') or 'set'
+
+        -- make sure the surface is right
+        local surface = event.surface ---@as LuaSurface
+        if surface.index ~= site.surface then
+            player.print({ 'dqol-resource-monitor.ui-print-area-tool-fail-surface', site.id, site.name })
+            return
+        end
+
+        local sites = {}
+        Sites.createFromResources(event.entities, surface, sites)
+        local newSite = sites[site.type]
+
+        -- make sure there were valid resources selected
+        if newSite == nil then
+            player.print({ 'dqol-resource-monitor.ui-print-area-tool-fail-resources', site.id, site.name })
+            return
+        end
+
+        -- now decide the mode
+        if mode == 'add' then
+            -- add all chunks that do not exist already
+            for key, chunk in pairs(newSite.chunks) do
+                if site.chunks[key] == nil then
+                    site.chunks[key] = chunk
+                end
+            end
+        elseif mode == 'sub' then
+            -- remove the chunks that overlap
+            for key, chunk in pairs(newSite.chunks) do
+                if site.chunks[key] ~= nil then
+                    site.chunks[key] = nil
+                end
+            end
+        else
+            -- simply replace the chunks with these ones
+            site.chunks = newSite.chunks
+        end
+        
+        -- update all data
+        Sites.site.updateCalculated(site)
+        Sites.site.calculateArea(site)
+        Sites.updater.updateSite(site)
+
+        -- make sure the initial size is grown if needed
+        if site.initial_amount < site.calculated.amount then
+            site.initial_amount = site.calculated.amount
+        end
+
+        -- finish with showing everything
+        player.print({ 'dqol-resource-monitor.ui-print-area-tool-' .. mode, site.id, site.name })
         player.cursor_stack.clear()
-    else
-        player.cursor_stack.set_stack({name = 'dqol-resource-monitor-area-tool'})
-    end
-end
+        Sites.site.highlight(site)
+        UiSite.show(site, player)
+    end,
 
----@param site ?Site
----@param player LuaPlayer
----@param event 
-function UiSite.onAreaSelect(site, player, event)
-    if site == nil then return end
-    local mode = (event.name == 58 and 'add') or (event.name == 196 and 'sub') or 'set'
+    add = function(site, player, event)
+        local tab = get_tab_from_event(event)
 
-    -- make sure the surface is right
-    local surface = event.surface ---@as LuaSurface
-    if surface.index ~= site.surface then
-        player.print({ 'dqol-resource-monitor.ui-print-area-tool-fail-surface', site.id, site.name })
-        return
-    end
+        -- retrieve data
+        local selectSurface = tab.top_flow.add_site.form.surface
+        local surfaceId = selectSurface.tags.indexToSurface[selectSurface.selected_index]
+        local surface = game.surfaces[surfaceId]
+        local selectResource = tab.top_flow.add_site.form.resource
+        local resourceType = selectResource.tags.indexToResource[selectResource.selected_index]
+        local resource = Resources.types[resourceType]
 
-    local sites = {}
-    Sites.createFromResources(event.entities, surface, sites)
-    local newSite = sites[site.type]
+        if surface == nil or resource == nil then return end
 
-    -- make sure there were valid resources selected
-    if newSite == nil then
-        player.print({ 'dqol-resource-monitor.ui-print-area-tool-fail-resources', site.id, site.name })
-        return
-    end
+        -- create the new site
+        local site = Sites.createEmpty(
+            true,
+            surface.index,
+            resource.resource_name,
+            Util.Naming.getSiteName({x = player.position.x, y = player.position.y}, resource.resource_name)
+        )
 
-    -- now decide the mode
-    if mode == 'add' then
-        -- add all chunks that do not exist already
-        for key, chunk in pairs(newSite.chunks) do
-            if site.chunks[key] == nil then
-                site.chunks[key] = chunk
-            end
-        end
-    elseif mode == 'sub' then
-        -- remove the chunks that overlap
-        for key, chunk in pairs(newSite.chunks) do
-            if site.chunks[key] ~= nil then
-                site.chunks[key] = nil
-            end
-        end
-    else
-        -- simply replace the chunks with these ones
-        site.chunks = newSite.chunks
-    end
-    
-    -- update all data
-    Sites.site.updateCalculated(site)
-    Sites.site.calculateArea(site)
-    Sites.updater.updateSite(site)
-
-    -- make sure the initial size is grown if needed
-    if site.initial_amount < site.calculated.amount then
-        site.initial_amount = site.calculated.amount
-    end
-
-    -- finish with showing everything
-    player.print({ 'dqol-resource-monitor.ui-print-area-tool-' .. mode, site.id, site.name })
-    player.cursor_stack.clear()
-    Sites.site.highlight(site)
-    Ui.Menu.onSiteShow(site, player)
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onMergeConfirm(site, player, event)
-    if site == nil then return Ui.Menu.show(player) end
-
-    local tab = get_tab_from_event(event)
-    local merge = tab.main.site_outer.site.merge
-    if merge == nil then return end
-
-    local otherId = merge.sites.tags.index[merge.sites.selected_index] or nil
-    local otherSite = otherId and Sites.storage.getById(otherId)
-
-    if otherSite == nil then
-        player.print({'dqol-resource-monitor.ui-print-merged-sites-failed', (otherId or ''), site.id})
-        return
-    end
-
-    -- do the merge
-    Sites.merge(site, otherSite)
-    Sites.storage.remove(otherSite)
-
-    Ui.Menu.show(player)
-
-    player.print({'dqol-resource-monitor.ui-print-merged-sites', otherSite.id, site.id})
-end
-
----@param site ?Site
----@param player LuaPlayer
-function UiSite.onAdd(site, player, event)
-    local tab = get_tab_from_event(event)
-
-    -- retrieve data
-    local selectSurface = tab.top_flow.add_site.form.surface
-    local surfaceId = selectSurface.tags.indexToSurface[selectSurface.selected_index]
-    local surface = game.surfaces[surfaceId]
-    local selectResource = tab.top_flow.add_site.form.resource
-    local resourceType = selectResource.tags.indexToResource[selectResource.selected_index]
-    local resource = Resources.types[resourceType]
-
-    if surface == nil or resource == nil then return end
-
-    -- create the new site
-    local site = Sites.createEmpty(
-        true,
-        surface.index,
-        resource.resource_name,
-        Util.Naming.getSiteName({x = player.position.x, y = player.position.y}, resource.resource_name)
-    )
-
-    -- show this site in the menu
-    Ui.Menu.onSiteShow(site, player)
-end
+        -- show this site in the menu
+        UiSite.show(site, player)
+    end,
+}
 
 return UiSite

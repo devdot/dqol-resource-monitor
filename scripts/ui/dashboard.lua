@@ -1,5 +1,6 @@
 local UiDashboard = {
-    ROOT_FRAME = Ui.ROOT_FRAME .. '-sites',
+    ROOT_FRAME = _MOD .. '-ui-sites',
+    UPDATE_INTERVAL = 91, -- odd so it spreads out
     columns = {
         name = {
             img = 'dqol-resource-monitor-filter-name',
@@ -52,7 +53,7 @@ local UiDashboard = {
 ---@param player LuaPlayer
 ---@return LuaGuiElement
 local function create_dashboard(player)
-    local state = Ui.State.get(player.index)
+    local state = Ui.State:get(player.index)
 
     local isFrame = state.dashboard.transparent_background == false
     local root = Ui.mod_gui.get_frame_flow(player).add {
@@ -101,6 +102,10 @@ Control.register('player_joined', function(event)
 end)
 
 
+Control.registerNth(Ui.UPDATE_INTERVAL, function()
+    Ui.Dashboard.onUpdate()
+end)
+
 ---Update dashboard with new UI
 ---@param player LuaPlayer
 function UiDashboard.update(player)
@@ -111,7 +116,7 @@ end
 ---Fill sites into dashboard UI for a given player
 ---@param player LuaPlayer
 function UiDashboard.fill(player)
-    local state = Ui.State.get(player.index)
+    local state = Ui.State:get(player.index)
     local show = state.dashboard.mode == 'always' or state.dashboard.is_hovering
 
     if show ~= true then
@@ -119,7 +124,7 @@ function UiDashboard.fill(player)
         return
     end
     
-    local sites = Ui.Menu.filters.getSites(state.menu.dashboard_filters, state.menu.use_products)
+    local sites = Ui.Filters.getSites(state.menu.dashboard_filters, state.menu.use_products)
     if #sites == 0 then
         -- hide when empty
         remove_dashboard(player)
