@@ -859,7 +859,7 @@ Control.register('boot', function()
     if settings.global['dqol-resource-monitor-site-chunks-per-update'].value == 0 then
         func = Sites.updater.onAll
     end
-    script.on_nth_tick(settings.global['dqol-resource-monitor-site-ticks-between-updates'].value, func)
+    Control.registerNth(settings.global['dqol-resource-monitor-site-ticks-between-updates'].value, func)
 end)
 
 Control.register('init', Sites.resetGlobal)

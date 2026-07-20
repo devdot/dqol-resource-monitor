@@ -168,10 +168,10 @@ function Ui.onClosed(event)
     end
 end
 
-function Ui.onNth(event)
+Control.registerNth(Ui.UPDATE_INTERVAL, function()
     Ui.Menu.onUpdateInterval()
     Ui.Dashboard.onUpdate()
-end
+end)
 
 ---This is supposed to be called after load/init
 Control.register('boot', function()
@@ -188,9 +188,6 @@ Control.register('boot', function()
     script.on_event({ defines.events.on_player_selected_area }, Ui.onSelectedArea)
     script.on_event({ defines.events.on_player_reverse_selected_area }, Ui.onSelectedArea)
     script.on_event({ defines.events.on_player_alt_selected_area }, Ui.onSelectedArea)
-
-    -- central event, because factorio will only trigger the event once even when registered multiple times
-    script.on_nth_tick(Ui.UPDATE_INTERVAL, Ui.onNth)
 end)
 
 Control.register('config_changed', function(event)
