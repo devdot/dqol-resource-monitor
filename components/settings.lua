@@ -1,22 +1,5 @@
-Settings = {}
-
----@param setting string
 ---@param player_index integer?
-function Settings.update(setting, player_index)
-    if setting == 'dqol-resource-monitor-site-map-markers' then Settings.updateMapTags(player_index)
-    elseif setting == 'dqol-resource-monitor-site-map-markers-untracked' then Settings.updateMapTags(player_index)
-    elseif setting == 'dqol-resource-monitor-site-map-markers-threshold' then Settings.updateMapTags(player_index)
-    elseif setting == 'dqol-resource-monitor-site-name-generator' then Settings.updateCustomPattern(player_index)
-    elseif setting == 'dqol-resource-monitor-site-name-generator-custom-pattern' then Settings.updateCustomPattern(player_index)
-    end
-end
-
-function Settings.updateAll()
-    Settings.updateMapTags()
-end
-
----@param player_index integer?
-function Settings.updateMapTags(player_index)
+local function update_map_tags(value, player_index)
     if player_index then
         game.players[player_index].print('Updated Map Tag Settings')
     end
@@ -28,7 +11,7 @@ end
 
 
 ---@param player_index integer?
-function Settings.updateCustomPattern(player_index)
+local function update_custom_pattern(value, player_index)
     if settings.global['dqol-resource-monitor-site-name-generator'].value ~= 'Custom' then
         return
     end
@@ -43,11 +26,11 @@ function Settings.updateCustomPattern(player_index)
     end
 end
 
-Control.register('boot', function()
-    script.on_event({ defines.events.on_runtime_mod_setting_changed }, function(e)
-        Settings.update(e.setting, e.player_index or nil)
-    end)
-end)
+Control.registerSettingChange(_MOD .. '-site-map-markers', update_map_tags)
+Control.registerSettingChange(_MOD .. '-site-map-markers-untracked', update_map_tags)
+Control.registerSettingChange(_MOD .. '-site-map-markers-threshold', update_map_tags)
+Control.registerSettingChange(_MOD .. '-site-name-generator', update_custom_pattern)
+Control.registerSettingChange(_MOD .. '-site-name-generator-custom-pattern', update_custom_pattern)
 
 Control.register('config_changed', function(event)
     -- check if we changed or just some other mods
@@ -55,5 +38,5 @@ Control.register('config_changed', function(event)
         return
     end
 
-    Settings.updateAll()
+    update_map_tags()
 end)
