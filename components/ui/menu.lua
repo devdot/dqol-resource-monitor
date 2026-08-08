@@ -22,7 +22,7 @@ end
 function UiMenu.onUpdateInterval()
     for _, player in pairs(game.players) do
         if Ui.State.get(player.index).menu.refresh and Ui.Menu.isOpen(player) then
-            Ui.Menu.show(player)
+            Ui.Menu.show(player, true)
         end
     end
 end
@@ -125,12 +125,14 @@ end
 
 ---Display the main window
 ---@param player LuaPlayer
-function UiMenu.show(player)
-    UiMenu.fillCurrentTab(player)
+---@param periodic ?boolean whether this comes from the update interval and not from a player action
+function UiMenu.show(player, periodic)
+    UiMenu.fillCurrentTab(player, periodic)
 end
 
 ---@param player LuaPlayer
-function UiMenu.fillCurrentTab(player)
+---@param periodic ?boolean
+function UiMenu.fillCurrentTab(player, periodic)
     local window = UiMenu.get(player)
     local tabs = window.inner.tabbed
     local index = tabs.selected_tab_index or 1
@@ -143,7 +145,7 @@ function UiMenu.fillCurrentTab(player)
         UiMenu.tabs[tab.name].create(tab)
     end
 
-    UiMenu.tabs[tab.name].fill(tab)
+    UiMenu.tabs[tab.name].fill(tab, periodic)
 end
 
 ---@param player LuaPlayer
@@ -223,7 +225,7 @@ function UiMenu.tabs.sites.create(tab)
 end
 
 ---@param tab LuaGuiElement
-function UiMenu.tabs.sites.fill(tab)
+function UiMenu.tabs.sites.fill(tab, periodic)
     -- add filter with state
     local state = Ui.State.get(tab.player_index).menu.sites_filters
     UiMenu.filters.fill(tab, state, 'sites_filters')
@@ -290,7 +292,7 @@ function UiMenu.tabs.sites.fill(tab)
     -- fill site if set
     local state = Ui.State.get(tab.player_index)
     if state.menu.open_site_id then
-        Ui.Site.showInMenu(state.menu.open_site_id, tab.main.site_outer)
+        Ui.Site.showInMenu(state.menu.open_site_id, tab.main.site_outer, periodic)
     end
 end
 
@@ -374,7 +376,11 @@ function UiMenu.tabs.dashboard.create(tab)
 end
 
 ---@param tab LuaGuiElement
-function UiMenu.tabs.dashboard.fill(tab)
+function UiMenu.tabs.dashboard.fill(tab, periodic)
+    -- these are static settings, so there is nothing to refresh here
+    -- rebuilding them would close any open drop-down or reset the columns textfield
+    if periodic and table_size(tab.main.children) > 0 then return end
+
     -- immediately update dashboard
     Ui.Dashboard.update(game.players[tab.player_index])
 
@@ -475,7 +481,10 @@ function UiMenu.tabs.other.create(tab)
 end
 
 ---@param tab LuaGuiElement
-function UiMenu.tabs.other.fill(tab)
+function UiMenu.tabs.other.fill(tab, periodic)
+    -- this tab is rebuilt as a whole, which would close the add site drop-down
+    if periodic and tab.top_flow ~= nil then return end
+
     tab.clear()
 
     tab.add { name = 'top_flow', type = 'flow', direction = 'horizontal' }
@@ -885,17 +894,24 @@ function UiMenu.filters.fill(tab, state, filter_group)
     resourcesFilter.reset.visible = table_size(state.resources) > 0
 
     -- surface select
+    -- only write when the value actually changed, because writing closes an open drop-down
     local surfaceFilter = filters.textGroup.surface
     if surfaceFilter.visible then
         local surfaceIndex = surfaceFilter.tags.surfaceIdToSelect['' .. (state.surface or '')] or 1
-        surfaceFilter.selected_index = surfaceIndex
+        if surfaceFilter.selected_index ~= surfaceIndex then
+            surfaceFilter.selected_index = surfaceIndex
+        end
     end
 
     -- text fields
-    filters.textGroup.maxPercent.maxPercent.text = (state.maxPercent or 100) .. ''
-    filters.textGroup.maxEstimatedDepletion.maxEstimatedDepletion.text = ((state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '') .. '' -- convert from ticks to hours
-    filters.textGroup.minAmount.minAmount.text = math.floor(state.minAmount / 1000) .. '' -- convert to k
-    filters.textGroup.search.search.text = state.search or ''
+    -- only write when the value actually changed, because writing resets what the player is typing
+    local function setText(element, text)
+        if element.text ~= text then element.text = text end
+    end
+    setText(filters.textGroup.maxPercent.maxPercent, (state.maxPercent or 100) .. '')
+    setText(filters.textGroup.maxEstimatedDepletion.maxEstimatedDepletion, ((state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '') .. '') -- convert from ticks to hours
+    setText(filters.textGroup.minAmount.minAmount, math.floor(state.minAmount / 1000) .. '') -- convert to k
+    setText(filters.textGroup.search.search, state.search or '')
     
     -- state
     filters.orderAndState.states.onlyTracked.toggled = state.onlyTracked or false

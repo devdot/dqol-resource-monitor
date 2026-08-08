@@ -16,9 +16,24 @@ local function calculate_zoom(site)
     return zoom
 end
 
+---Check whether the player currently has one of the inline forms of this panel open
+---@param outer LuaGuiElement
+---@return boolean
+local function has_open_form(outer)
+    local inner = outer.site
+    return outer.rename.visible
+        or (inner.merge ~= nil and inner.merge.visible)
+        or (inner.area ~= nil and inner.area.visible)
+        or (inner.buttons ~= nil and inner.buttons.delete_confirm.visible)
+end
+
 ---@param site_id integer
 ---@param outer LuaGuiElement
-function UiSite.showInMenu(site_id, outer)
+---@param periodic ?boolean whether this comes from the update interval and not from a player action
+function UiSite.showInMenu(site_id, outer, periodic)
+    -- rebuilding the panel would close the rename, merge, area or delete form
+    if periodic and has_open_form(outer) then return end
+
     local inner = outer.site
     inner.clear()
     outer.title.clear()
