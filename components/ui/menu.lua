@@ -377,10 +377,6 @@ end
 
 ---@param tab LuaGuiElement
 function UiMenu.tabs.dashboard.fill(tab, periodic)
-    -- these are static settings, so there is nothing to refresh here
-    -- rebuilding them would close any open drop-down or reset the columns textfield
-    if periodic and table_size(tab.main.children) > 0 then return end
-
     -- immediately update dashboard
     Ui.Dashboard.update(game.players[tab.player_index])
 
@@ -483,6 +479,7 @@ end
 ---@param tab LuaGuiElement
 function UiMenu.tabs.other.fill(tab, periodic)
     -- this tab is rebuilt as a whole, which would close the add site drop-down
+    -- todo: move most things to the create function (would fix issues with periodic updates)
     if periodic and tab.top_flow ~= nil then return end
 
     tab.clear()
@@ -897,16 +894,17 @@ function UiMenu.filters.fill(tab, state, filter_group)
     -- only write when the value actually changed, because writing closes an open drop-down
     local surfaceFilter = filters.textGroup.surface
     if surfaceFilter.visible then
-        local surfaceIndex = surfaceFilter.tags.surfaceIdToSelect['' .. (state.surface or '')] or 1
-        if surfaceFilter.selected_index ~= surfaceIndex then
-            surfaceFilter.selected_index = surfaceIndex
-        end
+        local surfaceIndex = surfaceFilter.tags.surfaceIdToSelect[state.surface or ''] or 1
+        surfaceFilter.selected_index = surfaceIndex
     end
 
     -- text fields
     -- only write when the value actually changed, because writing resets what the player is typing
     local function setText(element, text)
-        if element.text ~= text then element.text = text end
+        if element.tags.text ~= text then
+            element.text = text
+            element.tags = { text = text }
+        end
     end
     setText(filters.textGroup.maxPercent.maxPercent, (state.maxPercent or 100) .. '')
     setText(filters.textGroup.maxEstimatedDepletion.maxEstimatedDepletion, ((state.maxEstimatedDepletion and (state.maxEstimatedDepletion / (60 * 60 * 60))) or '') .. '') -- convert from ticks to hours
