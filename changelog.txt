@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.7.2
+Date: 13.08.2026
+  Bugfixes:
+    - Fix UI refresh closing drop-downs and rename field, improving the UI handling with periodic updates, thanks to @Eldrinn-Elantey (https://github.com/devdot/dqol-resource-monitor/pull/27).
+    - Surface select did not display the selected surface properly (although the filter was working correctly).
+---------------------------------------------------------------------------------------------------
 Version: 1.7.1
 Date: 28.06.2026
   Bugfixes:
