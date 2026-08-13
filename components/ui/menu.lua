@@ -891,7 +891,6 @@ function UiMenu.filters.fill(tab, state, filter_group)
     resourcesFilter.reset.visible = table_size(state.resources) > 0
 
     -- surface select
-    -- only write when the value actually changed, because writing closes an open drop-down
     local surfaceFilter = filters.textGroup.surface
     if surfaceFilter.visible then
         local surfaceIndex = surfaceFilter.tags.surfaceIdToSelect[state.surface or ''] or 1
