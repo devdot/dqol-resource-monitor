@@ -617,7 +617,7 @@ function UiSite.onAdd(site, player, event)
         true,
         surface.index,
         resource.resource_name,
-        Util.Naming.getSiteName({x = player.position.x, y = player.position.y}, resource.resource_name)
+        Util.Naming.getSiteName({x = player.position.x, y = player.position.y}, resource.resource_name, surface.index)
     )
 
     -- show this site in the menu

@@ -2,13 +2,14 @@ local Naming = {}
 
 ---@param pos IntPosition?
 ---@param type string
+---@param surfaceId integer?
 ---@return string
-function Naming.getSiteName(pos, type)
+function Naming.getSiteName(pos, type, surfaceId)
     local generator = settings.global['dqol-resource-monitor-site-name-generator'].value
     if generator == 'Numeric' then
         return Naming.getNumericName(type)
     elseif generator == 'Custom' then
-        return Naming.getCustomName(pos, type)
+        return Naming.getCustomName(pos, type, nil, surfaceId)
     else
         return Naming.getRandomName(pos)
     end
@@ -71,8 +72,9 @@ end
 ---@param pos IntPosition?
 ---@param type string
 ---@param site ?Site
+---@param surfaceId integer?
 ---@return string
-function Naming.getCustomName(pos, type, site)
+function Naming.getCustomName(pos, type, site, surfaceId)
     local name = settings.global['dqol-resource-monitor-site-name-generator-custom-pattern'].value or ''
     
     if string.match(name, '%%id%%') then
@@ -90,6 +92,12 @@ function Naming.getCustomName(pos, type, site)
 
     if string.match(name, '%%icon%%') then
         name = string.gsub(name, '%%icon%%', Resources.getIconString(type))
+    end
+
+    if string.match(name, '%%surface%%') then
+        local id = (site and site.surface) or surfaceId
+        local surface = id and game.surfaces[id]
+        name = string.gsub(name, '%%surface%%', (surface and surface.name) or '')
     end
 
     if string.match(name, '%%random%%') then

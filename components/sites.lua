@@ -221,7 +221,7 @@ function Sites.createFromChunkResources(resources, surface, chunk, input)
         }
 
         if not types[resource.name] then
-            types[resource.name] = Sites.createEmpty(false, surface.index, resource.name, Util.Naming.getSiteName(pos, resource.name))
+            types[resource.name] = Sites.createEmpty(false, surface.index, resource.name, Util.Naming.getSiteName(pos, resource.name, surface.index))
             types[resource.name].area = { top = pos.y, bottom = pos.y, left = pos.x, right = pos.x }
             types[resource.name].chunks[chunk_key] = {
                 x = chunk.x,
