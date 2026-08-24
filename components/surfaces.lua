@@ -191,7 +191,22 @@ end
 ---@param surface_id integer
 ---@return string
 function Surfaces.surface.getIconString(surface_id)
-    return '[planet=' .. (game.surfaces[surface_id].name or '') .. ']'
+    local surface = game.surfaces[surface_id]
+    if surface == nil then return '' end
+    if surface.planet then
+        return '[planet=' .. surface.name .. ']'
+    end
+    if prototypes.space_location[surface.name] then
+        return '[space-location=' .. surface.name .. ']'
+    end
+    if script.active_mods['space-exploration'] then
+        local zone = remote.call('space-exploration', 'get_zone_from_surface_index', { surface_index = surface_id })
+        if zone ~= nil then
+            return '[img=' .. remote.call('space-exploration', 'get_zone_icon', { zone_index = zone.index }) .. ']'
+        end
+    end
+    -- no icon exists for this surface, so print nothing instead of a broken tag
+    return ''
 end
 
 ---@param surface Surface
