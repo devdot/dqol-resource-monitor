@@ -902,7 +902,9 @@ function UiMenu.filters.fill(tab, state, filter_group)
     local function setText(element, text)
         if element.tags.text ~= text then
             element.text = text
-            element.tags = { text = text }
+            local tags = element.tags
+            tags.text = text
+            element.tags = tags -- cannot write single entries but must always write the entire tag table
         end
     end
     setText(filters.textGroup.maxPercent.maxPercent, (state.maxPercent or 100) .. '')
