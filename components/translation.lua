@@ -1,17 +1,22 @@
 
----@type {request: function, callback: table<uint, {callback: fun(result: string, meta: table, event: table), meta: table}>}
+---@type {request: function, register: function, handlers: table<string, fun(result: string, meta: table, event: table)>}
 Translation = {
-    -- for now translations are not stored but only directed back
-    callback = {},
-    -- maybe we need to store callbacks in storage?
+    -- handlers are registered by name at load time, pending requests live in storage
+    handlers = {},
 }
 
+---@param name string
+---@param handler fun(result: string, meta: table, event: table)
+function Translation.register(name, handler)
+    Translation.handlers[name] = handler
+end
+
 ---@param string string|string[] {1: string, 2: string}
----@param callback function
+---@param handler string name passed to Translation.register
 ---@param meta table?
 ---@param player LuaPlayer?
 ---@returns boolean
-function Translation.request(string, callback, meta, player)
+function Translation.request(string, handler, meta, player)
     if type(string) ~= 'string' then
         if meta == nil then
             meta = { domain = string[1], type = string[2] }
@@ -39,19 +44,24 @@ function Translation.request(string, callback, meta, player)
         return false
     end
 
-    Translation.callback[id] = { callback = callback, meta = meta or {} }
+    -- pending requests must be in storage: a client joining mid-flight has to apply the same results as the server
+    storage.translation_requests = storage.translation_requests or {}
+    storage.translation_requests[id] = { handler = handler, meta = meta or {} }
     return true
 end
 
 local function translation_callback(event)
-    local data = Translation.callback[event.id] or nil
+    local data = storage.translation_requests and storage.translation_requests[event.id] or nil
 
     -- many mods might ask for translations, we only care about those that we requested
     if data == nil then return end
 
-    data.callback(event.result, data.meta, event)
+    storage.translation_requests[event.id] = nil
 
-    Translation.callback[event.id] = nil
+    local handler = Translation.handlers[data.handler]
+    if handler ~= nil then
+        handler(event.result, data.meta, event)
+    end
 end
 
 script.on_event(defines.events.on_string_translated, translation_callback)

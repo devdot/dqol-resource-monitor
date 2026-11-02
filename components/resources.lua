@@ -74,9 +74,9 @@ local function resource_translated(string, meta, event)
         if string == '' then
             -- try some other domains
             if meta.domain == 'entity-name' then
-                Translation.request({ 'resource-name', meta.type }, resource_translated)
+                Translation.request({ 'resource-name', meta.type }, 'resource')
             elseif meta.domain == 'resource-name' then
-                Translation.request({ 'item-name' , meta.type}, resource_translated)
+                Translation.request({ 'item-name' , meta.type}, 'resource')
             else
                 log('Failed translation for ' .. meta.type)
                 -- now call self to pretend a translation
@@ -92,6 +92,8 @@ local function resource_translated(string, meta, event)
         save_to_storage()
     end
 end
+
+Translation.register('resource', resource_translated)
 
 local function generate_resources()
     -- for new games, this is called twice (on_init, on_player_created)
@@ -143,7 +145,7 @@ local function generate_resources()
 
     -- request translations for all resources
     for _, resource in pairs(Resources.types) do
-        Translation.request({'entity-name', resource.resource_name}, resource_translated)
+        Translation.request({'entity-name', resource.resource_name}, 'resource')
     end
 
     -- write to global cache
