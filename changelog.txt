@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.7.3
+Date: 24.08.2026
+  Minor Features:
+    - Add %surface% replacement to custom site name pattern, thanks to @Eldrinn-Elantey (https://github.com/devdot/dqol-resource-monitor/pull/30).
+  Bugfixes:
+    - Fix surface icon for non-planet surfaces, thanks to @Eldrinn-Elantey (https://github.com/devdot/dqol-resource-monitor/pull/31).
+    - Fix text filters not working after 1.7.2 (https://github.com/devdot/dqol-resource-monitor/issues/29).
+---------------------------------------------------------------------------------------------------
 Version: 1.7.2
 Date: 13.08.2026
   Bugfixes:
