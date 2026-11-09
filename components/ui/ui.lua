@@ -193,7 +193,7 @@ function Ui.boot()
     script.on_nth_tick(Ui.UPDATE_INTERVAL, Ui.onNth)
 end
 
----This is supposed to run on on_player_created or (or multiplayer join?)
+---Initialize or refresh the UI when a player is created or joins.
 ---@param player LuaPlayer
 function Ui.bootPlayer(player)
     Ui.State.bootPlayer(player)
