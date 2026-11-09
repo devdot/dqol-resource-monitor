@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.7.4
+Date: 09.11.2026
+  Bugfixes:
+    - Preserve dashboard and menu settings when reconnecting to a multiplayer game.
+---------------------------------------------------------------------------------------------------
 Version: 1.7.3
 Date: 24.08.2026
   Minor Features:

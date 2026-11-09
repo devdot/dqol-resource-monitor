@@ -10,7 +10,8 @@ UiState = {}
 
 ---@param player LuaPlayer
 function UiState.bootPlayer(player)
-    UiState.reset(player.index)
+    local state = UiState.get(player.index)
+    state.dashboard.is_hovering = false
 end
 
 ---Reset the entire UI State for a player (or all if none provided)
