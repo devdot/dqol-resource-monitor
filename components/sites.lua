@@ -744,6 +744,10 @@ function Sites.updater.updateSiteChunk(siteId, chunkKey)
         
         -- check if entire site is empty
         if site.calculated.amount <= 0 then
+            site.calculated.amount = 0
+            site.calculated.rate = 0
+            site.calculated.percent = 0
+            site.calculated.last_amount = 0
             game.print({ 'dqol-resource-monitor.ui-print-now-empty', site.name })
         end
         
